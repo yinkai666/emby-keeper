@@ -535,8 +535,8 @@ class ClientsSession:
     @classmethod
     def from_config(cls, config, in_memory=True, quiet=False, **kw):
         accounts = config.get("telegram", [])
-        for k, v in kw.items():
-            accounts = [a for a in accounts if a.get(k, None) in to_iterable(v)]
+        for k, (v, d) in kw.items():
+            accounts = [a for a in accounts if a.get(k, d) in to_iterable(v)]
         return cls(
             accounts=accounts,
             proxy=config.get("proxy", None),

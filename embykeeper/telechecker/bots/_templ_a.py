@@ -11,6 +11,8 @@ __ignore__ = True
 class TemplateACheckin(BotCheckin):
     bot_checkin_cmd = "/start"
     templ_panel_keywords = ["请选择功能", "用户面板"]
+    use_button_answer = True
+    bot_text_ignore_answer = ['Done']
 
     async def message_handler(self, client, message: Message):
         text = message.caption or message.text
@@ -27,7 +29,9 @@ class TemplateACheckin(BotCheckin):
                     except TimeoutError:
                         self.log.debug(f"点击签到按钮无响应, 可能按钮未正确处理点击回复. 一般来说不影响签到.")
                     else:
-                        await self.on_text(Message(id=0, text=answer.message), answer.message)
+                        if self.use_button_answer:
+                            if not any(ignore in answer.message for ignore in self.bot_text_ignore_answer):
+                                await self.on_text(Message(id=0, text=answer.message), answer.message)
                     return
             else:
                 self.log.warning(f"签到失败: 账户错误.")

@@ -122,7 +122,7 @@ async def _gather_task(tasks, username):
 async def checkiner(config: dict, instant=False):
     """签到器入口函数."""
     logger.debug("正在启动每日签到模块, 请等待登录.")
-    async with ClientsSession.from_config(config) as clients:
+    async with ClientsSession.from_config(config, checkin=(True, True)) as clients:
         coros = []
         async for tg in clients:
             log = logger.bind(scheme="telechecker", username=tg.me.name)
@@ -194,7 +194,7 @@ async def checkiner(config: dict, instant=False):
                         msg = "签到失败"
                     log.error(f"{msg} ({spec}): {', '.join([f.name for f in failed])}")
                 else:
-                    log.bind(notify=True).info(f"签到成功 ({spec}).")
+                    log.bind(log=True).info(f"签到成功 ({spec}).")
 
 
 async def checkiner_schedule(config: dict, start_time=None, end_time=None, days: int = 1, instant=False):
@@ -210,7 +210,7 @@ async def monitorer(config: dict):
     """监控器入口函数."""
     logger.debug("正在启动消息监控模块.")
     jobs = []
-    async with ClientsSession.from_config(config, monitor=True) as clients:
+    async with ClientsSession.from_config(config, monitor=(True, False)) as clients:
         async for tg in clients:
             log = logger.bind(scheme="telemonitor", username=tg.me.name)
             logger.info("已连接到 Telegram, 监控器正在初始化.")
@@ -243,7 +243,7 @@ async def messager(config: dict):
     """自动水群入口函数."""
     logger.debug("正在启动自动水群模块.")
     messagers = []
-    async with ClientsSession.from_config(config, send=True) as clients:
+    async with ClientsSession.from_config(config, send=(True, False)) as clients:
         async for tg in clients:
             log = logger.bind(scheme="telemessager", username=tg.me.name)
             logger.info("已连接到 Telegram, 自动水群正在初始化.")

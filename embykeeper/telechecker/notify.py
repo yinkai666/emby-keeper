@@ -11,19 +11,22 @@ logger = logger.bind(scheme="telegram")
 async def start_notifier(config: dict):
     """消息通知初始化函数."""
 
-    def _filter(record):
-        notify = record.get("extra", {}).get("notify", None)
+    def _filter_log(record):
+        notify = record.get("extra", {}).get("log", None)
         if notify or record["level"].no == logging.ERROR:
+            return True
+        else:
+            return False
+    
+    def _filter_msg(record):
+        notify = record.get("extra", {}).get("msg", None)
+        if notify:
             return True
         else:
             return False
 
     def _formatter(record):
-        notify = record.get("extra", {}).get("notify", False)
-        format = formatter(record)
-        if notify and notify != True:
-            format = format.replace("{message}", "{extra[notify]}")
-        return "{level}#" + format
+        return "{level}#" + formatter(record)
 
     accounts = config.get("telegram", [])
     notifier = config.get("notifier", None)
@@ -49,5 +52,15 @@ async def start_notifier(config: dict):
                 account=notifier, proxy=config.get("proxy", None), basedir=config.get("basedir", None)
             ),
             format=_formatter,
-            filter=_filter,
+            filter=_filter_log,
         )
+        logger.add(
+            TelegramStream(
+                account=notifier, proxy=config.get("proxy", None), basedir=config.get("basedir", None), instant=True,
+            ),
+            format=_formatter,
+            filter=_filter_msg,
+        )
+        return True
+    else:
+        return False

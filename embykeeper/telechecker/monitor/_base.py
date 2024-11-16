@@ -218,7 +218,7 @@ class Monitor:
                 if not await Link(self.client).auth(a, log_func=self.log.info):
                     return False
         if not await self.init():
-            self.log.bind(notify=True).warning(f"机器人状态初始化失败, 监控将停止.")
+            self.log.bind(log=True).warning(f"机器人状态初始化失败, 监控将停止.")
             return False
         if self.notify_create_name:
             self.unique_name = self.get_unique_name()
@@ -340,7 +340,7 @@ class Monitor:
         unique_name = self.config.get("unique_name", None)
         if unique_name:
             self.log.info(f'根据您的设置, 当监控到开注时, 该站点将以用户名 "{unique_name}" 注册.')
-            if not re.search("^\w+$"):
+            if not re.search("^\w+$", unique_name):
                 self.log.warning(f"用户名含有除 a-z, A-Z, 0-9, 以及下划线之外的字符, 可能导致注册失败.")
             return unique_name
         else:

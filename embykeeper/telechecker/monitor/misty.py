@@ -80,7 +80,7 @@ class MistyMonitor(Monitor):
                     else:
                         self.log.info(f"机器人状态初始化失败, 正在重试.")
             else:
-                self.log.bind(notify=True).warning(f"机器人状态初始化失败, 监控将停止.")
+                self.log.bind(log=True).warning(f"Misty 机器人状态初始化失败, 监控将停止.")
                 return False
 
     async def on_trigger(self, message: Message, key, reply):
@@ -103,7 +103,7 @@ class MistyMonitor(Monitor):
                         msg = await wr(self.unique_name)
                         if "密码" in msg.text:
                             await self.client.send_message(self.bot_username, "/cancel")
-                            self.log.bind(notify=True).info(
+                            self.log.bind(msg=True).info(
                                 f'已向 Bot @{self.bot_username} 发送了用户注册申请: "{self.unique_name}", 请检查结果.'
                             )
                 except asyncio.TimeoutError:

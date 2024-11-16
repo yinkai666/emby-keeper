@@ -17,11 +17,12 @@ constants.LOG_THRESHOLD_FOR_CONNLOST_WRITES = 1000000
 class TelegramStream(io.TextIOWrapper):
     """消息推送处理器类"""
 
-    def __init__(self, account, proxy=None, basedir=None):
+    def __init__(self, account, proxy=None, basedir=None, instant=False):
         super().__init__(io.BytesIO(), line_buffering=True)
         self.account = account
         self.proxy = proxy
         self.basedir = basedir
+        self.instant = instant
 
         self.queue = asyncio.Queue()
         self.watch = asyncio.create_task(self.watchdog())
@@ -40,7 +41,10 @@ class TelegramStream(io.TextIOWrapper):
     async def send(self, message):
         async with ClientsSession([self.account], proxy=self.proxy, basedir=self.basedir) as clients:
             async for tg in clients:
-                return await Link(tg).send_log(message)
+                if self.instant:
+                    return await Link(tg).send_msg(message)
+                else:
+                    return await Link(tg).send_log(message)
             else:
                 return False
 

@@ -112,10 +112,14 @@ async def main(
     ),
     debug_cron: bool = typer.Option(
         False,
-        hidden=True,
         envvar="EK_DEBUG_CRON",
         show_envvar=False,
         help="开启任务调试模式, 在三秒后立刻开始执行计划任务",
+    ),
+    debug_notify: bool = typer.Option(
+        False,
+        show_envvar=False,
+        help="开启日志调试模式, 发送一条日志记录和即时日志记录后退出",
     ),
     simple_log: bool = typer.Option(
         False, "--simple-log", "-L", rich_help_panel="调试参数", help="简化日志输出格式"
@@ -186,18 +190,7 @@ async def main(
         emby = default_interval
         monitor = True
         send = True
-
-    if emby and not isinstance(emby, int):
-        try:
-            emby = abs(int(emby))
-        except ValueError:
-            interval_range_match = re.match(r"<(\d+),(\d+)>", emby)
-            if interval_range_match:
-                emby = [int(interval_range_match.group(1)), int(interval_range_match.group(2))]
-            else:
-                logger.error(f"无法解析保活间隔天数: {default_interval}, 保活将不会运行.")
-                emby = False
-
+        
     if follow:
         from .telechecker.debug import follower
 
@@ -220,6 +213,30 @@ async def main(
         from .telechecker.debug import dumper
 
         return await dumper(config, dump)
+    
+    if debug_notify:
+        from .telechecker.notify import start_notifier
+
+        if await start_notifier(config):
+            logger.info("以下是发送的日志:")
+            logger.bind(msg=True, scheme="debugtool").info("这是一条用于测试的即时消息, 使用 debug_notify 触发 😉.")
+            logger.bind(log=True, scheme="debugtool").info("这是一条用于测试的日志消息, 使用 debug_notify 触发 😉.")
+            logger.info("已尝试发送, 请至 @embykeeper_bot 查看.")
+            await asyncio.sleep(10)
+        else:
+            logger.error("您当前没有配置有效的日志通知 (未启用日志通知或未配置账号), 请检查配置文件.")
+        return
+
+    if emby and not isinstance(emby, int):
+        try:
+            emby = abs(int(emby))
+        except ValueError:
+            interval_range_match = re.match(r"<(\d+),(\d+)>", emby)
+            if interval_range_match:
+                emby = [int(interval_range_match.group(1)), int(interval_range_match.group(2))]
+            else:
+                logger.error(f"无法解析保活间隔天数: {default_interval}, 保活将不会运行.")
+                emby = False
 
     from .telechecker.notify import start_notifier
 

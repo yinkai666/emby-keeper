@@ -20,7 +20,6 @@ from rich.table import Column, Table
 from rich.text import Text
 
 from ..utils import async_partial, batch, flatten, idle, time_in_range
-from ..var import console
 from .tele import Client, ClientsSession
 
 log = logger.bind(scheme="debugtool")

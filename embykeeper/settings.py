@@ -60,6 +60,7 @@ def check_config(config):
                 Schema(
                     {
                         "phone": str,
+                        Optional("checkin"): bool,
                         Optional("monitor"): bool,
                         Optional("send"): bool,
                         Optional("api_id"): Regex(r"^\d+$"),
@@ -200,6 +201,7 @@ def write_faked_config(path, quiet=False):
         t = item(
             {
                 "phone": f'+861{fake.numerify(text="##########")}',
+                "checkin": True,
                 "send": False,
                 "monitor": False,
             }

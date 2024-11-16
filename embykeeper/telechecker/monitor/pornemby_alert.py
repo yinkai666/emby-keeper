@@ -93,7 +93,7 @@ class PornembyAlertMonitor(Monitor):
             if reason:
                 msg += f" (原因: {reason})"
             msg += "."
-            self.log.bind(notify=True).error(msg)
+            self.log.bind(log=True).error(msg)
             async with self.lock:
                 self.alert_remaining = float("inf")
 

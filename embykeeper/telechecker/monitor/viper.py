@@ -15,4 +15,4 @@ class ViperMonitor(Monitor):
     async def on_trigger(self, message: Message, key, reply):
         await self.client.send_message(self.bot_username, f"/invite {key}")
         await self.client.send_message(self.bot_username, self.unique_name)
-        self.log.bind(notify=True).info(f'已向Bot发送邀请码: "{key}", 请查看.')
+        self.log.bind(msg=True).info(f'已向Bot发送邀请码: "{key}", 请查看.')

@@ -131,7 +131,7 @@ class FutureMonitor(Monitor):
                     msg = await self.client.wait_reply(self.bot_username, f"{self.unique_name}@gmail.com")
                     text = msg.text or msg.caption
                 if "创建成功" in text:
-                    self.log.bind(notify=True).info(f"已在 Bot @{self.bot_username} 成功创建用户, 请查看.")
+                    self.log.bind(msg=True).info(f"已在 Bot @{self.bot_username} 成功创建用户, 请查看.")
                     return
                 else:
                     self.log.warning(f"注册失败, 可能是注册流程出错, 请检查.")

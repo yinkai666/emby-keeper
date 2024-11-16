@@ -41,6 +41,8 @@ def formatter(record):
         return f"[blue]{scheme_names[scheme]}[/]{ident}: {{message}}"
     elif scheme == "datamanager":
         return f"[blue]{scheme_names[scheme]}[/]: {{message}}"
+    elif scheme == "debugtool":
+        return f"[blue]{scheme_names[scheme]}[/]: {{message}}"
     else:
         return "{message}"
 

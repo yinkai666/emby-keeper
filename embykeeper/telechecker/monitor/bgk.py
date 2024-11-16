@@ -15,4 +15,4 @@ class BGKMonitor(Monitor):
         await self.client.send_message(self.bot_username, "/invite")
         await self.client.send_message(self.bot_username, key)
         await self.client.send_message(self.bot_username, self.unique_name)
-        self.log.bind(notify=True).info(f'已向 Bot @{self.bot_username} 发送了邀请码: "{key}", 请查看.')
+        self.log.bind(msg=True).info(f'已向 Bot @{self.bot_username} 发送了邀请码: "{key}", 请查看.')
