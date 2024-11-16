@@ -3,6 +3,7 @@ from pyrogram.types import Message
 
 from ._base import Monitor
 
+
 class ShufuMonitor(Monitor):
     name = "叔服"
     chat_name = -1001890341413

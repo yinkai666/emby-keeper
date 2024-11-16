@@ -190,7 +190,7 @@ async def main(
         emby = default_interval
         monitor = True
         send = True
-        
+
     if follow:
         from .telechecker.debug import follower
 
@@ -213,14 +213,18 @@ async def main(
         from .telechecker.debug import dumper
 
         return await dumper(config, dump)
-    
+
     if debug_notify:
         from .telechecker.notify import start_notifier
 
         if await start_notifier(config):
             logger.info("以下是发送的日志:")
-            logger.bind(msg=True, scheme="debugtool").info("这是一条用于测试的即时消息, 使用 debug_notify 触发 😉.")
-            logger.bind(log=True, scheme="debugtool").info("这是一条用于测试的日志消息, 使用 debug_notify 触发 😉.")
+            logger.bind(msg=True, scheme="debugtool").info(
+                "这是一条用于测试的即时消息, 使用 debug_notify 触发 😉."
+            )
+            logger.bind(log=True, scheme="debugtool").info(
+                "这是一条用于测试的日志消息, 使用 debug_notify 触发 😉."
+            )
             logger.info("已尝试发送, 请至 @embykeeper_bot 查看.")
             await asyncio.sleep(10)
         else:

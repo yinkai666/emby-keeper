@@ -274,7 +274,7 @@ async def watch(
                             + f"当前该视频播放 {obj.play_count} 次, "
                             + f"上次播放于 {last_played} UTC."
                         )
-                        
+
                         loggeruser.bind(log=True).info(prompt)
                         return True
                     except (ClientError, OSError, asyncio.IncompleteReadError) as e:
@@ -392,9 +392,7 @@ async def watch_multiple(
                         played_time += play_time
 
                         if played_time >= req_time - 1:
-                            loggeruser.bind(log=True).info(
-                                f"保活成功, 共播放 {played_videos} 个视频."
-                            )
+                            loggeruser.bind(log=True).info(f"保活成功, 共播放 {played_videos} 个视频.")
                             return True
                         else:
                             loggeruser.info(f"还需播放 {req_time - played_time:.0f} 秒.")

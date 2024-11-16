@@ -17,7 +17,7 @@ async def start_notifier(config: dict):
             return True
         else:
             return False
-    
+
     def _filter_msg(record):
         notify = record.get("extra", {}).get("msg", None)
         if notify:
@@ -56,7 +56,10 @@ async def start_notifier(config: dict):
         )
         logger.add(
             TelegramStream(
-                account=notifier, proxy=config.get("proxy", None), basedir=config.get("basedir", None), instant=True,
+                account=notifier,
+                proxy=config.get("proxy", None),
+                basedir=config.get("basedir", None),
+                instant=True,
             ),
             format=_formatter,
             filter=_filter_msg,

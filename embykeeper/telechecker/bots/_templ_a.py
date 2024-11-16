@@ -12,7 +12,7 @@ class TemplateACheckin(BotCheckin):
     bot_checkin_cmd = "/start"
     templ_panel_keywords = ["请选择功能", "用户面板"]
     use_button_answer = True
-    bot_text_ignore_answer = ['Done']
+    bot_text_ignore_answer = ["Done"]
 
     async def message_handler(self, client, message: Message):
         text = message.caption or message.text
