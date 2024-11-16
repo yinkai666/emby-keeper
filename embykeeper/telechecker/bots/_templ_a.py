@@ -23,7 +23,7 @@ class TemplateACheckin(BotCheckin):
         ):
             keys = [k.text for r in message.reply_markup.inline_keyboard for k in r]
             for k in keys:
-                if "签到" in k:
+                if "签到" in k or "簽到" in k:
                     try:
                         answer: BotCallbackAnswer = await message.click(k)
                     except TimeoutError:
