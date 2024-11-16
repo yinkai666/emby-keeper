@@ -123,6 +123,7 @@ docker run -v $(pwd)/embykeeper:/app --rm -it --net=host embykeeper/embykeeper
     - Temby (`temby`): [频道](https://t.me/tembychannel) [群组](https://t.me/tembygroup) [机器人](https://t.me/HiEmbyBot)
     - Temby 测试服 (`temby_beta`): [群组](https://t.me/tembybeta) [机器人](https://t.me/Temby_Bot)
     - Ciji (`ciji`): [机器人](https://t.me/MM_nastool_bot)
+    - StarCat (`starcat`): [频道](https://t.me/StarCatEmby) [群组](https://t.me/StarCatEmby) [机器人](https://t.me/StarCatBot)
 
     <!-- #endregion checkiner-beta-sites -->
   - 关服, 无响应, 或已停用签到功能 (默认禁用, 请参考[教程文档](https://emby-keeper.github.io/guide/配置文件#service-子项)启用):
@@ -199,6 +200,7 @@ docker run -v $(pwd)/embykeeper:/app --rm -it --net=host embykeeper/embykeeper
     - 无 HP 自动停止自动水群 (`pornemby_double`): [群组](https://t.me/Pornemby)
     - 风险时期自动停止 (`pornemby_alert`): [群组](https://t.me/Pornemby)
   - 不给看 抢邀请码 (`bgk`): [群组](https://t.me/Ephemeralemby) [机器人](https://t.me/UnknownEmbyBot)
+  - 叔服 抢邀请码 (`bgk`): [群组](http://t.me/+4eq37Ip8ayRhNDI9) [机器人](https://t.me/dashu660_bot)
 
   <!-- #endregion monitor-sites -->
   - 测试中的站点 (默认禁用, 请参考[教程文档](https://emby-keeper.github.io/guide/配置文件#service-子项)启用):
@@ -206,7 +208,7 @@ docker run -v $(pwd)/embykeeper:/app --rm -it --net=host embykeeper/embykeeper
 
     - 未响 抢邀请码 (`future`): [频道](https://t.me/FutureEcho_Notice) [群组](https://t.me/FutureEcho_Chat) [机器人](https://t.me/lotayu_bot)
     - 终点站 考核辅助 (`terminus_exam`): [频道](https://t.me/embypub) [群组](https://t.me/EmbyPublic) [机器人](https://t.me/EmbyPublicBot)
-
+    
     <!-- #endregion monitor-beta-sites -->
   - 关服或无响应 (默认禁用, 请参考[教程文档](https://emby-keeper.github.io/guide/配置文件#service-子项)启用):
     <!-- #region monitor-ignored-sites -->
