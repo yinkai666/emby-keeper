@@ -169,11 +169,22 @@ async def play(obj: EmbyObject, loggeruser: Logger, time: float = 10):
             loggeruser.warning(f"模拟播放时, 访问流媒体文件失败.")
             show_exception(e)
 
-    if not is_ok(await c.post("/Sessions/Playing/Stopped", data=playing_info(time * 10000000))):
-        raise PlayError("无法停止播放")
-    else:
-        loggeruser.info(f"播放完成, 共 {time:.0f} 秒.")
-        return True
+    for retry in range(3):
+        try:
+            if not is_ok(await c.post("/Sessions/Playing/Stopped", data=playing_info(time * 10000000))):
+                if retry == 2:
+                    raise PlayError("尝试停止播放3次后仍然失败")
+                loggeruser.debug(f"停止播放失败，正在进行第 {retry + 1}/3 次尝试")
+                await asyncio.sleep(1)
+                continue
+            else:
+                loggeruser.info(f"播放完成, 共 {time:.0f} 秒.")
+                return True
+        except (ClientError, ConnectionError, TimeoutError) as e:
+            if retry == 2:
+                raise PlayError(f"由于连接错误无法停止播放: {e}")
+            loggeruser.debug(f"停止播放时发生连接错误，正在进行第 {retry + 1}/3 次尝试: {e}")
+            await asyncio.sleep(1)
 
 
 async def login(config, continuous=False):
@@ -509,9 +520,9 @@ async def watcher(config: dict, instant: bool = False):
                 loggeruser.info(f"播放视频前随机等待 {wait:.0f} 秒.")
                 await asyncio.sleep(wait)
             if isinstance(time, Iterable):
-                tm = max(time) * 3
+                tm = max(time) * 4
             else:
-                tm = time * 3
+                tm = time * 4
             if multiple:
                 return await asyncio.wait_for(watch_multiple(emby, loggeruser, time, stream), max(tm, 600))
             else:

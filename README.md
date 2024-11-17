@@ -115,6 +115,7 @@ docker run -v $(pwd)/embykeeper:/app --rm -it --net=host embykeeper/embykeeper
   - Levilde Luminia (`levilde`): [频道](https://t.me/+X5jJKAnbkl8wNWNl) [群组](https://t.me/+LzAmejEBy-I4N2E1) [机器人](https://t.me/Levilde_Luminia_Bot)
   - 收束世界线 (`worldline`): [机器人](https://t.me/WorldLineEmby_bot)
   - 飞跃星空 (`feiyuemusic`): [群组](https://t.me/+FVPdVkpM8moyNjc1) [机器人](https://t.me/xingkongmusic_bot)
+  - Misty (`misty`): [频道](https://t.me/FreeEmbyChannel) [群组](https://t.me/FreeEmby) [机器人](https://t.me/EmbyMistyBot)
 
   <!-- #endregion checkiner-sites -->
   - 测试中新签到器 (默认禁用, 请参考[教程文档](https://emby-keeper.github.io/guide/配置文件#service-子项)启用):
@@ -129,7 +130,6 @@ docker run -v $(pwd)/embykeeper:/app --rm -it --net=host embykeeper/embykeeper
   - 关服, 无响应, 或已停用签到功能 (默认禁用, 请参考[教程文档](https://emby-keeper.github.io/guide/配置文件#service-子项)启用):
     <!-- #region checkiner-ignored-sites -->
 
-    - Misty (`misty`): ~~[频道](https://t.me/FreeEmbyChannel) [群组](https://t.me/FreeEmby) [机器人](https://t.me/EmbyMistyBot)~~
     - Akuai (`akuai`): ~~[频道](https://t.me/Akuaitzpibgdao) [群组](https://t.me/ikuaiemby) [机器人](https://t.me/joulilibot)~~
     - 垃圾影音 (`ljyy`): ~~[群组](https://t.me/+3sP2A-fgeXg0ZmY1) [机器人](https://t.me/zckllflbot)~~
     - EmbyHub (`embyhub`): ~~[频道](https://t.me/embyhub) [群组](https://t.me/emby_hub) [机器人](https://t.me/EdHubot)~~
@@ -201,6 +201,7 @@ docker run -v $(pwd)/embykeeper:/app --rm -it --net=host embykeeper/embykeeper
     - 风险时期自动停止 (`pornemby_alert`): [群组](https://t.me/Pornemby)
   - 不给看 抢邀请码 (`bgk`): [群组](https://t.me/Ephemeralemby) [机器人](https://t.me/UnknownEmbyBot)
   - 叔服 抢邀请码 (`shufu`): [群组](http://t.me/+4eq37Ip8ayRhNDI9) [机器人](https://t.me/dashu660_bot)
+  - Misty 开注自动注册 (`misty`): [频道](https://t.me/FreeEmbyChannel) [群组](https://t.me/FreeEmby) [机器人](https://t.me/EmbyMistyBot)
 
   <!-- #endregion monitor-sites -->
   - 测试中的站点 (默认禁用, 请参考[教程文档](https://emby-keeper.github.io/guide/配置文件#service-子项)启用):
@@ -214,7 +215,6 @@ docker run -v $(pwd)/embykeeper:/app --rm -it --net=host embykeeper/embykeeper
     <!-- #region monitor-ignored-sites -->
 
     - 全局自动从众 (`follow`): 当在任何群组中发现 5 分钟内 5 条一样内容的消息, 会自动跟一句 (影响范围大默认禁用)
-    - Misty 开注自动注册 (`misty`): ~~[频道](https://t.me/FreeEmbyChannel) [群组](https://t.me/FreeEmby) [机器人](https://t.me/EmbyMistyBot)~~
     - Polo 抢邀请码 (`polo`): ~~[频道](https://t.me/poloembyc) [群组](https://t.me/poloemby) [机器人](https://t.me/polo_emby_bot)~~
     - 剧狗 开注自动注册 (`judog`): ~~[频道](https://t.me/Mulgoreemby) [机器人](https://t.me/mulgorebot)~~
     - Embyhub 开注自动注册 (`embyhub`): ~~[频道](https://t.me/embyhub) [群组](https://t.me/emby_hub) [机器人](https://t.me/EdHubot)~~

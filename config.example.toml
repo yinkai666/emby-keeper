@@ -72,4 +72,3 @@ url = "https://simpson.org/"
 username = "briannaschaefer"
 password = "g*9YftCK6Z"
 time = [120, 240] # 模拟观看的时长范围 (秒)
-
