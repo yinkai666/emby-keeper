@@ -30,7 +30,7 @@ random = 60
 # scheme = "socks5" # 可选: http / socks5
 
 # 服务设置, 当您需要禁用某些站点时, 请将该段取消注释并修改.
-# 该部分内容是根据 Embykeeper 5.0.17 生成的.
+# 该部分内容是根据 Embykeeper 5.0.18 生成的.
 # 使用 checkiner = ["all"] 以启用所有签到器, 使用 checkiner = ["sgk"] 以启用所有社工库签到器.
 
 # 默认启用站点:
@@ -48,13 +48,13 @@ random = 60
 # Telegram 账号设置, 您可以重复该片段多次以增加多个账号.
 
 [[telegram]]
-phone = "+8619454332758"
+phone = "+8611091246517"
 checkin = true
 send = false # 启用该账号的自动水群功能 (需要高级账号, 谨慎使用)
 monitor = false # 启用该账号的自动监控功能 (需要高级账号)
 
 [[telegram]]
-phone = "+8612467999545"
+phone = "+8617540566014"
 checkin = true
 send = false # 启用该账号的自动水群功能 (需要高级账号, 谨慎使用)
 monitor = false # 启用该账号的自动监控功能 (需要高级账号)
@@ -62,13 +62,14 @@ monitor = false # 启用该账号的自动监控功能 (需要高级账号)
 # Emby 账号设置, 您可以重复该片段多次以增加多个账号.
 
 [[emby]]
-url = "https://www.greer.com/"
-username = "robert97"
-password = "n((A8XRbNF"
+url = "https://www.saunders.com/"
+username = "gabrielle48"
+password = "d6%t2KwLq1"
 time = [120, 240] # 模拟观看的时长范围 (秒)
 
 [[emby]]
-url = "https://www.coleman-hurst.net/"
-username = "leecatherine"
-password = "$%7NubJBjL"
+url = "https://simpson.org/"
+username = "briannaschaefer"
+password = "g*9YftCK6Z"
 time = [120, 240] # 模拟观看的时长范围 (秒)
+
