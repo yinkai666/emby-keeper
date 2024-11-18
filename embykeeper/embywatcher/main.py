@@ -247,6 +247,9 @@ async def watch(
     while True:
         try:
             async for obj in get_random_media(emby):
+                if isinstance(time, int) and time <= 0:
+                    loggeruser.info(f"需要播放的时间小于0, 仅登陆.")
+                    return True
                 if isinstance(time, Iterable):
                     t = random.uniform(*time) + 10
                 else:
@@ -350,13 +353,17 @@ async def watch_multiple(
         req_time = random.uniform(*time) + 10
     else:
         req_time = time + 10
-    loggeruser.info(f"开始播放视频 (允许播放多个), 共需播放 {req_time:.0f} 秒.")
+    if not (isinstance(time, int) and time <= 0):
+        loggeruser.info(f"开始播放视频 (允许播放多个), 共需播放 {req_time:.0f} 秒.")
     played_time = 0
     played_videos = 0
     retry = 0
     while True:
         try:
             async for obj in get_random_media(emby):
+                if isinstance(time, int) and time <= 0:
+                    loggeruser.info(f"需要播放的时间小于0, 仅登陆.")
+                    return True
                 total_ticks = obj.object_dict.get("RunTimeTicks")
                 if not total_ticks:
                     if stream:
