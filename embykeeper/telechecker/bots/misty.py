@@ -47,6 +47,8 @@ class MistyCheckin(BotCheckin):
                             return await self.fail()
                         else:
                             await self.message_handler(self.client, msg)
+                            if self.finished.is_set():
+                                return
             except asyncio.TimeoutError:
                 pass
         else:
