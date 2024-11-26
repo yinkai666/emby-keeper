@@ -12,7 +12,6 @@ class TanhuaCheckin(BotCheckin):
     bot_checkin_cmd = ["/start"]
     templ_panel_keywords = ["请选择功能", "用户面板", "用户名称"]
     bot_use_captcha = False
-    
 
     async def message_handler(self, client, message: Message):
         text = message.caption or message.text

@@ -26,7 +26,9 @@ class ShufuMonitor(Monitor):
                     keys = [k.text for r in msg.reply_markup.inline_keyboard for k in r]
                     for k in keys:
                         if "使用注册码" in k:
-                            async with self.client.catch_reply(self.bot_username, filter=filters.regex(".*对我发送.*")) as f:
+                            async with self.client.catch_reply(
+                                self.bot_username, filter=filters.regex(".*对我发送.*")
+                            ) as f:
                                 try:
                                     await msg.click(k)
                                 except TimeoutError:
@@ -43,7 +45,9 @@ class ShufuMonitor(Monitor):
                     if "注册码已被使用" in (msg.text or msg.caption):
                         self.log.info(f'已向 Bot @{self.bot_username} 发送了邀请码: "{key}", 但是已被抢注了.')
                     else:
-                        self.log.bind(msg=True).info(f'已向 Bot @{self.bot_username} 发送了邀请码: "{key}", 请查看.')
+                        self.log.bind(msg=True).info(
+                            f'已向 Bot @{self.bot_username} 发送了邀请码: "{key}", 请查看.'
+                        )
                     break
                 else:
                     continue

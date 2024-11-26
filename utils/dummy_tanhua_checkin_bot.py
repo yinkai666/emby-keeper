@@ -65,11 +65,11 @@ async def start(client: Client, message: Message):
     content = dedent(
         """
     ✨ 只有你想见我的时候我们的相遇才有意义
-    
+
     Jellyfin 当前用户量: 1000
-    
+
     开放注册状态: 关
-    
+
     🍉你好鸭 XX 请选择功能👇
     """.strip()
     )
@@ -104,8 +104,11 @@ async def callback_checkin(client: Client, callback: CallbackQuery):
     if signed.get(callback.from_user.id, None):
         await callback.message.edit_caption(caption="今日已签到", reply_markup=result_reply_markup)
     else:
-        await callback.message.edit_caption(caption="签到获得积分: 1\n当前积分: 2", reply_markup=result_reply_markup)
+        await callback.message.edit_caption(
+            caption="签到获得积分: 1\n当前积分: 2", reply_markup=result_reply_markup
+        )
     await callback.answer()
+
 
 @app.async_command()
 async def main(config: Path):
