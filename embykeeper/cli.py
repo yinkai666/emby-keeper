@@ -276,16 +276,22 @@ async def main(
     if not once:
         await start_notifier(config)
         if emby:
+            watchtime = config.get("watchtime", "<11:00AM,11:00PM>")
+            watchtime_match = re.match(r"<\s*(.*),\s*(.*)\s*>", watchtime)
+            if watchtime_match:
+                start_time, end_time = [parser.parse(watchtime_match.group(i)).time() for i in (1, 2)]
+            else:
+                start_time = end_time = parser.parse(watchtime).time()
             if debug_cron:
                 start_time = end_time = (datetime.now() + timedelta(seconds=10)).time()
                 pool.add(
                     watcher_schedule(config, start_time=start_time, end_time=end_time, days=0, instant=True)
                 )
             else:
-                pool.add(watcher_schedule(config, days=emby))
+                pool.add(watcher_schedule(config, days=emby, start_time=start_time, end_time=end_time))
             for a in config.get("emby", ()):
                 if a.get("continuous", False):
-                    pool.add(watcher_continuous_schedule(config))
+                    pool.add(watcher_continuous_schedule(config, start_time=start_time, end_time=end_time))
                     break
         if checkin:
             if debug_cron:
