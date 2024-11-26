@@ -8,6 +8,9 @@ time = "<8:00AM,10:00AM>"
 # 每隔几天进行 Emby 保活, 或随机范围, 等同于命令行 "-e" 参数.
 interval = "<3,12>"
 
+# Emby 保活开始时间的时间范围.
+watchtime = "<11:00AM,11:00PM>"
+
 # 将关键信息发送到第一个 Telegram 账号, 设为 N 以发送到第 N 个.
 notifier = true
 
@@ -30,31 +33,31 @@ random = 60
 # scheme = "socks5" # 可选: http / socks5
 
 # 服务设置, 当您需要禁用某些站点时, 请将该段取消注释并修改.
-# 该部分内容是根据 Embykeeper 5.0.19 生成的.
+# 该部分内容是根据 Embykeeper 5.0.20 生成的.
 # 使用 checkiner = ["all"] 以启用所有签到器, 使用 checkiner = ["sgk"] 以启用所有社工库签到器.
 
 # 默认启用站点:
 # [service]
-# checkiner = ["apoppro", "awamusic", "awatv", "cc", "datasgk", "dvfilm", "feiyue", "feiyuedpx", "future", "jms", "jsq", "levilde", "lili", "lyrebird", "magic", "micu", "misty", "mjj", "mooncake", "pandatv", "pandatv_group", "peach", "pilipili", "plumber", "pornemby", "raismusic", "sfcju", "shufu", "skysink", "terminus", "tiannan", "watermelon", "worldline", "yomo"]
-# monitor = ["bgk", "future", "infinity_fly", "pornemby_alert", "pornemby_answer", "pornemby_double", "pornemby_dragon_rain", "pornemby_nohp", "shufu", "test_bgk", "test_follow", "test_future", "test_group", "test_misty", "test_polo", "test_pornemby_alert", "test_pornemby_double", "test_pornemby_dragon_rain", "test_pornemby_exam", "test_pornemby_nohp", "test_reply", "test_terminus_exam", "test_viper", "viper"]
+# checkiner = ["apoppro", "awamusic", "awatv", "cc", "datasgk", "dvfilm", "feiyue", "feiyuedpx", "future", "jms", "jsq", "levilde", "lili", "lyrebird", "magic", "micu", "misty", "mjj", "mooncake", "pandatv", "pandatv_group", "peach", "pilipili", "plumber", "pornemby", "raismusic", "sfcju", "shufu", "skysink", "tanhua", "terminus", "tiannan", "watermelon", "worldline", "yomo"]
+# monitor = ["bgk", "future", "infinity_fly", "pornemby_alert", "pornemby_answer", "pornemby_double", "pornemby_dragon_rain", "pornemby_nohp", "shufu", "test_bgk", "test_follow", "test_future", "test_group", "test_misty", "test_polo", "test_pornemby_alert", "test_pornemby_double", "test_pornemby_dragon_rain", "test_pornemby_exam", "test_pornemby_nohp", "test_reply", "test_shufu", "test_terminus_exam", "test_viper", "viper"]
 # messager = ["pornemby"]
 
 # 全部可用站点:
 # [service]
-# checkiner = ["_templ_a", "_templ_b", "agentsgk", "aisgk", "akile", "akile_group", "akuai", "alpha", "apop", "apoppro", "avibi", "awamusic", "awatv", "baidusgk", "bearsgk", "bingdaosgk", "bitsgk", "bluesea", "bostsgk", "bytevirt_group", "carll1sgk", "carll2sgk", "cc", "charon", "charon_old", "chunjiangsgk", "ciji", "datasgk", "dingdangsgk", "dogsgk", "dvfilm", "embyhub", "fanhuasgk", "feiji", "feiyue", "feiyuedpx", "feiyuemusic", "feiyuemusic_group_old", "future", "happy", "heisi", "huasgk", "infsgk", "ingeeksgk", "jms", "jms_iptv", "jms_old", "johnsgk", "jsq", "judog", "koisgk", "levilde", "lili", "ljyy", "ljyy_old", "lyrebird", "magic", "marmot_group_old", "mastersgk", "micu", "minisgk", "misty", "mjj", "mooncake", "moshensgk", "nebula", "niaoge", "pandatv", "pandatv_group", "peach", "pilipili", "pingansgk", "plumber", "pornemby", "qingfengsgk", "raismusic", "rednosesgk", "seedsgk", "sfcju", "shufu", "shzi", "singularity", "skysink", "sssq", "starcat", "starsgk", "temby", "temby_beta", "temby_old", "terminus", "terminus_old", "theend", "tianmaosgk", "tiannan", "unionsgk", "watermelon", "worldline", "xraysgk", "yomo", "zhihusgk", "zhipian", "zhushousgk"]
+# checkiner = ["_templ_a", "_templ_b", "agentsgk", "aisgk", "akile", "akile_group", "akuai", "alpha", "apop", "apoppro", "avibi", "awamusic", "awatv", "baidusgk", "bearsgk", "bingdaosgk", "bitsgk", "bluesea", "bostsgk", "bytevirt_group", "carll1sgk", "carll2sgk", "cc", "charon", "charon_old", "chunjiangsgk", "ciji", "datasgk", "dingdangsgk", "dogsgk", "dvfilm", "embyhub", "fanhuasgk", "feiji", "feiyue", "feiyuedpx", "feiyuemusic", "feiyuemusic_group_old", "future", "happy", "heisi", "huasgk", "infsgk", "ingeeksgk", "jms", "jms_iptv", "jms_old", "johnsgk", "jsq", "judog", "koisgk", "levilde", "lili", "ljyy", "ljyy_old", "lyrebird", "magic", "marmot_group_old", "mastersgk", "micu", "minisgk", "misty", "mjj", "mooncake", "moshensgk", "nebula", "niaoge", "pandatv", "pandatv_group", "peach", "pilipili", "pingansgk", "plumber", "pornemby", "qingfengsgk", "raismusic", "rednosesgk", "seedsgk", "sfcju", "shufu", "shzi", "singularity", "skysink", "sssq", "starcat", "starsgk", "tanhua", "temby", "temby_beta", "temby_old", "terminus", "terminus_old", "theend", "tianmaosgk", "tiannan", "unionsgk", "watermelon", "worldline", "xraysgk", "yomo", "zhihusgk", "zhipian", "zhushousgk"]
 # monitor = ["bgk", "embyhub", "follow", "future", "infinity_fly", "judog", "misty", "polo", "pornemby_alert", "pornemby_answer", "pornemby_double", "pornemby_dragon_rain", "pornemby_nohp", "pornemby_register", "shufu", "terminus_exam", "viper"]
 # messager = ["marmot", "nakonako", "pornemby"]
 
 # Telegram 账号设置, 您可以重复该片段多次以增加多个账号.
 
 [[telegram]]
-phone = "+8615798671159"
+phone = "+8612574728071"
 checkin = true
 send = false # 启用该账号的自动水群功能 (需要高级账号, 谨慎使用)
 monitor = false # 启用该账号的自动监控功能 (需要高级账号)
 
 [[telegram]]
-phone = "+8619628224833"
+phone = "+8611560192518"
 checkin = true
 send = false # 启用该账号的自动水群功能 (需要高级账号, 谨慎使用)
 monitor = false # 启用该账号的自动监控功能 (需要高级账号)
@@ -62,13 +65,14 @@ monitor = false # 启用该账号的自动监控功能 (需要高级账号)
 # Emby 账号设置, 您可以重复该片段多次以增加多个账号.
 
 [[emby]]
-url = "https://www.anthony-knight.net/"
-username = "johnzhang"
-password = "3!GxQmrZ$K"
+url = "https://conley.net/"
+username = "jacob03"
+password = "9tHNcYdy%@"
 time = [120, 240] # 模拟观看的时长范围 (秒)
 
 [[emby]]
-url = "https://www.park-johnson.com/"
-username = "ashley89"
-password = "(2Oz@TpXm0"
+url = "https://calderon.biz/"
+username = "brownashley"
+password = "+*h59vGt2^"
 time = [120, 240] # 模拟观看的时长范围 (秒)
+
