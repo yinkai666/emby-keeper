@@ -3,6 +3,7 @@ from ._base import Monitor
 
 __ignore__ = True
 
+
 class TestGroupMonitor(Monitor):
     name = "多组 测试"
     chat_name = "api_group"
