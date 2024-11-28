@@ -1,5 +1,6 @@
 from .polo import PoloMonitor
 
+__ignore__ = True
 
 class TestPoloMonitor(PoloMonitor):
     name = "Polo 测试"

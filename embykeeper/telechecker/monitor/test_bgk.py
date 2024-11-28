@@ -1,5 +1,6 @@
 from .bgk import BGKMonitor
 
+__ignore__ = True
 
 class TestBGKMonitor(BGKMonitor):
     name = "不给看 测试"

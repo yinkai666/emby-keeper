@@ -1,5 +1,6 @@
 from .shufu import ShufuMonitor
 
+__ignore__ = True
 
 class TestShufuMonitor(ShufuMonitor):
     name = "Shufu 测试"

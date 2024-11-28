@@ -1,6 +1,7 @@
 from pyrogram.types import Message
 from ._base import Monitor
 
+__ignore__ = True
 
 class TestGroupMonitor(Monitor):
     name = "多组 测试"

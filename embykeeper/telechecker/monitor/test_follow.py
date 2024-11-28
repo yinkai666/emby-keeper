@@ -1,5 +1,6 @@
 from ._base import Monitor
 
+__ignore__ = True
 
 class TestFollowMonitor(Monitor):
     name = "从众 测试"
