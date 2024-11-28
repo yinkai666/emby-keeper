@@ -5,4 +5,4 @@ __ignore__ = True
 
 class HappyCheckin(TemplateACheckin):
     name = "开心服"
-    bot_username = "hpymby_bot"
+    bot_username = "happy_sign_bot"

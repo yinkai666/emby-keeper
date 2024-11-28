@@ -88,7 +88,7 @@ docker run -v $(pwd)/embykeeper:/app --rm -it --net=host embykeeper/embykeeper
   - 尘烬 (`skysink`): [频道](https://t.me/skysink) [机器人](https://t.me/kyououbot)
   - Peach (`peach`): [机器人](https://t.me/peach_emby_bot)
   - 魔法Emby (`magic`): [频道](https://t.me/Magic_EmbyChannel) [群组](https://t.me/Magicemby) [机器人](https://t.me/Magic_EmbyBot)
-  - 开心服 (`happy`): [频道](https://t.me/hhappyemby) [群组](https://t.me/Happyembyyds) [机器人](https://t.me/hpymby_bot)
+  - 开心服 (`happy`): [频道](https://t.me/hhappyemby) [群组](https://t.me/Happyembyyds) [机器人](https://t.me/happy_sign_bot)
   - MICU (`micu`): [频道](http://t.me/+_PcX8rALVA80NTU1) [群组](http://t.me/+tW5vUYJROcE2ZTA1) [机器人](https://t.me/micu_user_bot)
   - 叔服Emby (`shufu`): [群组](http://t.me/+4eq37Ip8ayRhNDI9) [机器人](https://t.me/dashu660_bot)
   - 天南小筑 (`tiannan`): [频道](http://t.me/Nanflix) [群组](http://t.me/+kDBdjwtZwudhYWE1) [机器人](https://t.me/Nanflix_bot)
@@ -117,6 +117,7 @@ docker run -v $(pwd)/embykeeper:/app --rm -it --net=host embykeeper/embykeeper
   - 飞跃星空 (`feiyuemusic`): [群组](https://t.me/+FVPdVkpM8moyNjc1) [机器人](https://t.me/xingkongmusic_bot)
   - Misty (`misty`): [频道](https://t.me/FreeEmbyChannel) [群组](https://t.me/FreeEmby) [机器人](https://t.me/EmbyMistyBot)
   - 探花 (`tanhua`): [频道](https://t.me/tanhua_tv2024) [群组](https://t.me/tanhuatv2025) [机器人](https://t.me/TanhuaTvBot)
+  - iKun 音乐服 (`ikunmusic`): [频道](https://t.me/Asukacute) [群组](https://t.me/ikunvv) [机器人](https://t.me/iikun_bot)
 
   <!-- #endregion checkiner-sites -->
   - 测试中新签到器 (默认禁用, 请参考[教程文档](https://emby-keeper.github.io/guide/配置文件#service-子项)启用):
@@ -188,6 +189,7 @@ docker run -v $(pwd)/embykeeper:/app --rm -it --net=host embykeeper/embykeeper
     - 飞机工具箱 (`feiji`): [机器人](https://t.me/fjtool_bot?start=6489896414C44)
     - 鸟哥轰炸 (`niaoge`): [机器人](https://t.me/nb3344bot?start=6489896414)
     - Bytevirt (`bytevirt_group`): [群组](https://t.me/bytevirtchat)
+    - 金鼎轰炸 (`jinding`): [机器人](https://t.me/jdHappybot?start=6489896414)
 
     <!-- #endregion checkiner-other-sites -->
 - **Telegram 自动监控信息**
