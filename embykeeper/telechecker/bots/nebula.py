@@ -51,6 +51,7 @@ class NebulaCheckin(BaseBotCheckin):
         url_auth = (
             await self.client.invoke(RequestWebView(peer=bot_peer, bot=bot_peer, platform="ios", url=url))
         ).url
+        self.log.debug(f"请求面板: {url_auth}")
         scheme = urlparse(url_auth)
         data = remove_prefix(scheme.fragment, "tgWebAppData=")
         url_base = scheme._replace(path="/api/proxy/userCheckIn", query=f"data={data}", fragment="").geturl()

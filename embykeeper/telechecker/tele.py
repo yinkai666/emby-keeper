@@ -524,7 +524,8 @@ class Client(pyrogram.Client):
         elif isinstance(updates, raw.types.UpdateShort):
             self.dispatcher.updates_queue.put_nowait((updates.update, {}, {}))
         elif isinstance(updates, raw.types.UpdatesTooLong):
-            logger.info(updates)
+            await self.invoke(raw.functions.updates.GetState())
+            logger.warning(f"发生超长更新, 已尝试处理该更新, 部分消息可能遗漏.")
 
 
 class ClientsSession:

@@ -9,7 +9,7 @@ from aiohttp_socks import ProxyConnector, ProxyType
 from cachetools import TTLCache
 from loguru import logger
 
-from .utils import format_byte_human, no_waiting, show_exception, to_iterable
+from .utils import format_byte_human, nonblocking, show_exception, to_iterable
 
 logger = logger.bind(scheme="datamanager")
 
@@ -24,7 +24,7 @@ lock = asyncio.Lock()
 
 
 async def refresh_version(connector):
-    async with no_waiting(lock):
+    async with nonblocking(lock):
         for data_url in cdn_urls:
             url = f"{data_url}/version"
             async with aiohttp.ClientSession(connector=connector) as session:

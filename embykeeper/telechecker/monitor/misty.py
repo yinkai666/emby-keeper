@@ -5,7 +5,7 @@ import string
 from pyrogram.types import Message
 from PIL import Image
 
-from ...utils import async_partial
+from ...utils import async_partial, nonblocking
 from ...data import get_datas
 from ..lock import misty_locks
 from ._base import Monitor
@@ -17,7 +17,7 @@ misty_monitor_pool = {}
 
 class MistyMonitor(Monitor):
     ocr = "digit5-large@v1"
-    lock = asyncio.Lock()
+    ocr_lock = asyncio.Lock()
 
     name = "Misty"
     chat_name = "FreeEmbyGroup"
@@ -27,10 +27,10 @@ class MistyMonitor(Monitor):
     notify_create_name = True
     additional_auth = ["prime"]
 
-    async def init(self, initial=True):
+    async def init(self, initial=True, force_lock=True):
         from ddddocr import DdddOcr
 
-        async with self.lock:
+        async with self.ocr_lock:
             if isinstance(self.ocr, str):
                 data = []
                 files = (f"{self.ocr}.onnx", f"{self.ocr}.json")
@@ -50,6 +50,8 @@ class MistyMonitor(Monitor):
         wr = async_partial(self.client.wait_reply, self.bot_username)
         misty_locks.setdefault(self.client.me.id, asyncio.Lock())
         lock = misty_locks.get(self.client.me.id, None)
+        if not force_lock:
+            lock = nonblocking(lock)
         async with lock:
             for _ in range(20 if initial else 3):
                 try:
@@ -93,12 +95,13 @@ class MistyMonitor(Monitor):
                     msg = await wr(self.captcha)
                     if "验证码错误" in msg.text:
                         self.log.info(f"验证码错误, 将重新初始化.")
-                        if not await self.init():
-                            return
+                        if not await self.init(force_lock=False):
+                            self.failed.set()
                     elif "暂时停止注册" in msg.text:
-                        self.log.info(f"注册名额已满, 将进行重试.")
-                        if not await self.init():
-                            return
+                        self.log.info(f"注册名额已满, 将重新初始化并继续监控.")
+                        if not await self.init(force_lock=False):
+                            self.failed.set()
+                        return
                     elif "用户名" in msg.text:
                         msg = await wr(self.unique_name)
                         if "密码" in msg.text:

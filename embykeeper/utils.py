@@ -332,7 +332,7 @@ def format_byte_human(B: float):
 
 
 @asynccontextmanager
-async def no_waiting(lock: asyncio.Lock):
+async def nonblocking(lock: asyncio.Lock):
     """如果锁需要等待释放, 就跳过该部分."""
     try:
         await asyncio.wait_for(lock.acquire(), 0)

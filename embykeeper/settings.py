@@ -38,6 +38,7 @@ def check_config(config):
             Optional("concurrent"): PositiveInt(),
             Optional("random"): PositiveInt(),
             Optional("notifier"): Or(str, bool, int),
+            Optional("notify_immediately"): bool,
             Optional("nofail"): bool,
             Optional("proxy"): Schema(
                 {
