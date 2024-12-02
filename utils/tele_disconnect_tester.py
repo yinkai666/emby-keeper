@@ -7,6 +7,7 @@ import tomli as tomllib
 
 app = AsyncTyper()
 
+
 @app.async_command()
 async def main(config: Path):
     with open(config, "rb") as f:
@@ -24,5 +25,6 @@ async def main(config: Path):
             break
     print("Send 2")
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     app()
