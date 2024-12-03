@@ -33,7 +33,7 @@ random = 60
 # scheme = "socks5" # 可选: http / socks5
 
 # 服务设置, 当您需要禁用某些站点时, 请将该段取消注释并修改.
-# 该部分内容是根据 Embykeeper 5.1.1 生成的.
+# 该部分内容是根据 Embykeeper 5.1.2 生成的.
 # 使用 checkiner = ["all"] 以启用所有签到器, 使用 checkiner = ["sgk"] 以启用所有社工库签到器.
 
 # 默认启用站点:
@@ -51,13 +51,13 @@ random = 60
 # Telegram 账号设置, 您可以重复该片段多次以增加多个账号.
 
 [[telegram]]
-phone = "+8613128673864"
+phone = "+8611750696853"
 checkin = true
 send = false # 启用该账号的自动水群功能 (需要高级账号, 谨慎使用)
 monitor = false # 启用该账号的自动监控功能 (需要高级账号)
 
 [[telegram]]
-phone = "+8617152145008"
+phone = "+8615140509308"
 checkin = true
 send = false # 启用该账号的自动水群功能 (需要高级账号, 谨慎使用)
 monitor = false # 启用该账号的自动监控功能 (需要高级账号)
@@ -65,13 +65,14 @@ monitor = false # 启用该账号的自动监控功能 (需要高级账号)
 # Emby 账号设置, 您可以重复该片段多次以增加多个账号.
 
 [[emby]]
-url = "https://www.sparks.com/"
-username = "ramosryan"
-password = "K)&WLFfo(8"
+url = "https://www.johnson.com/"
+username = "chad11"
+password = "(yDBf*Spu2"
 time = [120, 240] # 模拟观看的时长范围 (秒)
 
 [[emby]]
-url = "https://www.munoz.com/"
-username = "wrightkyle"
-password = "^Iv2RPqiV&"
+url = "https://www.wilkins.com/"
+username = "smithjohn"
+password = "!59TirxC8g"
 time = [120, 240] # 模拟观看的时长范围 (秒)
+
