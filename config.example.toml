@@ -75,4 +75,3 @@ url = "https://www.munoz.com/"
 username = "wrightkyle"
 password = "^Iv2RPqiV&"
 time = [120, 240] # 模拟观看的时长范围 (秒)
-

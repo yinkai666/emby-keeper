@@ -190,16 +190,17 @@ async def play(obj: EmbyObject, loggeruser: Logger, time: float = 10):
 async def get_cf_clearance(config, url):
     from embykeeper.telechecker.link import Link
     from embykeeper.telechecker.tele import ClientsSession
-    
+
     server_info_url = f"{url.rstrip('/')}/System/Info"
     telegrams = config.get("telegram", [])
     if not len(telegrams):
-        logger.warning(f'未设置 Telegram 账号, 无法为 Emby 站点使用验证码解析.')
+        logger.warning(f"未设置 Telegram 账号, 无法为 Emby 站点使用验证码解析.")
     async with ClientsSession.from_config(config) as clients:
         async for tg in clients:
             cf_clearance, proxy = await Link(tg).captcha_emby(server_info_url)
             return cf_clearance, proxy
     return None, None
+
 
 async def login(config, continuous=False):
     """登录账号."""
@@ -208,10 +209,10 @@ async def login(config, continuous=False):
             continue
         logger.info(f'登录账号: "{a["username"]}" 至服务器: "{a["url"]}"')
         if a.get("cf_challenge", False):
-            logger.info(f'根据设定该服务器已启用 Cloudflare 保护, 即将请求解析 (最大支持时长 15 分钟).')
+            logger.info(f"根据设定该服务器已启用 Cloudflare 保护, 即将请求解析 (最大支持时长 15 分钟).")
             cf_clearance, proxy = await get_cf_clearance(config, a["url"])
             if not cf_clearance:
-                logger.warning(f'无法获取 Cloudflare 解析信息, 程序将尝试继续运行.')
+                logger.warning(f"无法获取 Cloudflare 解析信息, 程序将尝试继续运行.")
         else:
             cf_clearance = None
             proxy = None

@@ -381,16 +381,18 @@ class Client(pyrogram.Client):
             yield future
         finally:
             await self.remove_handler(handler, group=0)
-    
-    async def invoke(self, query, retries: int = session.Session.MAX_RETRIES, timeout: float = session.Session.WAIT_TIMEOUT, sleep_threshold: float = None):
-        special_methods = {
-            "SendMessage", 
-            "DeleteMessages",
-            "GetDialogs"
-        }
-        
+
+    async def invoke(
+        self,
+        query,
+        retries: int = session.Session.MAX_RETRIES,
+        timeout: float = session.Session.WAIT_TIMEOUT,
+        sleep_threshold: float = None,
+    ):
+        special_methods = {"SendMessage", "DeleteMessages", "GetDialogs"}
+
         query_name = query.__class__.__name__
-        
+
         if query_name in special_methods:
             async with self._special_invoke_lock:
                 now = datetime.now().timestamp()
@@ -400,7 +402,7 @@ class Client(pyrogram.Client):
                     await asyncio.sleep(wait_time)
                 self._last_special_invoke[query_name] = datetime.now().timestamp()
 
-        logger.trace(f'请求: {query_name}')
+        logger.trace(f"请求: {query_name}")
         return await super().invoke(query, retries=retries, timeout=timeout, sleep_threshold=sleep_threshold)
 
     @asynccontextmanager
@@ -698,9 +700,7 @@ class ClientsSession:
                     if resp.status == 200:
                         resp_dict: dict = await resp.json()
                     else:
-                        logger.warning(
-                            f"世界时间接口异常, 系统时间检测将跳过, 敬请注意. 程序将继续运行."
-                        )
+                        logger.warning(f"世界时间接口异常, 系统时间检测将跳过, 敬请注意. 程序将继续运行.")
 
                 api_time_str = resp_dict["dateTime"]
                 api_time = datetime.strptime(api_time_str.split(".")[0], "%Y-%m-%dT%H:%M:%S")

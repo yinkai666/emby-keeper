@@ -146,9 +146,7 @@ class Link:
             finally:
                 if old_mute_until:
                     try:
-                        await asyncio.wait_for(
-                            self.client.mute_chat(self.bot, until=old_mute_until), 3
-                        )
+                        await asyncio.wait_for(self.client.mute_chat(self.bot, until=old_mute_until), 3)
                     except asyncio.TimeoutError:
                         self.log.debug(f"[gray50]重新设置通知设置失败: {self.bot}[/]")
                     except FloodWait:
@@ -195,9 +193,7 @@ class Link:
     async def auth(self, service: str, log_func=None):
         """向机器人发送授权请求."""
         if not log_func:
-            result = await self.post(
-                f"/auth {service} {self.instance}", name=f"服务 {service.upper()} 认证"
-            )
+            result = await self.post(f"/auth {service} {self.instance}", name=f"服务 {service.upper()} 认证")
             return bool(result)
         else:
             try:
@@ -218,9 +214,7 @@ class Link:
         async with account_status_lock:
             super_ad_shown = account_status.get(self.client.me.id, {}).get("super_ad_shown", False)
             if not super_ad_shown:
-                self.log.info(
-                    "请访问 https://go.zetx.tech/eksuper 赞助项目以升级为高级用户, 尊享更多功能."
-                )
+                self.log.info("请访问 https://go.zetx.tech/eksuper 赞助项目以升级为高级用户, 尊享更多功能.")
                 if self.client.me.id in account_status:
                     account_status[self.client.me.id]["super_ad_shown"] = True
                 else:
@@ -250,7 +244,7 @@ class Link:
             return results.get("cf_clearance", None), results.get("result", None)
         else:
             return None, None
-        
+
     async def captcha_emby(self, url: str):
         """向机器人发送带验证码的远程网页解析请求."""
         cmd = f"/captcha {self.instance} emby {url}"
