@@ -380,7 +380,7 @@ class BotCheckin(BaseBotCheckin):
                 if not self.chat_name:
                     if old_mute_until:
                         try:
-                            await self.client.mute_chat(ident, until=old_mute_until)
+                            await asyncio.wait_for(self.client.mute_chat(ident, until=old_mute_until), 3)
                         except asyncio.TimeoutError:
                             self.log.debug(f"[gray50]重新设置通知设置失败: {ident}[/]")
                         except FloodWait:
@@ -644,7 +644,7 @@ class BotCheckin(BaseBotCheckin):
                             return
                     else:
                         await message.reply(answer)
-                        self.log.warning(f'智能回答回复了 "{b}", 为了避免风险签到器将停止.')
+                        self.log.warning(f'智能回答回复了 "{answer}", 为了避免风险签到器将停止.')
                         await self.fail()
                         return
             else:

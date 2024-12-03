@@ -148,7 +148,9 @@ async def main(
     from .log import logger, initialize
 
     var.debug = verbosity
-    if verbosity >= 1:
+    if verbosity >= 3:
+        level = 0
+    elif verbosity >= 1:
         level = "DEBUG"
     else:
         level = "INFO"

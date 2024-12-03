@@ -89,6 +89,7 @@ def check_config(config):
                         Optional("device_id"): str,
                         Optional("allow_multiple"): bool,
                         Optional("allow_stream"): bool,
+                        Optional("cf_challenge"): bool,
                     }
                 )
             ],

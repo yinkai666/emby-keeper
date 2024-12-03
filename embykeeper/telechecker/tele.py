@@ -19,7 +19,7 @@ from rich.prompt import Prompt
 from appdirs import user_data_dir
 from loguru import logger
 import pyrogram
-from pyrogram import raw, types, utils, filters, dispatcher
+from pyrogram import raw, types, utils, filters, dispatcher, session
 from pyrogram.enums import SentCodeType
 from pyrogram.errors import (
     BadRequest,
@@ -194,6 +194,8 @@ class Client(pyrogram.Client):
         self.cache = Cache()
         self.lock = asyncio.Lock()
         self.dispatcher = Dispatcher(self)
+        self._last_special_invoke = {}
+        self._special_invoke_lock = asyncio.Lock()
 
     async def authorize(self):
         if self.bot_token:
@@ -379,6 +381,27 @@ class Client(pyrogram.Client):
             yield future
         finally:
             await self.remove_handler(handler, group=0)
+    
+    async def invoke(self, query, retries: int = session.Session.MAX_RETRIES, timeout: float = session.Session.WAIT_TIMEOUT, sleep_threshold: float = None):
+        special_methods = {
+            "SendMessage", 
+            "DeleteMessages",
+            "GetDialogs"
+        }
+        
+        query_name = query.__class__.__name__
+        
+        if query_name in special_methods:
+            async with self._special_invoke_lock:
+                now = datetime.now().timestamp()
+                last_invoke = self._last_special_invoke.get(query_name, 0)
+                if now - last_invoke < 3:
+                    wait_time = 3 - (now - last_invoke)
+                    await asyncio.sleep(wait_time)
+                self._last_special_invoke[query_name] = datetime.now().timestamp()
+
+        logger.trace(f'请求: {query_name}')
+        return await super().invoke(query, retries=retries, timeout=timeout, sleep_threshold=sleep_threshold)
 
     @asynccontextmanager
     async def catch_edit(self, message: types.Message, filter=None):
@@ -675,7 +698,9 @@ class ClientsSession:
                     if resp.status == 200:
                         resp_dict: dict = await resp.json()
                     else:
-                        raise RuntimeError()
+                        logger.warning(
+                            f"世界时间接口异常, 系统时间检测将跳过, 敬请注意. 程序将继续运行."
+                        )
 
                 api_time_str = resp_dict["dateTime"]
                 api_time = datetime.strptime(api_time_str.split(".")[0], "%Y-%m-%dT%H:%M:%S")
@@ -729,8 +754,10 @@ class ClientsSession:
                 try:
                     client = Client(
                         app_version=__version__,
-                        device_model="Server " + uuid.uuid1().hex[16:20].upper(),
+                        device_model=f"SV{uuid.getnode()}",
                         name=account["phone"],
+                        system_version="Windows 11 x64",
+                        lang_code="zh-CN",
                         api_id=account["api_id"],
                         api_hash=account["api_hash"],
                         phone_number=account["phone"],

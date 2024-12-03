@@ -187,23 +187,46 @@ async def play(obj: EmbyObject, loggeruser: Logger, time: float = 10):
             await asyncio.sleep(1)
 
 
+async def get_cf_clearance(config, url):
+    from embykeeper.telechecker.link import Link
+    from embykeeper.telechecker.tele import ClientsSession
+    
+    server_info_url = f"{url.rstrip('/')}/System/Info"
+    telegrams = config.get("telegram", [])
+    if not len(telegrams):
+        logger.warning(f'未设置 Telegram 账号, 无法为 Emby 站点使用验证码解析.')
+    async with ClientsSession.from_config(config) as clients:
+        async for tg in clients:
+            cf_clearance, proxy = await Link(tg).captcha_emby(server_info_url)
+            return cf_clearance, proxy
+    return None, None
+
 async def login(config, continuous=False):
     """登录账号."""
     for a in config.get("emby", ()):
         if not continuous == a.get("continuous", False):
             continue
         logger.info(f'登录账号: "{a["username"]}" 至服务器: "{a["url"]}"')
+        if a.get("cf_challenge", False):
+            logger.info(f'根据设定该服务器已启用 Cloudflare 保护, 即将请求解析 (最大支持时长 15 分钟).')
+            cf_clearance, proxy = await get_cf_clearance(config, a["url"])
+            if not cf_clearance:
+                logger.warning(f'无法获取 Cloudflare 解析信息, 程序将尝试继续运行.')
+        else:
+            cf_clearance = None
+            proxy = None
         emby = Emby(
             url=a["url"],
             username=a["username"],
             password=a["password"],
             jellyfin=a.get("jellyfin", False),
-            proxy=config.get("proxy", None),
+            proxy=proxy or config.get("proxy", None),
             ua=a.get("ua", None),
             device=a.get("device", None),
             client=a.get("client", None),
             user_id=a.get("user_id", None),
             device_id=a.get("device_id", None),
+            cf_clearance=cf_clearance,
         )
         try:
             info = await emby.info()
@@ -223,7 +246,7 @@ async def login(config, continuous=False):
                 a.get("allow_stream", False),
             )
         else:
-            logger.error(f'Emby ({a["url"]}) 无法获取元信息而跳过, 请重新检查配置.')
+            logger.bind(log=True).error(f'Emby "{a["url"]}" 无法获取元信息而跳过, 请重新检查配置.')
             continue
 
 

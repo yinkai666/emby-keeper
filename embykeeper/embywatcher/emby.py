@@ -1,11 +1,12 @@
 import asyncio
+import json
 import random
 from urllib.parse import urlencode, urlunparse
 import uuid
 import warnings
 
-import aiohttp
 from aiohttp_socks import ProxyConnector, ProxyType
+import httpx
 
 with warnings.catch_warnings():
     warnings.filterwarnings("ignore", category=DeprecationWarning)
@@ -24,7 +25,7 @@ class Connector(_Connector):
     """重写的 Emby 连接器, 以支持代理."""
 
     def __init__(
-        self, url, proxy=None, ua=None, device=None, client=None, client_id=None, user_id=None, **kargs
+        self, url, proxy=None, ua=None, device=None, client=None, client_id=None, user_id=None, cf_clearance=None, **kargs
     ):
         super().__init__(url, **kargs)
         self.proxy = proxy
@@ -35,6 +36,7 @@ class Connector(_Connector):
         self.user_id = user_id
         self.fake_headers = self.get_fake_headers()
         self.watch = asyncio.create_task(self.watchdog())
+        self.cf_clearance = cf_clearance
 
     async def watchdog(self, timeout=60):
         logger.debug("Emby 链接池看门狗启动.")
@@ -51,7 +53,7 @@ class Connector(_Connector):
                                     logger.debug("销毁了 Emby Session")
                                     async with await self._get_session_lock():
                                         counter[s] = 0
-                                        await self._sessions[s].close()
+                                        await self._sessions[s].aclose()
                                         self._sessions[s] = None
                                         self._session_uses[s] = None
                             else:
@@ -64,7 +66,7 @@ class Connector(_Connector):
             for s in self._sessions.values():
                 if s:
                     try:
-                        await asyncio.wait_for(s.close(), 1)
+                        await asyncio.wait_for(s.aclose(), 1)
                     except asyncio.TimeoutError:
                         pass
 
@@ -100,32 +102,44 @@ class Connector(_Connector):
         headers["X-Emby-Authorization"] = auth_header
         headers["Accept-Language"] = "zh-CN,zh-Hans;q=0.9"
         headers["Content-Type"] = "application/json"
+        headers["Accept"] = "*/*"
         return headers
 
     async def _get_session(self):
-        loop = asyncio.get_running_loop()
-        loop_id = hash(loop)
-        async with await self._get_session_lock():
-            session = self._sessions.get(loop_id)
-            if not session:
-                if self.proxy:
-                    connector = ProxyConnector(
-                        proxy_type=ProxyType[self.proxy["scheme"].upper()],
-                        host=self.proxy["hostname"],
-                        port=self.proxy["port"],
-                        username=self.proxy.get("username", None),
-                        password=self.proxy.get("password", None),
-                        verify_ssl=False,
+        try:
+            loop = asyncio.get_running_loop()
+            loop_id = hash(loop)
+            async with await self._get_session_lock():
+                session = self._sessions.get(loop_id)
+                if not session:
+                    if self.proxy:
+                        proxy = f"{self.proxy['scheme']}://"
+                        if self.proxy.get("username"):
+                            proxy += f"{self.proxy['username']}:{self.proxy['password']}@"
+                        proxy += f"{self.proxy['hostname']}:{self.proxy['port']}"
+                    else:
+                        proxy = None
+
+                    cookies = {}
+                    if self.cf_clearance:
+                        cookies['cf_clearance'] = self.cf_clearance
+
+                    session = httpx.AsyncClient(
+                        http2=True,
+                        headers=self.fake_headers,
+                        cookies=cookies,
+                        proxy=proxy,
+                        verify=False,
+                        follow_redirects=True
                     )
+                    self._sessions[loop_id] = session
+                    self._session_uses[loop_id] = 1
+                    logger.debug("创建了新的 Emby Session.")
                 else:
-                    connector = aiohttp.TCPConnector(verify_ssl=False)
-                session = aiohttp.ClientSession(headers=self.fake_headers, connector=connector)
-                self._sessions[loop_id] = session
-                self._session_uses[loop_id] = 1
-                logger.debug("创建了新的 Emby Session.")
-            else:
-                self._session_uses[loop_id] += 1
-            return session
+                    self._session_uses[loop_id] += 1
+                return session
+        except Exception as e:
+            logger.error(f"无法创建 Emby Session: {e}")
 
     async def _end_session(self):
         loop = asyncio.get_running_loop()
@@ -148,6 +162,37 @@ class Connector(_Connector):
     async def login_if_needed(self):
         if not self.token:
             return await self.login()
+        
+    @async_func
+    async def login(self):
+        if not self.username or self.attempt_login:
+            return
+
+        self.attempt_login = True
+        try:
+            data = await self.postJson(
+                '/Users/AuthenticateByName',
+                data={
+                    'Username': self.username,
+                    'Pw': self.password,
+                },
+                send_raw=True,
+                format='json',
+            )
+
+            self.token = data.get('AccessToken', '')
+            self.userid = data.get('User', {}).get('Id')
+            self.api_key = self.token
+
+            session: httpx.AsyncClient = await self._get_session()
+            auth_header = session.headers['X-Emby-Authorization']
+            auth_header += f',Token="{self.token}"'
+            session.headers['X-MediaBrowser-Token'] = self.token
+            session.headers['Authorization'] = auth_header
+            session.headers['X-Emby-Authorization'] = auth_header
+            await self._end_session()
+        finally:
+            self.attempt_login = False
 
     @async_func
     async def _req(self, method, path, params={}, **query):
@@ -156,17 +201,88 @@ class Connector(_Connector):
         for i in range(self.tries):
             url = self.get_url(path, **query)
             try:
-                params = {"timeout": self.timeout, **params}
                 resp = await method(url, **params)
-            except (aiohttp.ClientConnectionError, OSError, asyncio.TimeoutError) as e:
+            except (httpx.HTTPError, OSError, asyncio.TimeoutError) as e:
                 logger.debug(f'连接 "{url}" 失败, 即将重连: {e.__class__.__name__}: {e}')
             else:
-                if self.attempt_login and resp.status == 401:
-                    raise aiohttp.ClientConnectionError("用户名密码错误")
+                if self.attempt_login and resp.status_code == 401:
+                    raise httpx.HTTPError("用户名密码错误")
                 if await self._process_resp(resp):
                     return resp
             await asyncio.sleep(random.random() * i + 0.2)
-        raise aiohttp.ClientConnectionError("无法连接到服务器.")
+        raise httpx.HTTPError("无法连接到服务器.")
+
+    @async_func
+    async def _process_resp(self, resp):
+        if (not resp or resp.status_code == 401) and self.username:
+            await self.login()
+            return False
+        if not resp:
+            return False
+        if resp.status_code in (502, 503, 504):
+            await asyncio.sleep(random.random()*4+0.2)
+            return False
+        return True
+    
+    @staticmethod
+    @async_func
+    async def resp_to_json(resp: httpx.Response):
+        try:
+            return json.loads(await resp.aread())
+        except json.JSONDecodeError:
+            raise RuntimeError(
+                'Unexpected JSON output (status: {}): "{}"'.format(
+                    resp.status_code,
+                    (await resp.aread()).decode(),
+                )
+            )
+            
+    @async_func
+    async def get(self, path, **query):
+        try:
+            session = await self._get_session()
+            resp: httpx.Response = await self._req(
+                session.get,
+                path,
+                **query
+            )
+            return resp.status_code, (await resp.aread()).decode()
+        finally:
+            await self._end_session()
+            
+    @async_func
+    async def delete(self, path, **query):
+        try:
+            session = await self._get_session()
+            resp = await self._req(
+                session.delete,
+                path,
+                **query
+            )
+            return resp.status_code
+        finally:
+            await self._end_session()
+            
+    @async_func
+    async def _post(self, path, return_json, data, send_raw, **query):
+        try:
+            session = await self._get_session()
+            if send_raw:
+                params = {"json": data}
+            else:
+                params = {"data": json.dumps(data)}
+            resp: httpx.Response = await self._req(
+                session.post,
+                path,
+                params=params,
+                **query
+            )
+            if return_json:
+                return await Connector.resp_to_json(resp)
+            else:
+                return resp.status_code, (await resp.aread()).decode()
+        finally:
+            await self._end_session()
 
     @async_func
     async def get_stream_noreturn(self, path, **query):
@@ -198,8 +314,24 @@ class Connector(_Connector):
         )
 
         return url[:-1] if url[-1] == "?" else url
-
-
+    
+    @async_func
+    async def getJson(self, path, **query):
+        try:
+            session = await self._get_session()
+            resp = await self._req(
+                session.get,
+                path,
+                **query
+            )
+            return await Connector.resp_to_json(resp)
+        except RuntimeError as e:
+            if 'Unexpected JSON output' in str(e):
+                if 'cf-wrapper' in str(e):
+                    logger.warning('Emby 保活错误, 该站点全站 CF 验证码保护, 请使用 "cf_challenge" 配置项.')
+        finally:
+            await self._end_session()
+        
 class Emby(_Emby):
     def __init__(self, url, **kw):
         """重写的 Emby 类, 以支持代理."""
