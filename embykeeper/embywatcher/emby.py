@@ -124,13 +124,21 @@ class Connector(_Connector):
                     if self.cf_clearance:
                         cookies['cf_clearance'] = self.cf_clearance
 
+                    timeout = httpx.Timeout(
+                        connect=10.0,
+                        read=None,
+                        write=10.0,
+                        pool=10.0
+                    )
+
                     session = httpx.AsyncClient(
                         http2=True,
                         headers=self.fake_headers,
                         cookies=cookies,
                         proxy=proxy,
                         verify=False,
-                        follow_redirects=True
+                        follow_redirects=True,
+                        timeout=timeout
                     )
                     self._sessions[loop_id] = session
                     self._session_uses[loop_id] = 1
@@ -288,9 +296,21 @@ class Connector(_Connector):
     async def get_stream_noreturn(self, path, **query):
         try:
             session = await self._get_session()
-            async with await self._req(session.get, path, params={"timeout": 0}, **query) as resp:
-                async for _ in resp.content.iter_any():
-                    await asyncio.sleep(random.uniform(5, 10))
+            resp: httpx.Response = await self._req(
+                session.get, 
+                path, 
+                params={
+                    "timeout": httpx.Timeout(
+                        connect=10.0,
+                        read=None,
+                        write=10.0,
+                        pool=10.0
+                    )
+                }, 
+                **query
+            )
+            async for _ in resp.aiter_bytes():
+                await asyncio.sleep(random.uniform(5, 10))
         finally:
             await self._end_session()
 
