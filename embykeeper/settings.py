@@ -154,6 +154,7 @@ def write_faked_config(path, quiet=False):
     doc["random"] = 60
     doc.add(nl())
     doc.add(comment(f"代理设置, Emby 和 Telegram 均将通过此代理连接, 服务器位于国内时请配置代理并取消注释."))
+    doc.add(comment(f"详见: https://emby-keeper.github.io/guide/配置文件#proxy-子项"))
     proxy = item(
         {
             "proxy": {
@@ -169,6 +170,7 @@ def write_faked_config(path, quiet=False):
     doc.add(nl())
     doc.add(comment(f"服务设置, 当您需要禁用某些站点时, 请将该段取消注释并修改."))
     doc.add(comment(f"该部分内容是根据 {__product__.capitalize()} {__version__} 生成的."))
+    doc.add(comment(f"详见: https://emby-keeper.github.io/guide/配置文件#service-子项"))
     doc.add(
         comment(
             f'使用 checkiner = ["all"] 以启用所有签到器, 使用 checkiner = ["sgk"] 以启用所有社工库签到器.'
@@ -202,6 +204,7 @@ def write_faked_config(path, quiet=False):
         doc.add(comment(line))
     doc.add(nl())
     doc.add(comment("Telegram 账号设置, 您可以重复该片段多次以增加多个账号."))
+    doc.add(comment(f"详见: https://emby-keeper.github.io/guide/配置文件#telegram-子项"))
     telegram = []
     for _ in range(2):
         t = item(
@@ -219,6 +222,7 @@ def write_faked_config(path, quiet=False):
         t.value.item("monitor").comment("启用该账号的自动监控功能 (需要高级账号)")
     doc.add(nl())
     doc.add(comment("Emby 账号设置, 您可以重复该片段多次以增加多个账号."))
+    doc.add(comment(f"详见: https://emby-keeper.github.io/guide/配置文件#emby-子项"))
     emby = []
     for _ in range(2):
         t = item(
