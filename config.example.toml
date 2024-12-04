@@ -27,19 +27,21 @@ concurrent = 1
 random = 60
 
 # 代理设置, Emby 和 Telegram 均将通过此代理连接, 服务器位于国内时请配置代理并取消注释.
+# 详见: https://emby-keeper.github.io/guide/配置文件#proxy-子项
 # [proxy]
 # hostname = "127.0.0.1"
 # port = 1080
 # scheme = "socks5" # 可选: http / socks5
 
 # 服务设置, 当您需要禁用某些站点时, 请将该段取消注释并修改.
-# 该部分内容是根据 Embykeeper 5.2.0 生成的.
+# 该部分内容是根据 Embykeeper 5.2.1 生成的.
+# 详见: https://emby-keeper.github.io/guide/配置文件#service-子项
 # 使用 checkiner = ["all"] 以启用所有签到器, 使用 checkiner = ["sgk"] 以启用所有社工库签到器.
 
 # 默认启用站点:
 # [service]
 # checkiner = ["apoppro", "awamusic", "awatv", "cc", "datasgk", "dvfilm", "feiyue", "feiyuedpx", "future", "ikunmusic", "jms", "jsq", "levilde", "lili", "lyrebird", "magic", "micu", "misty", "mjj", "mooncake", "pandatv", "pandatv_group", "peach", "pilipili", "plumber", "pornemby", "raismusic", "sfcju", "shufu", "skysink", "tanhua", "terminus", "tiannan", "watermelon", "worldline", "yomo"]
-# monitor = ["bgk", "future", "infinity_fly", "pornemby_alert", "pornemby_answer", "pornemby_double", "pornemby_dragon_rain", "pornemby_nohp", "shufu", "viper"]
+# monitor = ["bgk", "future", "infinity_fly", "misty", "pornemby_alert", "pornemby_answer", "pornemby_double", "pornemby_dragon_rain", "pornemby_nohp", "shufu", "viper"]
 # messager = ["pornemby"]
 
 # 全部可用站点:
@@ -49,30 +51,32 @@ random = 60
 # messager = ["marmot", "nakonako", "pornemby"]
 
 # Telegram 账号设置, 您可以重复该片段多次以增加多个账号.
+# 详见: https://emby-keeper.github.io/guide/配置文件#telegram-子项
 
 [[telegram]]
-phone = "+8617635206007"
+phone = "+8613614687342"
 checkin = true
 send = false # 启用该账号的自动水群功能 (需要高级账号, 谨慎使用)
 monitor = false # 启用该账号的自动监控功能 (需要高级账号)
 
 [[telegram]]
-phone = "+8617018274380"
+phone = "+8615443633859"
 checkin = true
 send = false # 启用该账号的自动水群功能 (需要高级账号, 谨慎使用)
 monitor = false # 启用该账号的自动监控功能 (需要高级账号)
 
 # Emby 账号设置, 您可以重复该片段多次以增加多个账号.
+# 详见: https://emby-keeper.github.io/guide/配置文件#emby-子项
 
 [[emby]]
-url = "https://www.hurst.com/"
-username = "andres83"
-password = "S%8FSywjR("
+url = "https://lucas.net/"
+username = "buckleyjose"
+password = "&s%DrIG354"
 time = [120, 240] # 模拟观看的时长范围 (秒)
 
 [[emby]]
-url = "https://flores.info/"
-username = "julie13"
-password = "3_$3*vZtUW"
+url = "https://mcdonald.info/"
+username = "tiffanypena"
+password = "R*SF*nkG$5"
 time = [120, 240] # 模拟观看的时长范围 (秒)
 
