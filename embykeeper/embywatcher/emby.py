@@ -287,14 +287,9 @@ class Connector(_Connector):
     async def get_stream_noreturn(self, path, **query):
         try:
             session = await self._get_session()
-            resp: httpx.Response = await self._req(
-                session.get,
-                path,
-                params={"timeout": httpx.Timeout(connect=10.0, read=None, write=10.0, pool=10.0)},
-                **query,
-            )
-            async for _ in resp.aiter_bytes():
-                await asyncio.sleep(random.uniform(5, 10))
+            async with session.stream("GET", path, params={"timeout": httpx.Timeout(connect=10.0, read=None, write=10.0, pool=10.0)}, **query) as resp:
+                async for _ in resp.aiter_bytes(chunk_size=4096):
+                    await asyncio.sleep(random.uniform(5, 10))
         finally:
             await self._end_session()
 
