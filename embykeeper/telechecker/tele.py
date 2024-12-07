@@ -198,6 +198,7 @@ class Client(pyrogram.Client):
         self._special_invoke_lock = asyncio.Lock()
         self._last_invoke = {}
         self._invoke_lock = asyncio.Lock()
+        self._login_time: datetime = None
 
     async def authorize(self):
         if self.bot_token:
@@ -391,12 +392,20 @@ class Client(pyrogram.Client):
         timeout: float = session.Session.WAIT_TIMEOUT,
         sleep_threshold: float = None,
     ):
-        special_methods = {"SendMessage", "DeleteMessages", "GetDialogs"}
+        special_methods = {"SendMessage", "DeleteMessages"}
         except_methods = {"GetMessages", "GetChannelDifference", "GetStickerSet"}
 
         query_name = query.__class__.__name__
 
+
+
         if query_name in special_methods:
+            if self._login_time:
+                time_since_login = (datetime.now() - self._login_time).total_seconds()
+                if time_since_login < 15:
+                    wait_time = 15 - time_since_login
+                    await asyncio.sleep(wait_time)
+            
             async with self._special_invoke_lock:
                 now = datetime.now().timestamp()
                 last_invoke = self._last_special_invoke.get(query_name, 0)
@@ -854,6 +863,7 @@ class ClientsSession:
                 with open(session_string_file, "w+", encoding="utf-8") as f:
                     f.write(await client.export_session_string())
             logger.debug(f'登录账号 "{client.phone_number}" 成功.')
+            self._login_time = datetime.now()
             return client
 
     async def loginer(self, account):
