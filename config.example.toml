@@ -79,4 +79,3 @@ url = "https://www.anderson.biz/"
 username = "yparker"
 password = "I9+ZQlDj#r"
 time = [120, 240] # 模拟观看的时长范围 (秒)
-

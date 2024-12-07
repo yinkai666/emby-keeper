@@ -206,7 +206,7 @@ async def login(config, continuous=False):
         if not continuous == a.get("continuous", False):
             continue
         logger.info(f'登录账号: "{a["username"]}" 至服务器: "{a["url"]}"')
-        
+
         info = None
         for _ in range(3):
             cf_clearance = None
@@ -233,19 +233,23 @@ async def login(config, continuous=False):
                 if "Unexpected JSON output" in str(e):
                     if "cf-wrapper" in str(e):
                         if a.get("cf_challenge", False):
-                            logger.info(f'Emby "{a["url"]}" 已启用 Cloudflare 保护, 即将请求解析 (最大支持时长 15 分钟).')
+                            logger.info(
+                                f'Emby "{a["url"]}" 已启用 Cloudflare 保护, 即将请求解析 (最大支持时长 15 分钟).'
+                            )
                             cf_clearance, proxy = await get_cf_clearance(config, a["url"])
                             if not cf_clearance:
                                 logger.warning(f'Emby "{a["url"]}" 验证码解析失败而跳过.')
                                 break
                         else:
-                            logger.warning(f'Emby "{a["url"]}" 已启用 Cloudflare 保护, 请使用 "cf_challenge" 配置项以允许尝试解析验证码.')
+                            logger.warning(
+                                f'Emby "{a["url"]}" 已启用 Cloudflare 保护, 请使用 "cf_challenge" 配置项以允许尝试解析验证码.'
+                            )
                             break
             else:
                 break
         else:
             logger.warning(f'Emby "{a["url"]}" 验证码解析次数过多而跳过.')
-        
+
         if info:
             loggeruser = logger.bind(server=info["ServerName"], username=a["username"])
             loggeruser.info(
@@ -546,7 +550,9 @@ async def watch_continuous(emby: Emby, loggeruser: Logger, stream: bool = False)
 async def watcher(config: dict, instant: bool = False):
     """入口函数 - 观看一个视频."""
 
-    async def wrapper(sem: asyncio.Semaphore, emby: Emby, loggeruser: Logger, time: float, multiple: bool, stream: bool):
+    async def wrapper(
+        sem: asyncio.Semaphore, emby: Emby, loggeruser: Logger, time: float, multiple: bool, stream: bool
+    ):
         async with sem:
             try:
                 if not instant:
@@ -558,7 +564,9 @@ async def watcher(config: dict, instant: bool = False):
                 else:
                     tm = time * 4
                 if multiple:
-                    return await asyncio.wait_for(watch_multiple(emby, loggeruser, time, stream), max(tm, 600))
+                    return await asyncio.wait_for(
+                        watch_multiple(emby, loggeruser, time, stream), max(tm, 600)
+                    )
                 else:
                     return await asyncio.wait_for(watch(emby, loggeruser, time, stream), max(tm, 600))
             except asyncio.TimeoutError:
