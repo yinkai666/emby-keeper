@@ -397,15 +397,13 @@ class Client(pyrogram.Client):
 
         query_name = query.__class__.__name__
 
-
-
         if query_name in special_methods:
             if self._login_time:
                 time_since_login = (datetime.now() - self._login_time).total_seconds()
                 if time_since_login < 15:
                     wait_time = 15 - time_since_login
                     await asyncio.sleep(wait_time)
-            
+
             async with self._special_invoke_lock:
                 now = datetime.now().timestamp()
                 last_invoke = self._last_special_invoke.get(query_name, 0)
