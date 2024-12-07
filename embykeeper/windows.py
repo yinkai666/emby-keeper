@@ -66,7 +66,7 @@ def main():
     generate_config(config)
     os.system("cls")
     var.console.rule("Embykeeper")
-    cli(["-W"])
+    cli(["-i -W"])
 
 
 if __name__ == "__main__":

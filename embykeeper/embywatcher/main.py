@@ -7,10 +7,9 @@ from typing import TYPE_CHECKING, Iterable, Tuple, Union
 from datetime import datetime, time, timezone
 import warnings
 
-from aiohttp import ClientError, ClientConnectionError
+import httpx
 from loguru import logger
 from dateutil import parser
-
 with warnings.catch_warnings():
     warnings.filterwarnings("ignore", category=DeprecationWarning)
     from embypy.objects import Episode, Movie
@@ -131,7 +130,10 @@ async def play(obj: EmbyObject, loggeruser: Logger, time: float = 10):
 
         t = time
         last_report_t = t
+        progress_errors = 0
         while t > 0:
+            if progress_errors > 12:
+                raise PlayError("播放状态设定错误次数过多")
             if last_report_t and last_report_t - t > (5 if debug else 30):
                 loggeruser.info(f'正在播放: "{truncate_str(obj.name, 10)}" (还剩 {t:.0f} 秒).')
                 last_report_t = t
@@ -144,19 +146,13 @@ async def play(obj: EmbyObject, loggeruser: Logger, time: float = 10):
                 resp = await asyncio.wait_for(
                     c.post("/Sessions/Playing/Progress", data=payload, EventName="timeupdate"), 10
                 )
-            except (
-                ClientError,
-                ConnectionError,
-                TimeoutError,
-                asyncio.TimeoutError,
-                asyncio.IncompleteReadError,
-            ) as e:
-                if isinstance(e, asyncio.IncompleteReadError):
-                    await c._reset_session()
+            except httpx.HTTPError as e:
                 loggeruser.debug(f"播放状态设定错误: {e}")
+                progress_errors += 1
             else:
                 if not is_ok(resp):
                     loggeruser.debug(f"播放状态设定错误: {resp}")
+                    progress_errors += 1
 
         await asyncio.sleep(random.uniform(1, 3))
     finally:
@@ -180,7 +176,7 @@ async def play(obj: EmbyObject, loggeruser: Logger, time: float = 10):
             else:
                 loggeruser.info(f"播放完成, 共 {time:.0f} 秒.")
                 return True
-        except (ClientError, ConnectionError, TimeoutError) as e:
+        except httpx.HTTPError as e:
             if retry == 2:
                 raise PlayError(f"由于连接错误无法停止播放: {e}")
             loggeruser.debug(f"停止播放时发生连接错误，正在进行第 {retry + 1}/3 次尝试: {e}")
@@ -231,7 +227,7 @@ async def login(config, continuous=False):
         )
         try:
             info = await emby.info()
-        except (ConnectionError, RuntimeError, ClientConnectionError) as e:
+        except httpx.HTTPError as e:
             logger.error(f'Emby ({a["url"]}) 连接错误, 请重新检查配置: {e}')
             continue
         if info:
@@ -315,14 +311,12 @@ async def watch(
 
                         loggeruser.bind(log=True).info(prompt)
                         return True
-                    except (ClientError, OSError, asyncio.IncompleteReadError) as e:
+                    except httpx.HTTPError as e:
                         retry += 1
                         if retry > retries:
                             loggeruser.warning(f"超过最大重试次数, 保活失败: {e}.")
                             return False
                         else:
-                            if isinstance(e, asyncio.IncompleteReadError):
-                                await emby.connector._reset_session()
                             rt = random.uniform(30, 60)
                             loggeruser.info(f"连接失败, 等待 {rt:.0f} 秒后重试: {e}.")
                             await asyncio.sleep(rt)
@@ -347,14 +341,12 @@ async def watch(
             else:
                 loggeruser.warning(f"由于没有成功播放视频, 保活失败, 请重新检查配置.")
                 return False
-        except (ClientError, OSError, asyncio.IncompleteReadError) as e:
+        except httpx.HTTPError as e:
             retry += 1
             if retry > retries:
                 loggeruser.warning(f"超过最大重试次数, 保活失败: {e}.")
                 return False
             else:
-                if isinstance(e, asyncio.IncompleteReadError):
-                    await emby.connector._reset_session()
                 rt = random.uniform(30, 60)
                 loggeruser.info(f"连接失败, 等待 {rt:.0f} 秒后重试: {e}.")
                 await asyncio.sleep(rt)
@@ -442,14 +434,12 @@ async def watch_multiple(
                             loggeruser.info(f"等待 {rt:.0f} 秒后播放下一个.")
                             await asyncio.sleep(rt)
                             break
-                    except (ClientError, OSError, asyncio.IncompleteReadError) as e:
+                    except httpx.HTTPError as e:
                         retry += 1
                         if retry > retries:
                             loggeruser.warning(f"超过最大重试次数, 保活失败: {e}.")
                             return False
                         else:
-                            if isinstance(e, asyncio.IncompleteReadError):
-                                await emby.connector._reset_session()
                             rt = random.uniform(30, 60)
                             loggeruser.info(f"连接失败, 等待 {rt:.0f} 秒后重试: {e}.")
                             await asyncio.sleep(rt)
@@ -474,14 +464,12 @@ async def watch_multiple(
             else:
                 loggeruser.warning(f"由于没有成功播放视频, 保活失败, 请重新检查配置.")
                 return False
-        except (ClientError, OSError, asyncio.IncompleteReadError) as e:
+        except httpx.HTTPError as e:
             retry += 1
             if retry > retries:
                 loggeruser.warning(f"超过最大重试次数, 保活失败: {e}.")
                 return False
             else:
-                if isinstance(e, asyncio.IncompleteReadError):
-                    await emby.connector._reset_session()
                 rt = random.uniform(30, 60)
                 loggeruser.info(f"连接失败, 等待 {rt:.0f} 秒后重试: {e}.")
                 await asyncio.sleep(rt)
@@ -527,9 +515,7 @@ async def watch_continuous(emby: Emby, loggeruser: Logger, stream: bool = False)
                             loggeruser.debug(f"未能成功从最近播放中隐藏视频.")
                     except asyncio.TimeoutError:
                         loggeruser.debug(f"从最近播放中隐藏视频超时.")
-        except (ClientError, OSError, asyncio.IncompleteReadError) as e:
-            if isinstance(e, asyncio.IncompleteReadError):
-                await emby.connector._reset_session()
+        except httpx.HTTPError as e:
             rt = random.uniform(30, 60)
             loggeruser.info(f"连接失败, 等待 {rt:.0f} 秒后重试: {e}.")
             await asyncio.sleep(rt)

@@ -15,7 +15,7 @@ pip install embykeeper
 随后, 您需要执行:
 
 ```bash
-embykeeper
+embykeeper -i
 ```
 
 命令将会在 `embykeeper` 目录下生成模板 `config.toml` 文件 (您也可以从[这里](https://github.com/emby-keeper/emby-keeper/blob/main/config.example.toml)下载).
@@ -25,7 +25,7 @@ embykeeper
 然后, 再次运行:
 
 ```bash
-embykeeper
+embykeeper -i
 ```
 
 您将被询问设备验证码以登录, 登录成功后, Embykeeper 将首先执行一次签到和保活, 此后每日进行一次签到和保活.

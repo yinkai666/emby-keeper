@@ -112,7 +112,9 @@ async def _checkin_task(checkiner: BaseBotCheckin, sem, wait=0):
         checkiner.log.debug(f"随机启动等待: 将等待 {wait:.2f} 分钟以启动.")
     await asyncio.sleep(wait * 60)
     async with sem:
-        return await checkiner._start()
+        result = await checkiner._start()
+        await asyncio.sleep(random.uniform(5, 10))
+        return result
 
 
 async def _gather_task(tasks, username):

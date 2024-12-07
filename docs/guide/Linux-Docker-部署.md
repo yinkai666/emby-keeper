@@ -5,7 +5,7 @@
 Embykeeper 可以通过 `docker` 部署, 您需 [安装 docker](https://yeasy.gitbook.io/docker_practice/install), 然后执行:
 
 ```bash
-docker run -v $(pwd)/embykeeper:/app --rm -it --net=host embykeeper/embykeeper
+docker run -v $(pwd)/embykeeper:/app --rm -it --net=host embykeeper/embykeeper -i
 ```
 
 ::: tip 说明
@@ -19,7 +19,7 @@ docker run -v $(pwd)/embykeeper:/app --rm -it --net=host embykeeper/embykeeper
 随后, 再次执行命令:
 
 ```bash
-docker run -v $(pwd)/embykeeper:/app --rm -it --net=host embykeeper/embykeeper
+docker run -v $(pwd)/embykeeper:/app --rm -it --net=host embykeeper/embykeeper -i
 ```
 
 您将被询问设备验证码以登录, 登录成功后, Embykeeper 将首先执行一次签到和保活, 此后每日进行一次签到和保活.
@@ -61,7 +61,7 @@ docker pull embykeeper/embykeeper
 然后重新运行:
 
 ```bash
-docker run -v $(pwd)/embykeeper:/app --rm -it --net=host embykeeper/embykeeper
+docker run -v $(pwd)/embykeeper:/app --rm -it --net=host embykeeper/embykeeper -i
 ```
 
 ## 使用其他版本
@@ -69,7 +69,7 @@ docker run -v $(pwd)/embykeeper:/app --rm -it --net=host embykeeper/embykeeper
 当您需要使用旧版本 (例如`v1.1.1`) 时, 您可以在镜像名后追加版本号:
 
 ```bash
-docker run -v $(pwd)/embykeeper:/app --rm -it --net=host embykeeper/embykeeper:v1.1.1
+docker run -v $(pwd)/embykeeper:/app --rm -it --net=host embykeeper/embykeeper:v1.1.1 -i
 ```
 
 ## 命令行参数
@@ -81,19 +81,19 @@ Embykeeper 支持多样化的 [**⌨️ 命令行参数**](/guide/命令行参�
 当通过 Docker 部署时, 末尾的所有参数将被传递给 Embykeeper, 例如:
 
 ```bash
-docker run -v $(pwd)/embykeeper:/app --rm -it --net=host embykeeper/embykeeper -I
+docker run -v $(pwd)/embykeeper:/app --rm -it --net=host embykeeper/embykeeper -e
 ```
 
 <!-- #endregion command -->
 
-将执行 `embykeeper -I`, 即启动时不立即执行一次签到和保活, 只启用每日计划任务.
+将执行 `embykeeper -e`, 即仅启动 Emby 保活功能.
 
 ## 修改程序源码, 并用 Docker 运行
 
 Embykeeper 提供 `dev` 系列镜像, 您可以运行:
 
 ```bash
-docker run -v $(pwd)/embykeeper-src:/src -v $(pwd)/embykeeper:/app --rm -it --net=host embykeeper/embykeeper:main-dev -I
+docker run -v $(pwd)/embykeeper-src:/src -v $(pwd)/embykeeper:/app --rm -it --net=host embykeeper/embykeeper:main-dev -i
 ```
 
 这将在 `./embykeeper-src` 目录挂载源码, `./embykeeper` 目录挂载数据.

@@ -89,16 +89,16 @@ async def main(
         help=f"输出范例配置文件",
     ),
     instant: bool = typer.Option(
-        True,
+        False,
         "--instant/--no-instant",
         "-i/-I",
         envvar="EK_INSTANT",
         show_envvar=False,
         rich_help_panel="调试参数",
-        help="立刻执行一次任务",
+        help="启动时立刻执行一次任务",
     ),
     once: bool = typer.Option(
-        False, "--once/--cron", "-o/-O", rich_help_panel="调试参数", help="仅执行一次任务而不计划执行"
+        False, "--once/--cron", "-o/-O", rich_help_panel="调试参数", help="不等待计划执行"
     ),
     verbosity: int = typer.Option(
         False,

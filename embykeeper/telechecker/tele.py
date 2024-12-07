@@ -196,6 +196,8 @@ class Client(pyrogram.Client):
         self.dispatcher = Dispatcher(self)
         self._last_special_invoke = {}
         self._special_invoke_lock = asyncio.Lock()
+        self._last_invoke = {}
+        self._invoke_lock = asyncio.Lock()
 
     async def authorize(self):
         if self.bot_token:
@@ -390,6 +392,7 @@ class Client(pyrogram.Client):
         sleep_threshold: float = None,
     ):
         special_methods = {"SendMessage", "DeleteMessages", "GetDialogs"}
+        except_methods = {"GetMessages", "GetChannelDifference", "GetStickerSet"}
 
         query_name = query.__class__.__name__
 
@@ -401,6 +404,15 @@ class Client(pyrogram.Client):
                     wait_time = 3 - (now - last_invoke)
                     await asyncio.sleep(wait_time)
                 self._last_special_invoke[query_name] = datetime.now().timestamp()
+
+        if query_name not in except_methods:
+            async with self._invoke_lock:
+                now = datetime.now().timestamp()
+                last_invoke = self._last_invoke.get(query_name, 0)
+                if now - last_invoke < 0.5:
+                    wait_time = 0.5 - (now - last_invoke)
+                    await asyncio.sleep(wait_time)
+                self._last_invoke[query_name] = datetime.now().timestamp()
 
         logger.trace(f"请求: {query_name}")
         return await super().invoke(query, retries=retries, timeout=timeout, sleep_threshold=sleep_threshold)
@@ -754,7 +766,7 @@ class ClientsSession:
                 try:
                     client = Client(
                         app_version=__version__,
-                        device_model=f"SV{uuid.getnode()}",
+                        device_model="Server",
                         name=account["phone"],
                         system_version="Windows 11 x64",
                         lang_code="zh-CN",

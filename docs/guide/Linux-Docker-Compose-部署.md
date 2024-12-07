@@ -13,7 +13,7 @@
 您应该已经运行了:
 
 ```bash
-docker run -v $(pwd)/embykeeper:/app --rm -it --net=host embykeeper/embykeeper
+docker run -v $(pwd)/embykeeper:/app --rm -it --net=host embykeeper/embykeeper -i
 ```
 
 您需要新建一个文件 `docker-compose.yml`, 此时您的目录结构如下:
@@ -34,7 +34,6 @@ services:
   embykeeper:
     container_name: embykeeper
     image: embykeeper/embykeeper
-    command: '-I'
     restart: unless-stopped
     volumes:
       - ./embykeeper:/app
@@ -53,6 +52,10 @@ docker-compose up -d
 
 ::: tip 提示
 `docker-compose` 命令会读取**当前路径**下的`docker-compose.yml`, 因此您需要先定位到 `docker-compose.yml` 所在的目录!
+:::
+
+::: tip 提示
+由于我们没有使用 `docker run` 命令中使用的 `-i` 参数, 启动时将不会运行一次任务, 而是仅作为计划任务运行.
 :::
 
 恭喜您！您已经通过 Docker Compose 成功部署了 Embykeeper.
@@ -84,6 +87,41 @@ docker-compose up -d
 
 以拉取最新版本镜像, 并完成更新.
 
+## 自动版本更新
+
+您可以使用 [watchtower](https://github.com/containrrr/watchtower) 来自动更新 Embykeeper 的 Docker 镜像。
+
+在您的 `docker-compose.yml` 中添加 watchtower 服务：
+
+```yaml
+version: '3'
+services:
+  embykeeper:
+    container_name: embykeeper
+    image: embykeeper/embykeeper
+    restart: unless-stopped
+    volumes:
+      - ./embykeeper:/app
+    network_mode: host
+  
+  watchtower:
+    container_name: watchtower
+    image: containrrr/watchtower
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    command: --interval 86400 embykeeper
+    restart: unless-stopped
+```
+
+这将：
+- 每24小时（86400秒）自动检查并更新 embykeeper 容器
+- 仅监控名为 "embykeeper" 的容器
+- 发现新版本时自动拉取镜像并重启容器
+
+::: tip 提示
+您可以通过修改 `--interval` 参数来调整检查更新的时间间隔（单位：秒）。
+:::
+
 ## 使用其他版本
 
 当您需要使用旧版本 (例如`v1.1.1`) 时, 您需要使用:
@@ -111,7 +149,7 @@ services:
   embykeeper:
     container_name: embykeeper
     image: embykeeper/embykeeper
-    command: '-I'
+    command: '-e'
     restart: unless-stopped
     volumes:
       - ./embykeeper:/app
@@ -120,7 +158,7 @@ services:
 
 <!-- #endregion command -->
 
-以上配置将执行 `embykeeper -I`, 即启动时不立即执行一次签到和保活, 只启用每日计划任务.
+以上配置将执行 `embykeeper -e`, 即仅启用 Emby 保活功能.
 
 ## 修改程序源码, 并用 Docker Compose 运行
 
@@ -132,7 +170,6 @@ services:
   embykeeper:
     container_name: embykeeper
     image: embykeeper/embykeeper:main-dev
-    command: '-I'
     restart: unless-stopped
     volumes:
       - ./embykeeper:/app

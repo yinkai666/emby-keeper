@@ -5,16 +5,15 @@ from urllib.parse import urlencode, urlunparse
 import uuid
 import warnings
 
-from aiohttp_socks import ProxyConnector, ProxyType
 import httpx
-
+from loguru import logger
 with warnings.catch_warnings():
     warnings.filterwarnings("ignore", category=DeprecationWarning)
     from embypy.emby import Emby as _Emby
     from embypy.objects import EmbyObject
     from embypy.utils.asyncio import async_func
     from embypy.utils.connector import Connector as _Connector
-from loguru import logger
+
 
 from .. import __version__
 
@@ -214,7 +213,7 @@ class Connector(_Connector):
             url = self.get_url(path, **query)
             try:
                 resp = await method(url, **params)
-            except (httpx.HTTPError, OSError, asyncio.TimeoutError) as e:
+            except httpx.HTTPError as e:
                 logger.debug(f'连接 "{url}" 失败, 即将重连: {e.__class__.__name__}: {e}')
             else:
                 if self.attempt_login and resp.status_code == 401:

@@ -20,7 +20,7 @@ if not exist "%~dp0/python-*-embed-*" (
     timeout /t 2 /nobreak > NUL
     cls
 )
-"%~dp0/python-3.8.10-embed-amd64/python.exe" "script\cli.py"
+"%~dp0/python-3.8.10-embed-amd64/python.exe" "script\cli.py" -i
 echo.
 (((echo.%cmdcmdline%)|find /I "%~0")>nul) && echo | set /p="Embykeeper 已结束, 请按任意键退出..." & pause>nul
 
