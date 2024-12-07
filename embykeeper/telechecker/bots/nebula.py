@@ -86,7 +86,7 @@ class NebulaCheckin(BaseBotCheckin):
                 if "失败" in message:
                     self.log.info("签到失败.")
                     await self.fail()
-                if "重复" in message:
+                if "已经" in message:
                     self.log.info("今日已经签到过了.")
                     self.finished.set()
                 elif "成功" in message:
