@@ -36,6 +36,7 @@ def check_config(config):
             Optional("timeout"): PositiveInt(),
             Optional("retries"): PositiveInt(),
             Optional("concurrent"): PositiveInt(),
+            Optional("watch_concurrent"): int,
             Optional("random"): PositiveInt(),
             Optional("notifier"): Or(str, bool, int),
             Optional("notify_immediately"): bool,
@@ -149,6 +150,9 @@ def write_faked_config(path, quiet=False):
     doc.add(nl())
     doc.add(comment("最大可同时进行的 Telegram Bot 签到."))
     doc["concurrent"] = 1
+    doc.add(nl())
+    doc.add(comment("最大可同时进行的 Emby 站点保活."))
+    doc["watch_concurrent"] = 3
     doc.add(nl())
     doc.add(comment("计划任务时, 各站点之间签到的随机时间差异 (分钟), 所有站点签到将在该时间范围内完成."))
     doc["random"] = 60

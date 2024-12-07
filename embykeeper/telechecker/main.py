@@ -50,7 +50,7 @@ def get_names(type: str, allow_ignore=False) -> List[str]:
             if not getattr(module, "__ignore__", False):
                 results.append(mn)
         else:
-            if (not mn == "_base") and (not mn.startswith("test")):
+            if (not mn.startswith("_")) and (not mn.startswith("test")):
                 results.append(mn)
     return results
 
@@ -60,13 +60,39 @@ def get_cls(type: str, names: List[str] = None) -> List[Type]:
     sub, suffix = get_spec(type)
     if names == None:
         names = get_names(type)
-    results = []
-    if type == "checkiner" and "sgk" in names:
-        sgk_names = [n for n in get_names(type, allow_ignore=True) if n.endswith("sgk")]
-        names = list(set(sgk_names))
+        
+    exclude_names = set(name[1:] for name in names if name.startswith('-'))
+    include_names = set(name[1:] for name in names if name.startswith('+'))
+    names = set(name for name in names if not name.startswith('-') and not name.startswith('+'))
+    
+    if not names and (exclude_names or include_names):
+        names = set(get_names(type))
+    
     if "all" in names:
-        all_names = get_names(type, allow_ignore=True)
-        names = list(set(all_names))
+        names = set(get_names(type, allow_ignore=True))
+    
+    if type == "checkiner":
+        if "sgk" in names:
+            sgk_names = set(n for n in get_names(type, allow_ignore=True) if n.endswith("sgk"))
+            names.update(sgk_names)
+            names.remove("sgk")
+            
+        if "sgk" in exclude_names:
+            sgk_names = set(n for n in names if n.endswith("sgk"))
+            names -= sgk_names
+            exclude_names.remove("sgk")
+        
+        if "sgk" in include_names:
+            sgk_names = set(n for n in get_names(type, allow_ignore=True) if n.endswith("sgk"))
+            include_names.update(sgk_names)
+            include_names.remove("sgk")
+    
+    # 应用排除项
+    names = names - exclude_names
+    # 添加附加项
+    names = list(names | include_names)
+    
+    results = []
     for name in names:
         match = re.match(r"templ_(\w+)<(\w+)>", name)
         if match:

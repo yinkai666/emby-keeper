@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import json
 import random
 import string
 from typing import TYPE_CHECKING, Iterable, Tuple, Union
@@ -188,7 +189,7 @@ async def get_cf_clearance(config, url):
     from embykeeper.telechecker.link import Link
     from embykeeper.telechecker.tele import ClientsSession
 
-    server_info_url = f"{url.rstrip('/')}/System/Info"
+    server_info_url = f"{url.rstrip('/')}/System/Info/Public"
     telegrams = config.get("telegram", [])
     if not len(telegrams):
         logger.warning(f"未设置 Telegram 账号, 无法为 Emby 站点使用验证码解析.")
@@ -205,32 +206,46 @@ async def login(config, continuous=False):
         if not continuous == a.get("continuous", False):
             continue
         logger.info(f'登录账号: "{a["username"]}" 至服务器: "{a["url"]}"')
-        if a.get("cf_challenge", False):
-            logger.info(f"根据设定该服务器已启用 Cloudflare 保护, 即将请求解析 (最大支持时长 15 分钟).")
-            cf_clearance, proxy = await get_cf_clearance(config, a["url"])
-            if not cf_clearance:
-                logger.warning(f"无法获取 Cloudflare 解析信息, 程序将尝试继续运行.")
-        else:
+        
+        info = None
+        for _ in range(3):
             cf_clearance = None
             proxy = None
-        emby = Emby(
-            url=a["url"],
-            username=a["username"],
-            password=a["password"],
-            jellyfin=a.get("jellyfin", False),
-            proxy=proxy or config.get("proxy", None),
-            ua=a.get("ua", None),
-            device=a.get("device", None),
-            client=a.get("client", None),
-            user_id=a.get("user_id", None),
-            device_id=a.get("device_id", None),
-            cf_clearance=cf_clearance,
-        )
-        try:
-            info = await emby.info()
-        except httpx.HTTPError as e:
-            logger.error(f'Emby ({a["url"]}) 连接错误, 请重新检查配置: {e}')
-            continue
+            emby = Emby(
+                url=a["url"],
+                username=a["username"],
+                password=a["password"],
+                jellyfin=a.get("jellyfin", False),
+                proxy=proxy or config.get("proxy", None),
+                ua=a.get("ua", None),
+                device=a.get("device", None),
+                client=a.get("client", None),
+                user_id=a.get("user_id", None),
+                device_id=a.get("device_id", None),
+                cf_clearance=cf_clearance,
+            )
+            try:
+                info = await emby.info()
+            except httpx.HTTPError as e:
+                logger.error(f'Emby ({a["url"]}) 连接错误, 请重新检查配置: {e}')
+                break
+            except RuntimeError as e:
+                if "Unexpected JSON output" in str(e):
+                    if "cf-wrapper" in str(e):
+                        if a.get("cf_challenge", False):
+                            logger.info(f'Emby "{a["url"]}" 已启用 Cloudflare 保护, 即将请求解析 (最大支持时长 15 分钟).')
+                            cf_clearance, proxy = await get_cf_clearance(config, a["url"])
+                            if not cf_clearance:
+                                logger.warning(f'Emby "{a["url"]}" 验证码解析失败而跳过.')
+                                break
+                        else:
+                            logger.warning(f'Emby "{a["url"]}" 已启用 Cloudflare 保护, 请使用 "cf_challenge" 配置项以允许尝试解析验证码.')
+                            break
+            else:
+                break
+        else:
+            logger.warning(f'Emby "{a["url"]}" 验证码解析次数过多而跳过.')
+        
         if info:
             loggeruser = logger.bind(server=info["ServerName"], username=a["username"])
             loggeruser.info(
@@ -531,28 +546,33 @@ async def watch_continuous(emby: Emby, loggeruser: Logger, stream: bool = False)
 async def watcher(config: dict, instant: bool = False):
     """入口函数 - 观看一个视频."""
 
-    async def wrapper(emby: Emby, loggeruser: Logger, time: float, multiple: bool, stream: bool):
-        try:
-            if not instant:
-                wait = random.uniform(180, 360)
-                loggeruser.info(f"播放视频前随机等待 {wait:.0f} 秒.")
-                await asyncio.sleep(wait)
-            if isinstance(time, Iterable):
-                tm = max(time) * 4
-            else:
-                tm = time * 4
-            if multiple:
-                return await asyncio.wait_for(watch_multiple(emby, loggeruser, time, stream), max(tm, 600))
-            else:
-                return await asyncio.wait_for(watch(emby, loggeruser, time, stream), max(tm, 600))
-        except asyncio.TimeoutError:
-            loggeruser.warning(f"一定时间内未完成播放, 保活失败.")
-            return False
+    async def wrapper(sem: asyncio.Semaphore, emby: Emby, loggeruser: Logger, time: float, multiple: bool, stream: bool):
+        async with sem:
+            try:
+                if not instant:
+                    wait = random.uniform(180, 360)
+                    loggeruser.info(f"播放视频前随机等待 {wait:.0f} 秒.")
+                    await asyncio.sleep(wait)
+                if isinstance(time, Iterable):
+                    tm = max(time) * 4
+                else:
+                    tm = time * 4
+                if multiple:
+                    return await asyncio.wait_for(watch_multiple(emby, loggeruser, time, stream), max(tm, 600))
+                else:
+                    return await asyncio.wait_for(watch(emby, loggeruser, time, stream), max(tm, 600))
+            except asyncio.TimeoutError:
+                loggeruser.warning(f"一定时间内未完成播放, 保活失败.")
+                return False
 
     logger.info("开始执行 Emby 保活.")
     tasks = []
+    concurrent = int(config.get("watch_concurrent", 3))
+    if not concurrent:
+        concurrent = 100000
+    sem = asyncio.Semaphore(concurrent)
     async for emby, loggeruser, time, multiple, stream in login(config):
-        tasks.append(wrapper(emby, loggeruser, time, multiple, stream))
+        tasks.append(wrapper(sem, emby, loggeruser, time, multiple, stream))
     if not tasks:
         logger.info("没有指定相关的 Emby 服务器, 跳过保活.")
     results = await asyncio.gather(*tasks)

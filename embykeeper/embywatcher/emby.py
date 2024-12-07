@@ -287,9 +287,10 @@ class Connector(_Connector):
     async def get_stream_noreturn(self, path, **query):
         try:
             session = await self._get_session()
+            url = self.get_url(path, **query)
             async with session.stream(
                 "GET",
-                path,
+                url,
                 params={"timeout": httpx.Timeout(connect=10.0, read=None, write=10.0, pool=10.0)},
                 **query,
             ) as resp:
@@ -325,10 +326,6 @@ class Connector(_Connector):
             session = await self._get_session()
             resp = await self._req(session.get, path, **query)
             return await Connector.resp_to_json(resp)
-        except RuntimeError as e:
-            if "Unexpected JSON output" in str(e):
-                if "cf-wrapper" in str(e):
-                    logger.warning('Emby 保活错误, 该站点全站 CF 验证码保护, 请使用 "cf_challenge" 配置项.')
         finally:
             await self._end_session()
 
