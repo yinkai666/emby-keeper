@@ -23,6 +23,9 @@ retries = 4
 # 最大可同时进行的 Telegram Bot 签到.
 concurrent = 1
 
+# 最大可同时进行的 Emby 站点保活.
+watch_concurrent = 3
+
 # 计划任务时, 各站点之间签到的随机时间差异 (分钟), 所有站点签到将在该时间范围内完成.
 random = 60
 
@@ -34,7 +37,7 @@ random = 60
 # scheme = "socks5" # 可选: http / socks5
 
 # 服务设置, 当您需要禁用某些站点时, 请将该段取消注释并修改.
-# 该部分内容是根据 Embykeeper 5.2.4 生成的.
+# 该部分内容是根据 Embykeeper 5.2.5 生成的.
 # 详见: https://emby-keeper.github.io/guide/配置文件#service-子项
 # 使用 checkiner = ["all"] 以启用所有签到器, 使用 checkiner = ["sgk"] 以启用所有社工库签到器.
 
@@ -46,7 +49,7 @@ random = 60
 
 # 全部可用站点:
 # [service]
-# checkiner = ["_templ_a", "_templ_b", "agentsgk", "aisgk", "akile", "akile_group", "akuai", "alpha", "apop", "apoppro", "aurora", "avibi", "awamusic", "awatv", "baidusgk", "bearsgk", "bingdaosgk", "bitsgk", "bluesea", "bostsgk", "bytevirt_group", "carll1sgk", "carll2sgk", "cc", "charon", "charon_old", "chunjiangsgk", "ciji", "datasgk", "dingdangsgk", "dogsgk", "dvfilm", "embyhub", "fanhuasgk", "feiji", "feiyue", "feiyuedpx", "feiyuemusic", "feiyuemusic_group_old", "future", "happy", "heisi", "hka", "huasgk", "ikunmusic", "infsgk", "ingeeksgk", "jinding", "jms", "jms_iptv", "jms_old", "johnsgk", "jsq", "judog", "koisgk", "levilde", "lili", "ljyy", "ljyy_old", "lyrebird", "magic", "marmot_group_old", "mastersgk", "micu", "minisgk", "misty", "mjj", "mooncake", "moshensgk", "nebula", "niaoge", "pandatv", "pandatv_group", "peach", "pilipili", "pingansgk", "plumber", "pornemby", "qingfengsgk", "raismusic", "rednosesgk", "seedsgk", "sfcju", "shufu", "shzi", "singularity", "skysink", "sssq", "starcat", "starsgk", "tanhua", "temby", "temby_beta", "temby_old", "terminus", "terminus_old", "theend", "tianmaosgk", "tiannan", "unionsgk", "watermelon", "worldline", "xraysgk", "yomo", "zhihusgk", "zhipian", "zhushousgk"]
+# checkiner = ["agentsgk", "aisgk", "akile", "akile_group", "akuai", "alpha", "apop", "apoppro", "aurora", "avibi", "awamusic", "awatv", "baidusgk", "bearsgk", "bingdaosgk", "bitsgk", "bluesea", "bostsgk", "bytevirt_group", "carll1sgk", "carll2sgk", "cc", "charon", "charon_old", "chunjiangsgk", "ciji", "datasgk", "dingdangsgk", "dogsgk", "dvfilm", "embyhub", "fanhuasgk", "feiji", "feiyue", "feiyuedpx", "feiyuemusic", "feiyuemusic_group_old", "future", "happy", "heisi", "hka", "huasgk", "ikunmusic", "infsgk", "ingeeksgk", "jinding", "jms", "jms_iptv", "jms_old", "johnsgk", "jsq", "judog", "koisgk", "levilde", "lili", "ljyy", "ljyy_old", "lyrebird", "magic", "marmot_group_old", "mastersgk", "micu", "minisgk", "misty", "mjj", "mooncake", "moshensgk", "nebula", "niaoge", "pandatv", "pandatv_group", "peach", "pilipili", "pingansgk", "plumber", "pornemby", "qingfengsgk", "raismusic", "rednosesgk", "seedsgk", "sfcju", "shufu", "shzi", "singularity", "skysink", "sssq", "starcat", "starsgk", "tanhua", "temby", "temby_beta", "temby_old", "terminus", "terminus_old", "theend", "tianmaosgk", "tiannan", "unionsgk", "watermelon", "worldline", "xraysgk", "yomo", "zhihusgk", "zhipian", "zhushousgk"]
 # monitor = ["bgk", "embyhub", "follow", "future", "infinity_fly", "judog", "misty", "polo", "pornemby_alert", "pornemby_answer", "pornemby_double", "pornemby_dragon_rain", "pornemby_nohp", "pornemby_register", "shufu", "terminus_exam", "viper"]
 # messager = ["marmot", "nakonako", "pornemby"]
 
@@ -54,13 +57,13 @@ random = 60
 # 详见: https://emby-keeper.github.io/guide/配置文件#telegram-子项
 
 [[telegram]]
-phone = "+8613515474855"
+phone = "+8611444288560"
 checkin = true
 send = false # 启用该账号的自动水群功能 (需要高级账号, 谨慎使用)
 monitor = false # 启用该账号的自动监控功能 (需要高级账号)
 
 [[telegram]]
-phone = "+8616248769890"
+phone = "+8610501977515"
 checkin = true
 send = false # 启用该账号的自动水群功能 (需要高级账号, 谨慎使用)
 monitor = false # 启用该账号的自动监控功能 (需要高级账号)
@@ -69,13 +72,14 @@ monitor = false # 启用该账号的自动监控功能 (需要高级账号)
 # 详见: https://emby-keeper.github.io/guide/配置文件#emby-子项
 
 [[emby]]
-url = "https://www.sanchez.com/"
-username = "johnwilson"
-password = "@zayjD@9u9"
+url = "https://www.jimenez-francis.com/"
+username = "sarah08"
+password = "te6YIt4C*9"
 time = [120, 240] # 模拟观看的时长范围 (秒)
 
 [[emby]]
-url = "https://www.anderson.biz/"
-username = "yparker"
-password = "I9+ZQlDj#r"
+url = "https://torres.com/"
+username = "nielsenanthony"
+password = "(wI@n7ZbI8"
 time = [120, 240] # 模拟观看的时长范围 (秒)
+
