@@ -7,6 +7,7 @@ import warnings
 
 import httpx
 from loguru import logger
+
 with warnings.catch_warnings():
     warnings.filterwarnings("ignore", category=DeprecationWarning)
     from embypy.emby import Emby as _Emby

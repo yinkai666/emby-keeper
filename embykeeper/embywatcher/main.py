@@ -10,6 +10,7 @@ import warnings
 import httpx
 from loguru import logger
 from dateutil import parser
+
 with warnings.catch_warnings():
     warnings.filterwarnings("ignore", category=DeprecationWarning)
     from embypy.objects import Episode, Movie

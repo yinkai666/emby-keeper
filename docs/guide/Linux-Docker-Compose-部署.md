@@ -103,7 +103,7 @@ services:
     volumes:
       - ./embykeeper:/app
     network_mode: host
-  
+
   watchtower:
     container_name: watchtower
     image: containrrr/watchtower
@@ -114,6 +114,7 @@ services:
 ```
 
 这将：
+
 - 每24小时（86400秒）自动检查并更新 embykeeper 容器
 - 仅监控名为 "embykeeper" 的容器
 - 发现新版本时自动拉取镜像并重启容器
