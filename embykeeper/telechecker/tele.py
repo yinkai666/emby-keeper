@@ -400,8 +400,9 @@ class Client(pyrogram.Client):
         if query_name in special_methods:
             if self._login_time:
                 time_since_login = (datetime.now() - self._login_time).total_seconds()
-                if time_since_login < 15:
-                    wait_time = 15 - time_since_login
+                if time_since_login < 10:
+                    wait_time = 10 - time_since_login
+                    logger.info(f"距离登录时间 {time_since_login:.1f} 秒, 等待 {wait_time:.1f} 秒以执行下一步操作.")
                     await asyncio.sleep(wait_time)
 
             async with self._special_invoke_lock:
@@ -416,8 +417,8 @@ class Client(pyrogram.Client):
             async with self._invoke_lock:
                 now = datetime.now().timestamp()
                 last_invoke = self._last_invoke.get(query_name, 0)
-                if now - last_invoke < 0.5:
-                    wait_time = 0.5 - (now - last_invoke)
+                if now - last_invoke < 1:
+                    wait_time = 1 - (now - last_invoke)
                     await asyncio.sleep(wait_time)
                 self._last_invoke[query_name] = datetime.now().timestamp()
 
@@ -861,7 +862,7 @@ class ClientsSession:
                 with open(session_string_file, "w+", encoding="utf-8") as f:
                     f.write(await client.export_session_string())
             logger.debug(f'登录账号 "{client.phone_number}" 成功.')
-            self._login_time = datetime.now()
+            client._login_time = datetime.now()
             return client
 
     async def loginer(self, account):
