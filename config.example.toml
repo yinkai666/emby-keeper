@@ -82,4 +82,3 @@ url = "https://mccarty-young.org/"
 username = "andersonaaron"
 password = "_MQOhvD1U3"
 time = [120, 240] # 模拟观看的时长范围 (秒)
-

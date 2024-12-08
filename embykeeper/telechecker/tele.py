@@ -402,7 +402,9 @@ class Client(pyrogram.Client):
                 time_since_login = (datetime.now() - self._login_time).total_seconds()
                 if time_since_login < 10:
                     wait_time = 10 - time_since_login
-                    logger.info(f"距离登录时间 {time_since_login:.1f} 秒, 等待 {wait_time:.1f} 秒以执行下一步操作.")
+                    logger.info(
+                        f"距离登录时间 {time_since_login:.1f} 秒, 等待 {wait_time:.1f} 秒以执行下一步操作."
+                    )
                     await asyncio.sleep(wait_time)
 
             async with self._special_invoke_lock:
