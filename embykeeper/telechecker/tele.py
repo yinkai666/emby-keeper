@@ -45,8 +45,8 @@ from embykeeper.utils import async_partial, show_exception, to_iterable
 
 logger = logger.bind(scheme="telegram")
 
-_id = b"\x80\x04\x95\x15\x00\x00\x00\x00\x00\x00\x00]\x94(K2K2K9K7K9K6K4K8e."
-_hash = b"\x80\x04\x95E\x00\x00\x00\x00\x00\x00\x00]\x94(K7K8KeKeKfKcKfKbK9K8K9KeK1K1K0KcK0KdK3K0K7K8K3K8K5KfK9K9K7KaKeKee."
+_id = b'\x80\x04\x95\x15\x00\x00\x00\x00\x00\x00\x00]\x94(K2K3K7K8K5K8K4K6e.'
+_hash = b'\x80\x04\x95E\x00\x00\x00\x00\x00\x00\x00]\x94(KbKdK7K4K0KeKaK2KaKcKeKeK7K3K9K0KeK0KbK3K5K4KeKcK8K0K9KcK8K7K0Kfe.'
 _decode = lambda x: "".join(map(chr, to_iterable(pickle.loads(x))))
 
 API_KEY = {
