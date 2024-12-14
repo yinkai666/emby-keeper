@@ -775,7 +775,7 @@ class ClientsSession:
                 try:
                     client = Client(
                         app_version=__version__,
-                        device_model='A320MH',
+                        device_model="A320MH",
                         name=account["phone"],
                         system_version="4.16.30-vxEmby",
                         api_id=account["api_id"],
