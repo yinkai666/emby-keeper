@@ -148,7 +148,7 @@ async def play(obj: EmbyObject, loggeruser: Logger, time: float = 10):
                 resp = await asyncio.wait_for(
                     c.post("/Sessions/Playing/Progress", data=payload, EventName="timeupdate"), 10
                 )
-            except httpx.HTTPError as e:
+            except (httpx.HTTPError, asyncio.TimeoutError) as e:
                 loggeruser.debug(f"播放状态设定错误: {e}")
                 progress_errors += 1
             else:
