@@ -59,6 +59,8 @@ Embykeeper 支持 Docker 或 PyPI 安装 (Linux / Windows), 也支持云部署, 
 docker run -v $(pwd)/embykeeper:/app --rm -it --net=host embykeeper/embykeeper -i
 ```
 
+**注意**: 由于近期 Telegram 风控等级上升, 请尽可能先使用服务器所在地区的代理在手机上先登陆一次, 再使用 Embykeeper.
+
 您也可以使用 [Docker Compose 部署](https://emby-keeper.github.io/guide/Linux-Docker-Compose-部署).
 
 更多安装和配置方面的帮助请参考 [**📖 教程文档**](https://emby-keeper.github.io/).
