@@ -193,7 +193,7 @@ class Link:
     async def auth(self, service: str, log_func=None):
         """向机器人发送授权请求."""
         async with authed_services_lock:
-            user_auth_cache =  authed_services.get(self.client.me.id, {}).get(service, None)
+            user_auth_cache = authed_services.get(self.client.me.id, {}).get(service, None)
             if user_auth_cache is not None:
                 return user_auth_cache
         if not log_func:
