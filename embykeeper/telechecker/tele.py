@@ -3,7 +3,6 @@ from __future__ import annotations
 import binascii
 from collections import OrderedDict
 from contextlib import asynccontextmanager
-import uuid
 from datetime import datetime, timezone
 import asyncio
 import inspect
@@ -776,10 +775,9 @@ class ClientsSession:
                 try:
                     client = Client(
                         app_version=__version__,
-                        device_model="Server",
+                        device_model='A320MH',
                         name=account["phone"],
-                        system_version="Windows 11 x64",
-                        lang_code="zh-CN",
+                        system_version="4.16.30-vxEmby",
                         api_id=account["api_id"],
                         api_hash=account["api_hash"],
                         phone_number=account["phone"],
