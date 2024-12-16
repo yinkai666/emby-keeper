@@ -31,3 +31,4 @@ numpy<2.0.0
 onnxruntime==1.14.0
 httpx[http2]
 socksio
+telethon

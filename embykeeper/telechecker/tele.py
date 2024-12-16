@@ -1,18 +1,24 @@
 from __future__ import annotations
 
+import base64
 import binascii
 from collections import OrderedDict
 from contextlib import asynccontextmanager
 from datetime import datetime, timezone
 import asyncio
+import getpass
 import inspect
 from pathlib import Path
 import pickle
 import random
+import struct
 import sys
 from typing import AsyncGenerator, Optional, Union
 from sqlite3 import OperationalError
 import logging
+import tempfile
+import typing
+import warnings
 
 from rich.prompt import Prompt
 from appdirs import user_data_dir
@@ -33,7 +39,13 @@ from pyrogram.errors import (
     PhoneNumberInvalid,
     PhoneNumberBanned,
 )
-from pyrogram.handlers import MessageHandler, RawUpdateHandler, DisconnectHandler, EditedMessageHandler
+from pyrogram.storage.storage import Storage
+from pyrogram.handlers import (
+    MessageHandler,
+    RawUpdateHandler,
+    DisconnectHandler,
+    EditedMessageHandler,
+)
 from pyrogram.handlers.handler import Handler
 from aiocache import Cache
 import aiohttp
@@ -41,6 +53,9 @@ from aiohttp_socks import ProxyConnector, ProxyType, ProxyConnectionError, Proxy
 
 from embykeeper import var, __name__ as __product__, __version__
 from embykeeper.utils import async_partial, show_exception, to_iterable
+
+if typing.TYPE_CHECKING:
+    from telethon import TelegramClient
 
 logger = logger.bind(scheme="telegram")
 
@@ -134,7 +149,9 @@ class Dispatcher(dispatcher.Dispatcher):
 
                 try:
                     parsed_update, handler_type = (
-                        await parser(update, users, chats) if parser is not None else (None, type(None))
+                        await parser(update, users, chats)
+                        if parser is not None
+                        else (None, type(None))
                     )
                 except ValueError:
                     continue
@@ -225,7 +242,9 @@ class Client(pyrogram.Client):
                         raise BadRequest(
                             f'登录 "{self.phone_number}" 时出现异常: 您正在使用非交互式终端, 无法输入验证码.'
                         )
-                signed_in = await self.sign_in(self.phone_number, sent_code.phone_code_hash, self.phone_code)
+                signed_in = await self.sign_in(
+                    self.phone_number, sent_code.phone_code_hash, self.phone_code
+                )
             except (CodeInvalid, PhoneCodeInvalid):
                 self.phone_code = None
                 retry = True
@@ -237,7 +256,9 @@ class Client(pyrogram.Client):
                             msg = f'密码错误, 请重新输入 "{self.phone_number}" 的两步验证密码 (不显示, 按回车确认)'
                         else:
                             msg = f'需要输入 "{self.phone_number}" 的两步验证密码 (不显示, 按回车确认)'
-                        self.password = Prompt.ask(" " * 23 + msg, password=True, console=var.console)
+                        self.password = Prompt.ask(
+                            " " * 23 + msg, password=True, console=var.console
+                        )
                     try:
                         return await self.check_password(self.password)
                     except BadRequest:
@@ -424,7 +445,9 @@ class Client(pyrogram.Client):
                 self._last_invoke[query_name] = datetime.now().timestamp()
 
         logger.trace(f"请求: {query_name}")
-        return await super().invoke(query, retries=retries, timeout=timeout, sleep_threshold=sleep_threshold)
+        return await super().invoke(
+            query, retries=retries, timeout=timeout, sleep_threshold=sleep_threshold
+        )
 
     @asynccontextmanager
     async def catch_edit(self, message: types.Message, filter=None):
@@ -452,7 +475,12 @@ class Client(pyrogram.Client):
             await self.remove_handler(handler, group=0)
 
     async def wait_reply(
-        self, chat_id: Union[int, str], send: str = None, timeout: float = 10, outgoing=False, filter=None
+        self,
+        chat_id: Union[int, str],
+        send: str = None,
+        timeout: float = 10,
+        outgoing=False,
+        filter=None,
     ):
         async with self.catch_reply(chat_id=chat_id, filter=filter) as f:
             if send:
@@ -523,7 +551,9 @@ class Client(pyrogram.Client):
                         try:
                             diff = await self.invoke(
                                 raw.functions.updates.GetChannelDifference(
-                                    channel=await self.resolve_peer(utils.get_channel_id(channel_id)),
+                                    channel=await self.resolve_peer(
+                                        utils.get_channel_id(channel_id)
+                                    ),
                                     filter=raw.types.ChannelMessagesFilter(
                                         ranges=[
                                             raw.types.MessageRange(
@@ -558,7 +588,9 @@ class Client(pyrogram.Client):
                 self.dispatcher.updates_queue.put_nowait(
                     (
                         raw.types.UpdateNewMessage(
-                            message=diff.new_messages[0], pts=updates.pts, pts_count=updates.pts_count
+                            message=diff.new_messages[0],
+                            pts=updates.pts,
+                            pts_count=updates.pts_count,
                         ),
                         {u.id: u for u in diff.users},
                         {c.id: c for c in diff.chats},
@@ -572,6 +604,181 @@ class Client(pyrogram.Client):
         elif isinstance(updates, raw.types.UpdatesTooLong):
             await self.invoke(raw.functions.updates.GetState())
             logger.warning(f"发生超长更新, 已尝试处理该更新, 部分消息可能遗漏.")
+
+
+class TelethonUtils:
+    @classmethod
+    def start(
+        cls,
+        client: TelegramClient,
+        phone: typing.Union[typing.Callable[[], str], str] = lambda: input(
+            "Please enter your phone (or bot token): "
+        ),
+        password: typing.Union[typing.Callable[[], str], str] = lambda: getpass.getpass(
+            "Please enter your password: "
+        ),
+        *,
+        bot_token: str = None,
+        force_sms: bool = False,
+        code_callback: typing.Callable[[], typing.Union[str, int]] = None,
+        first_name: str = "New User",
+        last_name: str = "",
+        max_attempts: int = 3,
+    ):
+        """This function is a modified version of telethon.client.auth.AuthMethods.start"""
+
+        if code_callback is None:
+
+            def code_callback():
+                return input("Please enter the code you received: ")
+
+        elif not callable(code_callback):
+            raise ValueError(
+                "The code_callback parameter needs to be a callable "
+                "function that returns the code you received by Telegram."
+            )
+
+        if not phone and not bot_token:
+            raise ValueError("No phone number or bot token provided.")
+
+        if phone and bot_token and not callable(phone):
+            raise ValueError(
+                "Both a phone and a bot token provided, " "must only provide one of either"
+            )
+
+        coro = cls._telethon_start(
+            client,
+            phone=phone,
+            password=password,
+            bot_token=bot_token,
+            force_sms=force_sms,
+            code_callback=code_callback,
+            first_name=first_name,
+            last_name=last_name,
+            max_attempts=max_attempts,
+        )
+        return coro if client.loop.is_running() else client.loop.run_until_complete(coro)
+
+    @classmethod
+    async def _telethon_start(
+        cls,
+        client: TelegramClient,
+        phone,
+        password,
+        bot_token,
+        force_sms,
+        code_callback,
+        first_name,
+        last_name,
+        max_attempts,
+    ):
+        """This function is a modified version of telethon.client.auth.AuthMethods._start"""
+
+        from telethon import errors, utils
+
+        if not client.is_connected():
+            await client.connect()
+
+        # Rather than using `is_user_authorized`, use `get_me`. While this is
+        # more expensive and needs to retrieve more data from the server, it
+        # enables the library to warn users trying to login to a different
+        # account. See #1172.
+        me = await client.get_me()
+        if me is not None:
+            # The warnings here are on a best-effort and may fail.
+            if bot_token:
+                # bot_token's first part has the bot ID, but it may be invalid
+                # so don't try to parse as int (instead cast our ID to string).
+                if bot_token[: bot_token.find(":")] != str(me.id):
+                    logger.warning(
+                        "该会话已经包含一个授权用户,所以没有使用提供的 bot_token 登录机器人账号(可能导致没有使用你期望的用户)"
+                    )
+            elif phone and not callable(phone) and utils.parse_phone(phone) != me.phone:
+                logger.warning(
+                    "该会话已经包含一个授权用户,所以没有使用提供的手机号登录账号 (可能导致没有使用你期望的用户)"
+                )
+
+            return client
+
+        if not bot_token:
+            # Turn the callable into a valid phone number (or bot token)
+            while callable(phone):
+                value = phone()
+                if inspect.isawaitable(value):
+                    value = await value
+
+                if ":" in value:
+                    # Bot tokens have 'user_id:access_hash' format
+                    bot_token = value
+                    break
+
+                phone = utils.parse_phone(value) or phone
+
+        if bot_token:
+            await client.sign_in(bot_token=bot_token)
+            return client
+
+        me = None
+        attempts = 0
+        two_step_detected = False
+
+        await client.send_code_request(phone, force_sms=force_sms)
+        while attempts < max_attempts:
+            try:
+                value = code_callback()
+                if inspect.isawaitable(value):
+                    value = await value
+
+                # Since sign-in with no code works (it sends the code)
+                # we must double-check that here. Else we'll assume we
+                # logged in, and it will return None as the User.
+                if not value:
+                    raise errors.PhoneCodeEmptyError(request=None)
+
+                # Raises SessionPasswordNeededError if 2FA enabled
+                me = await client.sign_in(phone, code=value)
+                break
+            except errors.SessionPasswordNeededError:
+                two_step_detected = True
+                break
+            except (
+                errors.PhoneCodeEmptyError,
+                errors.PhoneCodeExpiredError,
+                errors.PhoneCodeHashEmptyError,
+                errors.PhoneCodeInvalidError,
+            ):
+                logger.warning("验证码错误, 请重试.")
+
+            attempts += 1
+        else:
+            raise RuntimeError(
+                "{} consecutive sign-in attempts failed. Aborting".format(max_attempts)
+            )
+
+        if two_step_detected:
+            if not password:
+                raise ValueError(
+                    "Two-step verification is enabled for this account. "
+                    "Please provide the 'password' argument to 'start()'."
+                )
+
+            if callable(password):
+                for _ in range(max_attempts):
+                    try:
+                        value = password()
+                        if inspect.isawaitable(value):
+                            value = await value
+
+                        me = await client.sign_in(phone=phone, password=value)
+                        break
+                    except errors.PasswordHashInvalidError:
+                        logger.warning("两步验证密码错误, 请重试.")
+                else:
+                    raise errors.PasswordHashInvalidError(request=None)
+            else:
+                me = await client.sign_in(phone=phone, password=password)
+
+        return client
 
 
 class ClientsSession:
@@ -705,7 +912,9 @@ class ClientsSession:
                     f"无法连接到您的代理 ({proxy_url}), 您的网络状态可能不好, 敬请注意. 程序将继续运行."
                 )
             except OSError as e:
-                logger.warning(f"无法连接到网络 (Google), 您的网络状态可能不好, 敬请注意. 程序将继续运行.")
+                logger.warning(
+                    f"无法连接到网络 (Google), 您的网络状态可能不好, 敬请注意. 程序将继续运行."
+                )
                 return False
             except Exception as e:
                 logger.warning(f"检测网络状态时发生错误, 网络检测将被跳过.")
@@ -721,7 +930,9 @@ class ClientsSession:
                     if resp.status == 200:
                         resp_dict: dict = await resp.json()
                     else:
-                        logger.warning(f"世界时间接口异常, 系统时间检测将跳过, 敬请注意. 程序将继续运行.")
+                        logger.warning(
+                            f"世界时间接口异常, 系统时间检测将跳过, 敬请注意. 程序将继续运行."
+                        )
 
                 api_time_str = resp_dict["dateTime"]
                 api_time = datetime.strptime(api_time_str.split(".")[0], "%Y-%m-%dT%H:%M:%S")
@@ -738,7 +949,74 @@ class ClientsSession:
                 show_exception(e)
                 return False
 
-    async def login(self, account, proxy):
+    @staticmethod
+    async def get_session_string_from_telethon(account, proxy):
+        from telethon import TelegramClient
+        from telethon.sessions import StringSession
+
+        telethon_proxy = None
+        if proxy:
+            telethon_proxy = {
+                "proxy_type": proxy["scheme"],
+                "addr": proxy["hostname"],
+                "port": proxy["port"],
+            }
+            if "username" in proxy:
+                telethon_proxy["username"] = proxy["username"]
+            if "password" in proxy:
+                telethon_proxy["password"] = proxy["password"]
+
+        with tempfile.NamedTemporaryFile() as tmp_file:
+            client = TelegramClient(
+                tmp_file.name,
+                api_id=account["api_id"],
+                api_hash=account["api_hash"],
+                system_version="4.16.30-vxEMBY",
+                device_model="A320MH",
+                app_version=__version__,
+                proxy=telethon_proxy,
+            )
+
+            msg1 = f'请输入 "{account["phone"]}" 的两步验证密码 (不显示, 按回车确认)'
+            password_callback = lambda: Prompt.ask(" " * 23 + msg1, password=True, console=var.console)
+            msg2 = f'请输入 "{account["phone"]}" 的登陆验证码 (按回车确认)'
+            code_callback = lambda: Prompt.ask(" " * 23 + msg2, console=var.console)
+
+            try:
+                await TelethonUtils.start(
+                    client,
+                    phone=account["phone"],
+                    password=password_callback,
+                    code_callback=code_callback,
+                )
+                session_string = StringSession.save(client.session)
+                me = await client.get_me()
+                user_id = me.id
+                user_bot = me.bot
+            except RuntimeError:
+                return None
+            finally:
+                await client.disconnect()
+
+        session = StringSession(session_string)
+        Dt = Storage.SESSION_STRING_FORMAT
+        return (
+            base64.urlsafe_b64encode(
+                struct.pack(
+                    Dt,
+                    session.dc_id,
+                    int(account["api_id"]),
+                    None,
+                    session.auth_key.key,
+                    user_id,
+                    user_bot,
+                )
+            )
+            .decode()
+            .rstrip("=")
+        )
+
+    async def login(self, account, proxy, use_telethon=True):
         try:
             account["phone"] = "".join(account["phone"].split())
             Path(self.basedir).mkdir(parents=True, exist_ok=True)
@@ -772,6 +1050,17 @@ class ClientsSession:
                     logger.debug(
                         f'账号 "{account["phone"]}" 登录凭据不存在, 即将进入登录流程, 仅内存模式{"启用" if in_memory else "禁用"}.'
                     )
+                    if use_telethon:
+                        logger.debug("选择使用 Telethon 进行首次登陆, 并转发字符串至 Pyrogram.")
+                        file_session_string = session_string = (
+                            await self.get_session_string_from_telethon(account, proxy)
+                        )
+                        if session_string:
+                            logger.info("请耐心等待, 正在登陆.")
+                            await asyncio.sleep(10)
+                        else:
+                            logger.warning(f'登录账号 "{account["phone"]}" 尝试次数超限, 将被跳过.')
+                            return None
                 try:
                     client = Client(
                         app_version=__version__,
@@ -841,7 +1130,9 @@ class ClientsSession:
                 f'登录账号 "{account["phone"]}" 失败, 由于您在配置文件中提供的 session 无效, 将被跳过.'
             )
         except RPCError as e:
-            logger.error(f'登录账号 "{account["phone"]}" 失败 ({e.MESSAGE.format(value=e.value)}), 将被跳过.')
+            logger.error(
+                f'登录账号 "{account["phone"]}" 失败 ({e.MESSAGE.format(value=e.value)}), 将被跳过.'
+            )
             return None
         except BadMsgNotification as e:
             if "synchronized" in str(e):
