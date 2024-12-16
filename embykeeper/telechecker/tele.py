@@ -149,9 +149,7 @@ class Dispatcher(dispatcher.Dispatcher):
 
                 try:
                     parsed_update, handler_type = (
-                        await parser(update, users, chats)
-                        if parser is not None
-                        else (None, type(None))
+                        await parser(update, users, chats) if parser is not None else (None, type(None))
                     )
                 except ValueError:
                     continue
@@ -242,9 +240,7 @@ class Client(pyrogram.Client):
                         raise BadRequest(
                             f'登录 "{self.phone_number}" 时出现异常: 您正在使用非交互式终端, 无法输入验证码.'
                         )
-                signed_in = await self.sign_in(
-                    self.phone_number, sent_code.phone_code_hash, self.phone_code
-                )
+                signed_in = await self.sign_in(self.phone_number, sent_code.phone_code_hash, self.phone_code)
             except (CodeInvalid, PhoneCodeInvalid):
                 self.phone_code = None
                 retry = True
@@ -256,9 +252,7 @@ class Client(pyrogram.Client):
                             msg = f'密码错误, 请重新输入 "{self.phone_number}" 的两步验证密码 (不显示, 按回车确认)'
                         else:
                             msg = f'需要输入 "{self.phone_number}" 的两步验证密码 (不显示, 按回车确认)'
-                        self.password = Prompt.ask(
-                            " " * 23 + msg, password=True, console=var.console
-                        )
+                        self.password = Prompt.ask(" " * 23 + msg, password=True, console=var.console)
                     try:
                         return await self.check_password(self.password)
                     except BadRequest:
@@ -445,9 +439,7 @@ class Client(pyrogram.Client):
                 self._last_invoke[query_name] = datetime.now().timestamp()
 
         logger.trace(f"请求: {query_name}")
-        return await super().invoke(
-            query, retries=retries, timeout=timeout, sleep_threshold=sleep_threshold
-        )
+        return await super().invoke(query, retries=retries, timeout=timeout, sleep_threshold=sleep_threshold)
 
     @asynccontextmanager
     async def catch_edit(self, message: types.Message, filter=None):
@@ -551,9 +543,7 @@ class Client(pyrogram.Client):
                         try:
                             diff = await self.invoke(
                                 raw.functions.updates.GetChannelDifference(
-                                    channel=await self.resolve_peer(
-                                        utils.get_channel_id(channel_id)
-                                    ),
+                                    channel=await self.resolve_peer(utils.get_channel_id(channel_id)),
                                     filter=raw.types.ChannelMessagesFilter(
                                         ranges=[
                                             raw.types.MessageRange(
@@ -642,9 +632,7 @@ class TelethonUtils:
             raise ValueError("No phone number or bot token provided.")
 
         if phone and bot_token and not callable(phone):
-            raise ValueError(
-                "Both a phone and a bot token provided, " "must only provide one of either"
-            )
+            raise ValueError("Both a phone and a bot token provided, " "must only provide one of either")
 
         coro = cls._telethon_start(
             client,
@@ -751,9 +739,7 @@ class TelethonUtils:
 
             attempts += 1
         else:
-            raise RuntimeError(
-                "{} consecutive sign-in attempts failed. Aborting".format(max_attempts)
-            )
+            raise RuntimeError("{} consecutive sign-in attempts failed. Aborting".format(max_attempts))
 
         if two_step_detected:
             if not password:
@@ -912,9 +898,7 @@ class ClientsSession:
                     f"无法连接到您的代理 ({proxy_url}), 您的网络状态可能不好, 敬请注意. 程序将继续运行."
                 )
             except OSError as e:
-                logger.warning(
-                    f"无法连接到网络 (Google), 您的网络状态可能不好, 敬请注意. 程序将继续运行."
-                )
+                logger.warning(f"无法连接到网络 (Google), 您的网络状态可能不好, 敬请注意. 程序将继续运行.")
                 return False
             except Exception as e:
                 logger.warning(f"检测网络状态时发生错误, 网络检测将被跳过.")
@@ -930,9 +914,7 @@ class ClientsSession:
                     if resp.status == 200:
                         resp_dict: dict = await resp.json()
                     else:
-                        logger.warning(
-                            f"世界时间接口异常, 系统时间检测将跳过, 敬请注意. 程序将继续运行."
-                        )
+                        logger.warning(f"世界时间接口异常, 系统时间检测将跳过, 敬请注意. 程序将继续运行.")
 
                 api_time_str = resp_dict["dateTime"]
                 api_time = datetime.strptime(api_time_str.split(".")[0], "%Y-%m-%dT%H:%M:%S")
@@ -1052,8 +1034,8 @@ class ClientsSession:
                     )
                     if use_telethon:
                         logger.debug("选择使用 Telethon 进行首次登陆, 并转发字符串至 Pyrogram.")
-                        file_session_string = session_string = (
-                            await self.get_session_string_from_telethon(account, proxy)
+                        file_session_string = session_string = await self.get_session_string_from_telethon(
+                            account, proxy
                         )
                         if session_string:
                             logger.info("请耐心等待, 正在登陆.")
@@ -1130,9 +1112,7 @@ class ClientsSession:
                 f'登录账号 "{account["phone"]}" 失败, 由于您在配置文件中提供的 session 无效, 将被跳过.'
             )
         except RPCError as e:
-            logger.error(
-                f'登录账号 "{account["phone"]}" 失败 ({e.MESSAGE.format(value=e.value)}), 将被跳过.'
-            )
+            logger.error(f'登录账号 "{account["phone"]}" 失败 ({e.MESSAGE.format(value=e.value)}), 将被跳过.')
             return None
         except BadMsgNotification as e:
             if "synchronized" in str(e):
