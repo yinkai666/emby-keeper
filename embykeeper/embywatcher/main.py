@@ -220,7 +220,6 @@ async def login(config, continuous=False):
                 ua=a.get("ua", None),
                 device=a.get("device", None),
                 client=a.get("client", None),
-                user_id=a.get("user_id", None),
                 device_id=a.get("device_id", None),
                 cf_clearance=cf_clearance,
             )

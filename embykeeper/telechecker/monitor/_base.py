@@ -11,7 +11,7 @@ from loguru import logger
 from appdirs import user_data_dir
 from pyrogram import filters
 from pyrogram.enums import ChatType
-from pyrogram.errors import UsernameNotOccupied, UserNotParticipant, FloodWait
+from pyrogram.errors import UsernameNotOccupied, UserNotParticipant, FloodWait, ChannelInvalid
 from pyrogram.handlers import EditedMessageHandler, MessageHandler
 from pyrogram.types import Message, User
 
@@ -197,6 +197,9 @@ class Monitor:
         except KeyError as e:
             self.log.info(f"初始化错误: 无法访问, 您可能已被封禁.")
             show_exception(e)
+            return False
+        except ChannelInvalid as e:
+            self.log.info(f"跳过监控: 私有群组, 未加入, 已跳过.")
             return False
         except FloodWait as e:
             self.log.info(f"初始化信息: Telegram 要求等待 {e.value} 秒.")

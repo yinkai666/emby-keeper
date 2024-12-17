@@ -15,7 +15,7 @@ from loguru import logger
 from typer import Typer
 from typer.core import TyperCommand
 
-from . import var, __url__, __name__
+from . import var, __url__, __name__, __version__
 
 Flagged = namedtuple("Flagged", ("noflag", "flag"))
 
@@ -24,7 +24,7 @@ def get_path_frame(e, path):
     try:
         tb = traceback.extract_tb(e.__traceback__)
         for frame in reversed(tb):
-            if Path(path) in Path(frame.filename).parents:
+            if Path(path) in Path(frame.filename).parents and frame.name != "invoke":
                 return frame
         else:
             return None
@@ -50,7 +50,7 @@ def get_cls_fullpath(c):
 
 def format_exception(e, regular=True):
     if not regular:
-        prompt = "\n请在 Github 或交流群反馈下方错误详情以帮助开发者修复该问题:\n"
+        prompt = f"\n请在 Github 或交流群反馈下方错误详情以帮助开发者修复该问题 (当前版本: {__version__}):\n"
     else:
         prompt = ""
     proj_path = Path(__file__).parent.absolute()

@@ -86,7 +86,6 @@ def check_config(config):
                         Optional("ua"): str,
                         Optional("client"): str,
                         Optional("device"): str,
-                        Optional("user_id"): str,
                         Optional("device_id"): str,
                         Optional("allow_multiple"): bool,
                         Optional("allow_stream"): bool,

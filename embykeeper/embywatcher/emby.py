@@ -31,18 +31,14 @@ class Connector(_Connector):
         ua=None,
         device=None,
         client=None,
-        client_id=None,
-        user_id=None,
         cf_clearance=None,
-        **kargs,
+        **kw,
     ):
-        super().__init__(url, **kargs)
+        super().__init__(url, **kw)
         self.proxy = proxy
         self.ua = ua
         self.device = device
         self.client = client
-        self.client_id = client_id
-        self.user_id = user_id
         self.fake_headers = self.get_fake_headers()
         self.watch = asyncio.create_task(self.watchdog())
         self.cf_clearance = cf_clearance
@@ -91,14 +87,12 @@ class Connector(_Connector):
             "CFNetwork/1406.0.4 Darwin/22.4.0",
             "CFNetwork/1333.0.4 Darwin/21.5.0",
         ]
-        client = "Fileball" if not self.client else self.client
+        client = "Filebox" if not self.client else self.client
         device = "iPhone" if not self.device else self.device
-        user_id = str(uuid.uuid4()).upper() if not self.user_id else self.user_id
         device_id = str(self.get_device_uuid()).upper() if not self.device_id else self.device_id
-        version = f"1.2.{random.randint(0, 18)}"
-        ua = f"Fileball/{random.choice([200, 233])} {random.choice(ios_uas)}" if not self.ua else self.ua
+        version = f"1.3.{random.randint(13, 15)}"
+        ua = f"Fileball/230 {random.choice(ios_uas)}" if not self.ua else self.ua
         auth_headers = {
-            "UserId": user_id,
             "Client": client,
             "Device": device,
             "DeviceId": device_id,
@@ -315,7 +309,7 @@ class Connector(_Connector):
             scheme = url.scheme
 
         url = urlunparse((scheme, url.netloc, path, "", "{params}", "")).format(
-            UserId=userId, ApiKey=self.api_key, DeviceId=self.device_id, params=urlencode(query)
+            UserId=userId, ApiKey=self.api_key, params=urlencode(query)
         )
 
         return url[:-1] if url[-1] == "?" else url
