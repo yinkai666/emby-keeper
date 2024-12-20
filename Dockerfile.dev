@@ -5,6 +5,7 @@ COPY . .
 
 ENV TZ="Asia/Shanghai"
 ENV EK_IN_DOCKER="1"
+ENV EK_DEBUG="1"
 
 RUN python -m venv /opt/venv \
     && . /opt/venv/bin/activate \
