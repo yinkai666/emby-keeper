@@ -500,10 +500,11 @@ class Client(pyrogram.Client):
             msg: types.Message = await asyncio.wait_for(f, timeout)
             return msg
 
-    async def mute_chat(self, chat_id: Union[int, str], until: Union[int, datetime]):
-        if isinstance(until, datetime):
+    async def mute_chat(self, chat_id: Union[int, str], until: Union[int, datetime, None] = None):
+        if until is None:
+            until = 0x7FFFFFFF  # permanent mute
+        elif isinstance(until, datetime):
             until = until.timestamp()
-
         return await self.invoke(
             raw.functions.account.UpdateNotifySettings(
                 peer=raw.types.InputNotifyPeer(peer=await self.resolve_peer(chat_id)),
