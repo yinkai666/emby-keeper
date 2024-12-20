@@ -136,10 +136,20 @@ async def main(
         False, "--save", "-S", rich_help_panel="调试参数", help="记录执行过程中的原始更新日志"
     ),
     public: bool = typer.Option(
-        False, "--public", "-P", hidden=True, rich_help_panel="调试参数", help="启用公共仓库部署模式"
+        False,
+        "--public",
+        "-P",
+        hidden=True,
+        rich_help_panel="调试参数",
+        help="启用公共仓库部署模式",
     ),
     windows: bool = typer.Option(
-        False, "--windows", "-W", hidden=True, rich_help_panel="调试参数", help="启用 Windows 安装部署模式"
+        False,
+        "--windows",
+        "-W",
+        hidden=True,
+        rich_help_panel="调试参数",
+        help="启用 Windows 安装部署模式",
     ),
     basedir: Path = typer.Option(
         None, "--basedir", "-B", rich_help_panel="调试参数", help="设定账号文件和模型文件的位置"
@@ -278,41 +288,66 @@ async def main(
     if not once:
         await start_notifier(config)
         if emby:
-            watchtime = config.get("watchtime", "<11:00AM,11:00PM>")
-            watchtime_match = re.match(r"<\s*(.*),\s*(.*)\s*>", watchtime)
-            if watchtime_match:
-                start_time, end_time = [parser.parse(watchtime_match.group(i)).time() for i in (1, 2)]
-            else:
-                start_time = end_time = parser.parse(watchtime).time()
-            if debug_cron:
-                start_time = end_time = (datetime.now() + timedelta(seconds=10)).time()
-                pool.add(
-                    watcher_schedule(config, start_time=start_time, end_time=end_time, days=0, instant=True)
-                )
-            else:
-                pool.add(watcher_schedule(config, days=emby, start_time=start_time, end_time=end_time))
-            for a in config.get("emby", ()):
-                if a.get("continuous", False):
-                    pool.add(watcher_continuous_schedule(config, start_time=start_time, end_time=end_time))
-                    break
-        if checkin:
-            if debug_cron:
-                start_time = end_time = (datetime.now() + timedelta(seconds=10)).time()
-            else:
-                checkin_range_match = re.match(r"<\s*(.*),\s*(.*)\s*>", checkin)
-                if checkin_range_match:
-                    start_time, end_time = [parser.parse(checkin_range_match.group(i)).time() for i in (1, 2)]
+            try:
+                if debug_cron:
+                    start_time = end_time = (datetime.now() + timedelta(seconds=10)).time()
                 else:
-                    start_time = end_time = parser.parse(checkin).time()
-            pool.add(
-                checkiner_schedule(
-                    config,
-                    instant=False,
-                    start_time=start_time,
-                    end_time=end_time,
-                    days=0 if debug_cron else 1,
+                    watchtime = config.get("watchtime", "<11:00AM,11:00PM>")
+                    watchtime_match = re.match(r"<\s*(.*),\s*(.*)\s*>", watchtime)
+                    if watchtime_match:
+                        start_time, end_time = [parser.parse(watchtime_match.group(i)).time() for i in (1, 2)]
+                    else:
+                        start_time = end_time = parser.parse(watchtime).time()
+            except parser.ParserError:
+                logger.error(
+                    "您设定的 watchtime 不正确, 请检查格式. (例如 11:00, <11:00,14:00> / <11:00AM,2:00PM>). 模拟观看保活将不会运行."
                 )
-            )
+            else:
+                pool.add(
+                    watcher_schedule(
+                        config,
+                        days=0 if debug_cron else emby,
+                        start_time=start_time,
+                        end_time=end_time,
+                    )
+                )
+                for a in config.get("emby", ()):
+                    if a.get("continuous", False):
+                        pool.add(
+                            watcher_continuous_schedule(
+                                config,
+                                days=0 if debug_cron else 1,
+                                start_time=start_time,
+                                end_time=end_time,
+                            )
+                        )
+                        break
+        if checkin:
+            try:
+                if debug_cron:
+                    start_time = end_time = (datetime.now() + timedelta(seconds=10)).time()
+                else:
+                    checkin_range_match = re.match(r"<\s*(.*),\s*(.*)\s*>", checkin)
+                    if checkin_range_match:
+                        start_time, end_time = [
+                            parser.parse(checkin_range_match.group(i)).time() for i in (1, 2)
+                        ]
+                    else:
+                        start_time = end_time = parser.parse(checkin).time()
+            except parser.ParserError:
+                logger.error(
+                    "您设定的 time 不正确, 请检查格式. (例如 11:00, <11:00,14:00> / <11:00AM,2:00PM>). 自动签到将不会运行."
+                )
+            else:
+                pool.add(
+                    checkiner_schedule(
+                        config,
+                        instant=False,
+                        start_time=start_time,
+                        end_time=end_time,
+                        days=0 if debug_cron else 1,
+                    )
+                )
         if monitor:
             pool.add(monitorer(config))
         if send:
