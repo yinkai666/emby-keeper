@@ -11,7 +11,7 @@ from ._base import Monitor
 
 class PornembyNoHPMonitor(Monitor):
     name = "Pornemby 血量耗尽停止发言"
-    chat_user = "PronembyTGBot2_bot"
+    chat_user = ["PronembyTGBot2_bot", "PronembyTGBot3_bot", "PornembyBot", "Porn_Emby_Bot"]
     chat_name = "Pornemby"
     chat_keyword = "(.*)血量已耗尽。"
     additional_auth = ["pornemby_pack"]

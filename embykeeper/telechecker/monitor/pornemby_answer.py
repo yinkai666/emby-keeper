@@ -29,8 +29,8 @@ class _PornembyAnswerResultMonitor(Monitor):
 
 class _PornembyAnswerAnswerMonitor(Monitor):
     name = "Pornemby 科举"
-    history_chat_name = ["Pornemby", "PornembyFun"]
-    chat_user = "pornemby_question_bot"
+    history_chat_name = ["Pornemby", "PornembyFun", "Porn_Emby_Bot"]
+    chat_user = ["pornemby_question_bot", "PronembyTGBot2_bot", "PronembyTGBot3_bot", "PornembyBot", "Porn_Emby_Bot"]
     chat_keyword = r"问题\d*：(.*?)\n+(A:.*\n+B:.*\n+C:.*\n+D:.*)\n(?!\n*答案)"
     additional_auth = ["pornemby_pack"]
     allow_edit = True
