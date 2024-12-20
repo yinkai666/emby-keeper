@@ -9,6 +9,7 @@ import random
 import re
 from typing import List, Type
 from importlib import import_module
+from pathlib import Path
 
 from loguru import logger
 
@@ -227,10 +228,39 @@ async def checkiner(config: dict, instant=False):
 
 async def checkiner_schedule(config: dict, start_time=None, end_time=None, days: int = 1, instant=False):
     """签到器计划任务."""
+    timestamp_file = Path(config["basedir"]) / "checkiner_schedule_next_timestamp"
+
     while True:
-        dt = next_random_datetime(start_time, end_time, interval_days=days)
-        logger.bind(scheme="telechecker").info(f"下一次签到将在 {dt.strftime('%m-%d %H:%M %p')} 进行.")
-        await asyncio.sleep((dt - datetime.now()).total_seconds())
+        next_dt = None
+        if timestamp_file.exists():
+            try:
+                stored_timestamp = float(timestamp_file.read_text().strip())
+                next_dt = datetime.fromtimestamp(stored_timestamp)
+                if next_dt > datetime.now():
+                    logger.bind(scheme="telechecker").info(
+                        f"从缓存中读取到下次签到时间: {next_dt.strftime('%m-%d %H:%M %p')}."
+                    )
+                    logger.debug(f"删除缓存文件以重新计算下次签到时间: {timestamp_file}")
+            except (ValueError, OSError) as e:
+                logger.debug(f"读取存储的时间戳失败: {e}")
+
+        if not next_dt or next_dt <= datetime.now():
+            next_dt = next_random_datetime(start_time, end_time, interval_days=days)
+            logger.bind(scheme="telechecker").info(
+                f"下一次签到将在 {next_dt.strftime('%m-%d %H:%M %p')} 进行."
+            )
+            try:
+                timestamp_file.write_text(str(next_dt.timestamp()))
+            except OSError as e:
+                logger.debug(f"存储时间戳失败: {e}")
+
+        await asyncio.sleep((next_dt - datetime.now()).total_seconds())
+
+        try:
+            timestamp_file.unlink(missing_ok=True)
+        except OSError as e:
+            logger.debug(f"删除时间戳文件失败: {e}")
+
         await checkiner(config, instant=instant)
 
 
