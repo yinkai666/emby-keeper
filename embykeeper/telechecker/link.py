@@ -1,6 +1,5 @@
 import asyncio
 import random
-import time
 from typing import Callable, Coroutine, List, Optional, Tuple, Union
 import uuid
 
@@ -9,8 +8,6 @@ from loguru import logger
 from pyrogram import filters
 from pyrogram.handlers import MessageHandler
 from pyrogram.types import Message
-from pyrogram.raw.functions.account import GetNotifySettings
-from pyrogram.raw.types import PeerNotifySettings, InputNotifyPeer
 from pyrogram.errors.exceptions.bad_request_400 import YouBlockedUser
 from pyrogram.errors import FloodWait
 
@@ -74,85 +71,71 @@ class Link:
             fail: 当出现错误时抛出错误, 而非发送日志
         """
         for r in range(retries):
-            self.log.debug(f"[gray50]禁用提醒 {timeout} 秒: {self.bot}[/]")
-            peer = InputNotifyPeer(peer=await self.client.resolve_peer(self.bot))
-            settings: PeerNotifySettings = await self.client.invoke(GetNotifySettings(peer=peer))
-            old_mute_until = settings.mute_until
+            self.log.debug(f"[gray50]禁用提醒: {self.bot}[/]")
             try:
-                await self.client.mute_chat(self.bot, time.time() + timeout + 5)
+                await self.client.mute_chat(self.bot)
             except FloodWait:
                 self.log.debug(f"[gray50]设置禁用提醒因访问超限而失败: {self.bot}[/]")
+            future = asyncio.Future()
+            handler = MessageHandler(
+                async_partial(self._handler, cmd=cmd, future=future, condition=condition),
+                filters.text & filters.bot & filters.user(self.bot),
+            )
+            await self.client.add_handler(handler, group=1)
             try:
-                future = asyncio.Future()
-                handler = MessageHandler(
-                    async_partial(self._handler, cmd=cmd, future=future, condition=condition),
-                    filters.text & filters.bot & filters.user(self.bot),
-                )
-                await self.client.add_handler(handler, group=1)
+                messages = []
+                if photo:
+                    messages.append(await self.client.send_photo(self.bot, photo, cmd))
+                else:
+                    messages.append(await self.client.send_message(self.bot, cmd))
+                self.log.debug(f"[gray50]-> {cmd}[/]")
+                results = await asyncio.wait_for(future, timeout=timeout)
+            except asyncio.CancelledError:
                 try:
-                    messages = []
-                    if photo:
-                        messages.append(await self.client.send_photo(self.bot, photo, cmd))
-                    else:
-                        messages.append(await self.client.send_message(self.bot, cmd))
-                    self.log.debug(f"[gray50]-> {cmd}[/]")
-                    results = await asyncio.wait_for(future, timeout=timeout)
-                except asyncio.CancelledError:
-                    try:
-                        await asyncio.wait_for(self.delete_messages(messages), 1.0)
-                    except asyncio.TimeoutError:
-                        pass
-                    finally:
-                        raise
+                    await asyncio.wait_for(self.delete_messages(messages), 1.0)
                 except asyncio.TimeoutError:
-                    await self.delete_messages(messages)
-                    if r + 1 < retries:
-                        self.log.info(f"{name}超时 ({r + 1}/{retries}), 将在 3 秒后重试.")
-                        await asyncio.sleep(3)
-                        continue
-                    else:
-                        msg = f"{name}超时 ({r + 1}/{retries})."
-                        if fail:
-                            raise LinkError(msg)
-                        else:
-                            self.log.warning(msg)
-                            return None
-                except YouBlockedUser:
-                    msg = "您在账户中禁用了用于 API 信息传递的 Bot: @embykeeper_auth_bot, 这将导致 embykeeper 无法运行, 请尝试取消禁用."
+                    pass
+                finally:
+                    raise
+            except asyncio.TimeoutError:
+                await self.delete_messages(messages)
+                if r + 1 < retries:
+                    self.log.info(f"{name}超时 ({r + 1}/{retries}), 将在 3 秒后重试.")
+                    await asyncio.sleep(3)
+                    continue
+                else:
+                    msg = f"{name}超时 ({r + 1}/{retries})."
                     if fail:
                         raise LinkError(msg)
                     else:
-                        self.log.error(msg)
+                        self.log.warning(msg)
                         return None
+            except YouBlockedUser:
+                msg = "您在账户中禁用了用于 API 信息传递的 Bot: @embykeeper_auth_bot, 这将导致 embykeeper 无法运行, 请尝试取消禁用."
+                if fail:
+                    raise LinkError(msg)
                 else:
-                    await self.delete_messages(messages)
-                    status, errmsg = [results.get(p, None) for p in ("status", "errmsg")]
-                    if status == "error":
-                        if fail:
-                            raise LinkError(f"{errmsg}.")
-                        else:
-                            self.log.warning(f"{name}错误: {errmsg}.")
-                            return False
-                    elif status == "ok":
-                        return results
+                    self.log.error(msg)
+                    return None
+            else:
+                await self.delete_messages(messages)
+                status, errmsg = [results.get(p, None) for p in ("status", "errmsg")]
+                if status == "error":
+                    if fail:
+                        raise LinkError(f"{errmsg}.")
                     else:
-                        if fail:
-                            raise LinkError("出现未知错误.")
-                        else:
-                            self.log.warning(f"{name}出现未知错误.")
-                            return False
-                finally:
-                    await self.client.remove_handler(handler, group=1)
+                        self.log.warning(f"{name}错误: {errmsg}.")
+                        return False
+                elif status == "ok":
+                    return results
+                else:
+                    if fail:
+                        raise LinkError("出现未知错误.")
+                    else:
+                        self.log.warning(f"{name}出现未知错误.")
+                        return False
             finally:
-                if old_mute_until:
-                    try:
-                        await asyncio.wait_for(self.client.mute_chat(self.bot, until=old_mute_until), 3)
-                    except asyncio.TimeoutError:
-                        self.log.debug(f"[gray50]重新设置通知设置失败: {self.bot}[/]")
-                    except FloodWait:
-                        self.log.debug(f"[gray50]重新设置通知设置因访问超限而失败: {self.bot}[/]")
-                    else:
-                        self.log.debug(f"[gray50]重新设置通知设置成功: {self.bot}[/]")
+                await self.client.remove_handler(handler, group=1)
 
     async def _handler(
         self,
