@@ -75,7 +75,8 @@ class Connector(_Connector):
                     except asyncio.TimeoutError:
                         pass
 
-    def get_device_uuid(self):
+    @staticmethod
+    def get_device_uuid():
         rd = random.Random()
         rd.seed(uuid.getnode())
         return uuid.UUID(int=rd.getrandbits(128))

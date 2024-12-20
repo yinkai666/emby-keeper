@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import asyncio
-import json
+from pathlib import Path
 import random
 import string
 from typing import TYPE_CHECKING, Iterable, Tuple, Union
@@ -211,6 +211,24 @@ async def login(config, continuous=False):
         for _ in range(3):
             cf_clearance = None
             proxy = None
+
+            device_id = a.get("device_id", None)
+            if not device_id:
+                device_id_file = Path(config["basedir"]) / "emby_device_id"
+                if device_id_file.exists():
+                    try:
+                        device_id = device_id_file.read_text().strip()
+                    except OSError as e:
+                        logger.debug(f"读取 device_id 文件失败: {e}")
+                if not device_id:
+                    from .emby import Connector
+
+                    device_id = str(Connector.get_device_uuid()).upper()
+                    try:
+                        device_id_file.write_text(device_id)
+                    except OSError as e:
+                        logger.debug(f"保存 device_id 文件失败: {e}")
+
             emby = Emby(
                 url=a["url"],
                 username=a["username"],
@@ -220,7 +238,7 @@ async def login(config, continuous=False):
                 ua=a.get("ua", None),
                 device=a.get("device", None),
                 client=a.get("client", None),
-                device_id=a.get("device_id", None),
+                device_id=device_id,
                 cf_clearance=cf_clearance,
             )
             try:
@@ -550,7 +568,12 @@ async def watcher(config: dict, instant: bool = False):
     """入口函数 - 观看一个视频."""
 
     async def wrapper(
-        sem: asyncio.Semaphore, emby: Emby, loggeruser: Logger, time: float, multiple: bool, stream: bool
+        sem: asyncio.Semaphore,
+        emby: Emby,
+        loggeruser: Logger,
+        time: float,
+        multiple: bool,
+        stream: bool,
     ):
         async with sem:
             try:
@@ -596,14 +619,34 @@ async def watcher_schedule(
     instant: bool = False,
 ):
     """计划任务 - 观看一个视频."""
+    timestamp_file = Path(config["basedir"]) / "watcher_schedule_next_timestamp"
     while True:
-        if isinstance(days, int):
-            rand_days = days
-        else:
-            rand_days = random.randint(*days)
-        dt = next_random_datetime(start_time, end_time, interval_days=rand_days)
-        logger.bind(scheme="embywatcher").info(f"下一次保活将在 {dt.strftime('%m-%d %H:%M %p')} 进行.")
-        await asyncio.sleep((dt - datetime.now()).total_seconds())
+        next_dt = None
+        if timestamp_file.exists():
+            try:
+                stored_timestamp = float(timestamp_file.read_text().strip())
+                next_dt = datetime.fromtimestamp(stored_timestamp)
+                if next_dt > datetime.now():
+                    logger.info(f"从缓存中读取到下次保活时间: {next_dt.strftime('%m-%d %H:%M %p')}.")
+                    logger.debug(f"删除缓存文件以重新计算下次保活时间: {timestamp_file}")
+            except (ValueError, OSError) as e:
+                logger.debug(f"读取存储的时间戳失败: {e}")
+        if not next_dt or next_dt <= datetime.now():
+            if isinstance(days, int):
+                rand_days = days
+            else:
+                rand_days = random.randint(*days)
+            next_dt = next_random_datetime(start_time, end_time, interval_days=rand_days)
+            logger.info(f"下一次保活将在 {next_dt.strftime('%m-%d %H:%M %p')} 进行.")
+            try:
+                timestamp_file.write_text(str(next_dt.timestamp()))
+            except OSError as e:
+                logger.debug(f"存储时间戳失败: {e}")
+        await asyncio.sleep((next_dt - datetime.now()).total_seconds())
+        try:
+            timestamp_file.unlink(missing_ok=True)
+        except OSError as e:
+            logger.debug(f"删除时间戳文件失败: {e}")
         await watcher(config, instant=instant)
 
 
@@ -638,14 +681,35 @@ async def watcher_continuous_schedule(
     config: dict, start_time=time(11, 0), end_time=time(23, 0), days: int = 1
 ):
     """计划任务 - 持续观看."""
+    timestamp_file = Path(config["basedir"]) / "watcher_continuous_schedule_next_timestamp"
 
-    t = asyncio.create_task(watcher_continuous(config))
     while True:
-        dt = next_random_datetime(start_time, end_time, interval_days=days)
-        logger.bind(scheme="embywatcher").info(
-            f"持续观看结束后, 将在 {dt.strftime('%m-%d %H:%M %p')} 再次开始."
-        )
-        await asyncio.sleep((dt - datetime.now()).total_seconds())
+        next_dt = None
+        if timestamp_file.exists():
+            try:
+                stored_timestamp = float(timestamp_file.read_text().strip())
+                next_dt = datetime.fromtimestamp(stored_timestamp)
+                if next_dt > datetime.now():
+                    logger.bind(scheme="embywatcher").info(
+                        f"从缓存中读取到下次持续观看时间: {next_dt.strftime('%m-%d %H:%M %p')}."
+                    )
+                    logger.debug(f"删除缓存文件以重新计算下次持续观看时间: {timestamp_file}")
+            except (ValueError, OSError) as e:
+                logger.debug(f"读取存储的时间戳失败: {e}")
+        if not next_dt or next_dt <= datetime.now():
+            next_dt = next_random_datetime(start_time, end_time, interval_days=days)
+            logger.bind(scheme="embywatcher").info(
+                f"下次持续观看将在 {next_dt.strftime('%m-%d %H:%M %p')} 开始."
+            )
+            try:
+                timestamp_file.write_text(str(next_dt.timestamp()))
+            except OSError as e:
+                logger.debug(f"存储时间戳失败: {e}")
+        await asyncio.sleep((next_dt - datetime.now()).total_seconds())
+        try:
+            timestamp_file.unlink(missing_ok=True)
+        except OSError as e:
+            logger.debug(f"删除时间戳文件失败: {e}")
+        t = asyncio.create_task(watcher_continuous(config))
         if not t.done():
             t.cancel()
-        t = asyncio.create_task(watcher_continuous(config))
