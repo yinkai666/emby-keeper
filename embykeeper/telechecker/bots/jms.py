@@ -9,6 +9,7 @@ from ._base import BotCheckin
 
 __ignore__ = True
 
+
 class JMSCheckin(BotCheckin):
     name = "卷毛鼠"
     bot_username = "jmsembybot"

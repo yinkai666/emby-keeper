@@ -7,27 +7,26 @@ API_KEY = None
 
 OUTPUT_FILE = "emby_user_device.csv"  # 输出文件路径
 
+
 def get_server_config():
     """获取 Emby 服务器配置"""
     global EMBY_SERVER_URL, API_KEY
-    
+
     EMBY_SERVER_URL = input("请输入你的 Emby 服务器地址 (例如: http://localhost:8096): ").strip()
     API_KEY = input("请输入你的 Emby API 密钥: ").strip()
-    
+
     # Basic validation
     if not EMBY_SERVER_URL or not API_KEY:
         raise ValueError("服务器地址和 API 密钥不能为空")
-    
+
     # Remove trailing slash if present
-    EMBY_SERVER_URL = EMBY_SERVER_URL.rstrip('/')
+    EMBY_SERVER_URL = EMBY_SERVER_URL.rstrip("/")
+
 
 def fetch_users():
     """获取所有用户信息"""
     url = f"{EMBY_SERVER_URL}/Users"
-    headers = {
-        "accept": "application/json",
-        "X-Emby-Token": API_KEY
-    }
+    headers = {"accept": "application/json", "X-Emby-Token": API_KEY}
     try:
         response = requests.get(url, headers=headers)
         response.raise_for_status()
@@ -36,13 +35,11 @@ def fetch_users():
         print(f"获取用户信息时出错: {e}")
         return []
 
+
 def fetch_devices():
     """获取所有设备信息"""
     url = f"{EMBY_SERVER_URL}/Devices"
-    headers = {
-        "accept": "application/json",
-        "X-Emby-Token": API_KEY
-    }
+    headers = {"accept": "application/json", "X-Emby-Token": API_KEY}
     try:
         response = requests.get(url, headers=headers)
         response.raise_for_status()
@@ -50,6 +47,7 @@ def fetch_devices():
     except requests.RequestException as e:
         print(f"获取设备信息时出错: {e}")
         return []
+
 
 def count_devices_per_user(users, devices):
     """统计每个用户的设备数量"""
@@ -59,11 +57,11 @@ def count_devices_per_user(users, devices):
         user_name = user.get("Name")
         # 过滤设备，统计与当前用户关联的设备数量
         associated_devices = [
-            device for device in devices.get("Items", [])
-            if device.get("LastUserId") == user_id
+            device for device in devices.get("Items", []) if device.get("LastUserId") == user_id
         ]
         user_device_data.append({"user_name": user_name, "device_count": len(associated_devices)})
     return user_device_data
+
 
 def save_to_csv(data, filename):
     """将统计结果保存到 CSV 文件"""
@@ -78,6 +76,7 @@ def save_to_csv(data, filename):
         print(f"统计结果已保存到文件: {filename}")
     except IOError as e:
         print(f"保存到文件时出错: {e}")
+
 
 def main():
     """主函数"""
@@ -108,6 +107,7 @@ def main():
 
     # 将结果保存到 CSV 文件
     save_to_csv(user_device_data, OUTPUT_FILE)
+
 
 if __name__ == "__main__":
     main()

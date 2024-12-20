@@ -6,6 +6,7 @@ from embykeeper.utils import AsyncTyper
 
 app = AsyncTyper()
 
+
 @app.async_command()
 async def main(config: Path, url: str):
     with open(config, "rb") as f:
@@ -15,18 +16,18 @@ async def main(config: Path, url: str):
         async for tg in clients:
             try:
                 # Parse message URL to get chat_id and message_id
-                if not url.startswith('https://t.me/'):
+                if not url.startswith("https://t.me/"):
                     print("Invalid Telegram message URL")
                     return
-                
-                parts = url.split('/')
+
+                parts = url.split("/")
                 if len(parts) < 2:
                     print("Invalid URL format")
                     return
-                
+
                 chat_id = parts[-2]
                 message_id = int(parts[-1])
-                
+
                 # Get message details
                 message = await tg.get_messages(chat_id=chat_id, message_ids=message_id)
                 if message:
@@ -36,6 +37,7 @@ async def main(config: Path, url: str):
                 break
             except Exception as e:
                 print(f"Error: {e}")
+
 
 if __name__ == "__main__":
     app()
