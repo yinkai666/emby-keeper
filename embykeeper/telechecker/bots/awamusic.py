@@ -1,5 +1,6 @@
 from ._templ_a import TemplateACheckin
 
+__ignore__ = True
 
 class AWAMusicCheckin(TemplateACheckin):
     name = "AWA 音乐服"
