@@ -17,15 +17,26 @@ __ignore__ = True
 class NebulaCheckin(BaseBotCheckin):
     name = "Nebula"
     bot_username = "Nebula_Account_bot"
+    max_retries = 1
 
     def __init__(self, *args, **kw):
         super().__init__(*args, **kw)
         self.failed = False
         self.timeout *= 3
+        self._retries = 0
 
     async def fail(self):
         self.failed = True
         self.finished.set()
+
+    async def retry(self):
+        self._retries += 1
+        if self._retries <= self.max_retries:
+            await asyncio.sleep(2)
+            await self._checkin()
+        else:
+            self.log.warning("超过最大重试次数.")
+            await self.fail()
 
     async def start(self):
         try:
@@ -85,7 +96,8 @@ class NebulaCheckin(BaseBotCheckin):
                     await self.fail()
                 if "失败" in message:
                     self.log.info("签到失败.")
-                    await self.fail()
+                    await self.retry()
+                    return
                 if "已经" in message:
                     self.log.info("今日已经签到过了.")
                     self.finished.set()
@@ -96,6 +108,7 @@ class NebulaCheckin(BaseBotCheckin):
                     self.finished.set()
                 else:
                     self.log.warning(f"接收到异常返回信息: {message}")
+                    await self.retry()
         except (ProxyTimeoutError, ProxyError, OSError):
             self.log.info("签到失败: 无法连接签到页面.")
-            await self.fail()
+            await self.retry()
