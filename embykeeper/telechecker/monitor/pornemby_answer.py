@@ -7,7 +7,7 @@ import random
 from pyrogram.types import Message
 from pyrogram.errors import RPCError
 
-from ...utils import truncate_str
+from ...utils import to_iterable, truncate_str
 from ..link import Link
 from ..lock import pornemby_alert
 from ._base import Monitor
@@ -15,7 +15,6 @@ from ._base import Monitor
 
 class _PornembyAnswerResultMonitor(Monitor):
     name = "Pornemby 科举答案"
-    history_chat_name = ["Pornemby", "PornembyFun"]
     chat_keyword = r"问题\d*：(.*?)\n+A:(.*)\n+B:(.*)\n+C:(.*)\n+D:(.*)\n+答案为：([ABCD])"
     additional_auth = ["pornemby_pack"]
     allow_edit = True
@@ -29,7 +28,7 @@ class _PornembyAnswerResultMonitor(Monitor):
 
 class _PornembyAnswerAnswerMonitor(Monitor):
     name = "Pornemby 科举"
-    history_chat_name = ["Pornemby", "PornembyFun", "Porn_Emby_Bot"]
+    history_chat_name = "Pornemby"
     chat_user = [
         "pornemby_question_bot",
         "PronembyTGBot2_bot",
@@ -85,7 +84,7 @@ class _PornembyAnswerAnswerMonitor(Monitor):
             while not finished:
                 finished = True
                 m: Message
-                for g in self.history_chat_name:
+                for g in to_iterable(self.history_chat_name):
                     async for m in self.client.search_messages(g, limit=100, offset=count, query="答案为"):
                         if m.date < to_date:
                             break
@@ -179,14 +178,8 @@ class _PornembyAnswerAnswerMonitor(Monitor):
 
 
 class PornembyAnswerMonitor:
-    class PornembyAnswerResultMonitorA(_PornembyAnswerResultMonitor):
+    class PornembyAnswerResultMonitor(_PornembyAnswerResultMonitor):
         chat_name = "Pornemby"
 
-    class PornembyAnswerResultMonitorB(_PornembyAnswerResultMonitor):
-        chat_name = "PornembyFun"
-
-    class PornembyAnswerAnswerMonitorA(_PornembyAnswerAnswerMonitor):
+    class PornembyAnswerAnswerMonitor(_PornembyAnswerAnswerMonitor):
         chat_name = "Pornemby"
-
-    class PornembyAnswerAnswerMonitorB(_PornembyAnswerAnswerMonitor):
-        chat_name = "PornembyFun"
