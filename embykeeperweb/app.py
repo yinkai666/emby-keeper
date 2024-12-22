@@ -1,3 +1,4 @@
+import trio # fix https://github.com/python-trio/trio/issues/3015
 from eventlet.patcher import monkey_patch
 
 monkey_patch()
@@ -208,30 +209,40 @@ def resize(data):
 
 
 @socketio.on("connect", namespace="/pty")
-def connected():
-    logger.debug(f"Console connected.")
+def handle_connect():
+    logger.debug(f"Console connected from {request.sid}")
 
 
 @socketio.on("disconnect", namespace="/pty")
-def connected():
-    logger.debug(f"Console disconnected.")
+def handle_disconnect():
+    logger.debug(f"Console disconnected from {request.sid}")
+
+
+@socketio.on_error_default
+def default_error_handler(e):
+    logger.error(f"SocketIO error occurred: {str(e)}")
 
 
 def read_and_forward_pty_output():
+    threading.current_thread().name = "pty_reader"
     max_read_bytes = 1024 * 20
     while True:
         if app.config["fd"]:
-            (data, _, _) = select.select([app.config["fd"]], [], [])
-            if data:
-                with app.config["lock"]:
-                    if app.config["fd"]:
-                        output = os.read(app.config["fd"], max_read_bytes).decode(errors="ignore")
-                        app.config["hist"] += output
-                        socketio.emit("pty-output", {"output": output}, namespace="/pty")
-                    else:
-                        break
+            try:
+                (data, _, _) = select.select([app.config["fd"]], [], [], 1.0)
+                if data:
+                    with app.config["lock"]:
+                        if app.config["fd"]:
+                            output = os.read(app.config["fd"], max_read_bytes).decode(errors="ignore")
+                            app.config["hist"] += output
+                            socketio.emit("pty-output", {"output": output}, namespace="/pty")
+                        else:
+                            break
+            except (select.error, OSError):
+                break
         else:
             break
+    logger.debug("PTY reader task ended")
 
 
 def disconnect_on_proc_exit(proc: Popen):
@@ -243,10 +254,13 @@ def disconnect_on_proc_exit(proc: Popen):
         socketio.emit("pty-output", {"output": output}, namespace="/pty")
 
 
-def start_proc():
+def start_proc(instant=False):
     master_fd, slave_fd = pty.openpty()
+    args = ["embykeeper", *app.config["args"]]
+    if instant:
+        args.append("--instant")
     p = Popen(
-        ["embykeeper", *app.config["args"]],
+        args,
         stdin=slave_fd,
         stdout=slave_fd,
         stderr=slave_fd,
@@ -263,15 +277,20 @@ def start_proc():
 
 @socketio.on("embykeeper_start", namespace="/pty")
 def start(data, auth=True):
-    logger.debug("Received embykeeper_start socketio signal.")
+    logger.debug(f"Received embykeeper_start socketio signal from {request.sid}.")
     if not is_authenticated():
+        logger.debug("Authentication failed.")
         return
     with app.config["lock"]:
         if app.config["fd"] and app.config["proc"] and app.config["proc"].poll() is None:
+            logger.debug("Existing process found, resizing and sending history.")
             set_size(app.config["fd"], data["rows"], data["cols"])
-            socketio.emit("pty-output", {"output": app.config["hist"]}, namespace="/pty")
+            socketio.sleep(0.1)
+            socketio.emit("pty-output", {"output": app.config["hist"]}, namespace="/pty", to=request.sid)
+            logger.debug(f"Sent pty-output to {request.sid}, length: {len(app.config['hist'])}.")
         else:
-            start_proc()
+            logger.debug("Starting new process.")
+            start_proc(instant=data.get("instant", False))
             set_size(app.config["fd"], data["rows"], data["cols"])
 
 
@@ -311,10 +330,9 @@ def run(
 ):
     app.config["args"] = ctx.args
     if not wait:
-        start_proc()
+        start_proc(instant=True)
     logger.info(f"Embykeeper webserver started at {host}:{port}.")
     socketio.run(app, port=port, host=host, debug=debug)
-
 
 if __name__ == "__main__":
     cli()
