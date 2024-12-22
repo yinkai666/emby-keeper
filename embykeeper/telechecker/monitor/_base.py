@@ -104,7 +104,7 @@ class Monitor:
     unique_cache = UniqueUsername()
 
     name: str = None  # 监控器名称
-    chat_name: str = None  # 监控的群聊名称
+    chat_name: Union[str, int] = None  # 监控的群聊名称
     chat_allow_outgoing: bool = False  # 是否支持自己发言触发
     chat_user: Union[str, List[str]] = []  # 仅被列表中用户的发言触发 (支持 username / userid)
     chat_keyword: Union[str, List[str]] = []  # 仅当消息含有列表中的关键词时触发, 支持 regex
