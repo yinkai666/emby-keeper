@@ -121,6 +121,7 @@ docker run -v $(pwd)/embykeeper:/app --rm -it --net=host embykeeper/embykeeper -
   - HKA (`hka`): [群组](https://t.me/hkaemby) [机器人](https://t.me/hkaemby_bot)
   - AuroraMedia (`aurora`): [频道](https://t.me/AuroraMedia2) [机器人](https://t.me/AuroraMedia1_bot)
   - 起点站 (`tdck`): [群组](https://t.me/tdckemby) [机器人](https://t.me/tdck_emby_create_bot)
+  - SaturDay.Lite (`saturday`): [频道](https://t.me/saturday_lite_channel) [群组](https://t.me/SaturDay_Lite) [机器人](https://t.me/saturday_lite_bot)
 
   <!-- #endregion checkiner-sites -->
 
@@ -204,7 +205,7 @@ docker run -v $(pwd)/embykeeper:/app --rm -it --net=host embykeeper/embykeeper -
   <!-- #region monitor-sites -->
 
   - Pornemby:
-    - 科举考试 (`pornemby_answer`): [活动频道](https://t.me/PornembyFun)
+    - 科举考试 (`pornemby_answer`): [群组](https://t.me/Pornemby)
     - 自动抢注 (`pornemby_register`): [群组](https://t.me/Pornemby)
     - 自动抢红包雨 (`pornemby_dragon_rain`): [群组](https://t.me/Pornemby)
     - 自动翻倍 (`pornemby_double`): [群组](https://t.me/Pornemby)
