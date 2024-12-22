@@ -29,20 +29,14 @@ window.addEventListener('DOMContentLoaded', function() {
     fit.fit();
     console.debug("Web console init: ", term.cols, term.rows);
 
-    const socket = io.connect("/pty", {'reconnection': false});
-    socket.on("connect", () => {
-        var statusIcon = document.getElementById("status-icon");
-        statusIcon.style.backgroundColor = "green";
-        var statusMsg = document.getElementById("status-msg");
-        statusMsg.textContent = "程序已连接";
-        var restartIcon = document.getElementById("restart-icon");
-        restartIcon.style.animationPlayState = "paused";
-        console.info("Web console connected: ", term.cols, term.rows);
-        term.focus();
-        term.clear();
-        term.reset();
-        const dims = { cols: term.cols, rows: term.rows };
-        socket.emit("embykeeper_start", dims);
+    const socket = io.connect("/pty", {'reconnection': false, 'transports': ['websocket']});
+
+    socket.on("connect_error", (error) => {
+        console.error("Connection error:", error);
+    });
+
+    socket.on("error", (error) => {
+        console.error("Socket error:", error);
     });
 
     socket.on("disconnect", (reason) => {
@@ -55,63 +49,92 @@ window.addEventListener('DOMContentLoaded', function() {
         console.info("Web console disconnected: ", reason);
     });
 
-    var restartBtn = document.getElementById("restart-btn");
-    restartBtn.addEventListener('click', () => {
-        socket.emit("embykeeper_kill");
-        socket.disconnect();
-        var statusMsg = document.getElementById("status-msg");
-        statusMsg.textContent = "程序正在重启"
-        console.info("Web console restarting.");
-        socket.open();
-    });
-
-    function resize() {
-        fit.fit();
-        console.debug("Web console resize: ", term.cols, term.rows);
-        const dims = { cols: term.cols, rows: term.rows };
-        socket.emit("resize", dims);
-    }
-
-    function debounce(func, wait_ms) {
-        let timeout;
-        return function (...args) {
-            const context = this;
-            clearTimeout(timeout);
-            timeout = setTimeout(() => func.apply(context, args), wait_ms);
-        };
-    }
-
-    window.onresize = debounce(resize, 50);
-
-    term.onData((data) => {
-        console.debug(data)
-        socket.emit("pty-input", { input: data });
-    });
-
     socket.on("pty-output", (data) => {
+        console.log("Received pty-output, length:", data.output.length);
         term.write(data.output);
     });
 
-    function customKeyEventHandler(e) {
-        if (e.type !== "keydown") {
+    socket.on("connect", () => {
+        console.log("Socket connected");
+        var statusIcon = document.getElementById("status-icon");
+        statusIcon.style.backgroundColor = "green";
+        var statusMsg = document.getElementById("status-msg");
+        statusMsg.textContent = "程序已连接";
+        var restartIcon = document.getElementById("restart-icon");
+        restartIcon.style.animationPlayState = "paused";
+        console.info("Web console connected: ", term.cols, term.rows);
+        term.focus();
+        term.clear();
+        term.reset();
+
+        var restartBtn = document.getElementById("restart-btn");
+        restartBtn.addEventListener('click', () => {
+            socket.emit("embykeeper_kill");
+            socket.disconnect();
+            var statusMsg = document.getElementById("status-msg");
+            statusMsg.textContent = "程序正在重启"
+            console.info("Web console restarting.");
+            socket.open();
+        });
+    
+        function resize() {
+            fit.fit();
+            console.debug("Web console resize: ", term.cols, term.rows);
+            const dims = { cols: term.cols, rows: term.rows };
+            socket.emit("resize", dims);
+        }
+    
+        function debounce(func, wait_ms) {
+            let timeout;
+            return function (...args) {
+                const context = this;
+                clearTimeout(timeout);
+                timeout = setTimeout(() => func.apply(context, args), wait_ms);
+            };
+        }
+    
+        window.onresize = debounce(resize, 50);
+    
+        term.onData((data) => {
+            console.debug(data)
+            socket.emit("pty-input", { input: data });
+        });
+    
+        function customKeyEventHandler(e) {
+            if (e.type !== "keydown") {
+                return true;
+            }
+            if (e.ctrlKey) {
+                const key = e.key.toLowerCase();
+                if (key === "v") {
+                    navigator.clipboard.readText().then((toPaste) => {
+                        term.writeText(toPaste);
+                    });
+                    return false;
+                } else if (key === "c" || key === "x") {
+                    const toCopy = term.getSelection();
+                    navigator.clipboard.writeText(toCopy);
+                    term.focus();
+                    return false;
+                }
+            }
             return true;
         }
-        if (e.ctrlKey) {
-            const key = e.key.toLowerCase();
-            if (key === "v") {
-                navigator.clipboard.readText().then((toPaste) => {
-                    term.writeText(toPaste);
-                });
-                return false;
-            } else if (key === "c" || key === "x") {
-                const toCopy = term.getSelection();
-                navigator.clipboard.writeText(toCopy);
-                term.focus();
-                return false;
-            }
-        }
-        return true;
-    }
+    
+        term.attachCustomKeyEventHandler(customKeyEventHandler);
 
-    term.attachCustomKeyEventHandler(customKeyEventHandler);
+        const dims = { cols: term.cols, rows: term.rows, instant: true };
+        console.log("Sending embykeeper_start with dims:", dims);
+        socket.emit("embykeeper_start", dims, (error) => {
+            if (error) {
+                console.error("Failed to start embykeeper:", error);
+            }
+        });
+    });
+
+    window.addEventListener('beforeunload', () => {
+        if (socket.connected) {
+            socket.disconnect();
+        }
+    });
 });

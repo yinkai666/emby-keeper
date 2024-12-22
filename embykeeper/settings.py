@@ -385,6 +385,33 @@ def load_env_config(data: str):
         logger.debug("您正在使用环境变量配置.")
     return config
 
+async def check_telegram(config: dict, basedir=None):
+    from tomlkit import item
+    from rich import get_console
+    from rich.prompt import Confirm
+    
+    pad = " " * 23
+    telegrams = []
+    for a in config.get('telegram', []):
+        if not a.get('session', None):
+            telegrams.append(a)
+    if telegrams:
+        logger.info("即将尝试登陆各个账号.")
+        telegrams = await convert_session(telegrams, basedir=basedir)
+    config['telegram'] = telegrams
+    content = item(config).as_string().encode()
+    content = base64.b64encode(content)
+    logger.info(
+        f"您已登陆到 Telegram! 您需要将以下内容重新写入托管平台的 EK_CONFIG 环境变量 ([red]SECRET[/]), 否则登陆状态将在重启后丢失."
+    )
+    print()
+    get_console().rule("EK_CONFIG")
+    print(content.decode())
+    get_console().rule()
+    print()
+    start_now = Confirm.ask(pad + "是否立即启动?", default=True, console=console)
+    if start_now:
+        return config
 
 async def prepare_config(config_file=None, basedir=None, public=False, windows=False):
     """
@@ -406,6 +433,10 @@ async def prepare_config(config_file=None, basedir=None, public=False, windows=F
     env_config = os.environ.get(f"EK_CONFIG", None)
     if env_config:
         config = load_env_config(env_config)
+        if public:
+            config = await check_telegram(config, basedir=basedir)
+            if not config:
+                sys.exit(250)
     else:
         if public:
             if config_file:
