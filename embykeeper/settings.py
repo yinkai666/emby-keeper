@@ -385,20 +385,21 @@ def load_env_config(data: str):
         logger.debug("您正在使用环境变量配置.")
     return config
 
+
 async def check_telegram(config: dict, basedir=None):
     from tomlkit import item
     from rich import get_console
     from rich.prompt import Confirm
-    
+
     pad = " " * 23
     telegrams = []
-    for a in config.get('telegram', []):
-        if not a.get('session', None):
+    for a in config.get("telegram", []):
+        if not a.get("session", None):
             telegrams.append(a)
     if telegrams:
         logger.info("即将尝试登陆各个账号.")
         telegrams = await convert_session(telegrams, basedir=basedir)
-    config['telegram'] = telegrams
+    config["telegram"] = telegrams
     content = item(config).as_string().encode()
     content = base64.b64encode(content)
     logger.info(
@@ -412,6 +413,7 @@ async def check_telegram(config: dict, basedir=None):
     start_now = Confirm.ask(pad + "是否立即启动?", default=True, console=console)
     if start_now:
         return config
+
 
 async def prepare_config(config_file=None, basedir=None, public=False, windows=False):
     """

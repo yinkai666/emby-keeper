@@ -76,14 +76,14 @@ window.addEventListener('DOMContentLoaded', function() {
             console.info("Web console restarting.");
             socket.open();
         });
-    
+
         function resize() {
             fit.fit();
             console.debug("Web console resize: ", term.cols, term.rows);
             const dims = { cols: term.cols, rows: term.rows };
             socket.emit("resize", dims);
         }
-    
+
         function debounce(func, wait_ms) {
             let timeout;
             return function (...args) {
@@ -92,14 +92,14 @@ window.addEventListener('DOMContentLoaded', function() {
                 timeout = setTimeout(() => func.apply(context, args), wait_ms);
             };
         }
-    
+
         window.onresize = debounce(resize, 50);
-    
+
         term.onData((data) => {
             console.debug(data)
             socket.emit("pty-input", { input: data });
         });
-    
+
         function customKeyEventHandler(e) {
             if (e.type !== "keydown") {
                 return true;
@@ -120,7 +120,7 @@ window.addEventListener('DOMContentLoaded', function() {
             }
             return true;
         }
-    
+
         term.attachCustomKeyEventHandler(customKeyEventHandler);
 
         const dims = { cols: term.cols, rows: term.rows, instant: true };

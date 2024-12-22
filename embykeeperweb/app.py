@@ -1,4 +1,4 @@
-import trio # fix https://github.com/python-trio/trio/issues/3015
+import trio  # fix https://github.com/python-trio/trio/issues/3015
 from eventlet.patcher import monkey_patch
 
 monkey_patch()
@@ -333,6 +333,7 @@ def run(
         start_proc(instant=True)
     logger.info(f"Embykeeper webserver started at {host}:{port}.")
     socketio.run(app, port=port, host=host, debug=debug)
+
 
 if __name__ == "__main__":
     cli()
