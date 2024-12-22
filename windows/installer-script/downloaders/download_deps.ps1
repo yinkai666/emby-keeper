@@ -15,7 +15,7 @@ Write-Host "Installing dependencies"
 if ($Update) {
     & $PipPath install -i "https://pypi.tuna.tsinghua.edu.cn/simple" -U embykeeper --no-warn-script-location
 } else {
-    & $PipPath install -i "https://pypi.tuna.tsinghua.edu.cn/simple" -r $RequirementsFile --no-warn-script-location   
+    & $PipPath install -i "https://pypi.tuna.tsinghua.edu.cn/simple" -r $RequirementsFile --no-warn-script-location
 }
 
 $exitCode = $LASTEXITCODE
