@@ -1,4 +1,7 @@
-import trio  # fix https://github.com/python-trio/trio/issues/3015
+try:
+    import trio  # fix https://github.com/python-trio/trio/issues/3015
+except ImportError:
+    pass
 from eventlet.patcher import monkey_patch
 
 monkey_patch()
