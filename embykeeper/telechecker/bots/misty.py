@@ -30,26 +30,18 @@ class MistyCheckin(BotCheckin):
         wr = async_partial(self.client.wait_reply, self.bot_username)
         for _ in range(3):
             try:
-                if retry:
+                msg: Message = await wr("/cancel")
+                if "选择您要使用的功能" in (msg.caption or msg.text):
+                    await asyncio.sleep(random.uniform(2, 4))
+                    msg = await wr("🎲更多功能")
+                if "请选择功能" in (msg.text or msg.caption):
                     await asyncio.sleep(random.uniform(2, 4))
                     msg = await wr("🛎每日签到")
-                    if any(w in (msg.text or msg.caption) for w in ("上次签到", "验证码")):
-                        break
-                else:
-                    msg: Message = await wr("/cancel")
-                    if "选择您要使用的功能" in (msg.caption or msg.text):
-                        await asyncio.sleep(random.uniform(2, 4))
-                        msg = await wr("🎲更多功能")
-                    if "请选择功能" in (msg.text or msg.caption):
-                        await asyncio.sleep(random.uniform(2, 4))
-                        msg = await wr("🛎每日签到")
-                        if "获取账号失败" in (msg.text or msg.caption):
-                            self.log.warning(f"签到失败: 未注册账号.")
-                            return await self.fail()
-                        else:
-                            await self.message_handler(self.client, msg)
-                            if self.finished.is_set():
-                                return
+                    if "获取账号失败" in (msg.text or msg.caption):
+                        self.log.warning(f"签到失败: 未注册账号.")
+                        return await self.fail()
+                    else:
+                        return await self.message_handler(self.client, msg)
             except asyncio.TimeoutError:
                 pass
         else:
