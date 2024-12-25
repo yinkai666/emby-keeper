@@ -149,7 +149,9 @@ class FutureCheckin(BotCheckin):
                             if "完成" in result:
                                 return True
                             else:
-                                self.log.warning(f"验证码识别后接口返回异常信息:\n{truncate_str(result, 100)}, 可能是您的请求 IP 风控等级较高导致的.")
+                                self.log.warning(
+                                    f"验证码识别后接口返回异常信息:\n{truncate_str(result, 100)}, 可能是您的请求 IP 风控等级较高导致的."
+                                )
                                 return False
                 except (ProxyTimeoutError, ProxyError, OSError):
                     self.log.warning(

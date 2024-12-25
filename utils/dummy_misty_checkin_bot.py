@@ -30,7 +30,7 @@ main_reply_markup = ReplyKeyboardMarkup(
         ["⚡️账号功能", "🎲更多功能"],
         ["🚀查看线路", "🤪常见问题"],
     ],
-    resize_keyboard=True
+    resize_keyboard=True,
 )
 
 more_reply_markup = ReplyKeyboardMarkup(
@@ -38,7 +38,7 @@ more_reply_markup = ReplyKeyboardMarkup(
         ["🎟我的积分", "🛎每日签到", "🎭邀请用户"],
         ["🏠返回主菜单"],
     ],
-    resize_keyboard=True
+    resize_keyboard=True,
 )
 
 
@@ -51,7 +51,7 @@ async def start(client: Client, message: Message):
     # Clear captcha state if exists
     if message.from_user.id in states:
         del states[message.from_user.id]
-    
+
     content = dedent(
         """
     🍉欢迎使用 Misty Bot!
@@ -74,35 +74,28 @@ async def handle_more_functions(client: Client, message: Message):
     # Clear captcha state if exists
     if message.from_user.id in states:
         del states[message.from_user.id]
-        
-    await message.reply(
-        "🎯请选择功能:",
-        reply_markup=more_reply_markup
-    )
+
+    await message.reply("🎯请选择功能:", reply_markup=more_reply_markup)
 
 
 async def handle_checkin(client: Client, message: Message):
     captcha = ImageCaptcha()
-    captcha_text = ''.join(random.choices('0123456789', k=5))
+    captcha_text = "".join(random.choices("0123456789", k=5))
     captcha_image = captcha.generate_image(captcha_text)
-    
+
     states[message.from_user.id] = captcha_text
-    
+
     temp_path = Path(__file__).parent / f"temp_{message.from_user.id}.png"
     captcha_image.save(temp_path)
-    
-    await client.send_photo(
-        message.chat.id,
-        temp_path,
-        caption="🤔 请输入验证码（输入 /cancel 取消）："
-    )
+
+    await client.send_photo(message.chat.id, temp_path, caption="🤔 请输入验证码（输入 /cancel 取消）：")
     temp_path.unlink()
 
 
 async def handle_captcha_response(client: Client, message: Message):
     if message.from_user.id not in states:
         return
-        
+
     if message.text == states[message.from_user.id]:
         signed[message.from_user.id] = True
         current_time = datetime.now().strftime("%Y-%m-%d")
@@ -113,12 +106,7 @@ async def handle_captcha_response(client: Client, message: Message):
             ⏱️签到时间：{current_time}
             """.strip()
         )
-        await client.send_photo(
-            message.chat.id,
-            main_photo,
-            caption=content,
-            parse_mode=ParseMode.MARKDOWN
-        )
+        await client.send_photo(message.chat.id, main_photo, caption=content, parse_mode=ParseMode.MARKDOWN)
         await message.reply("🎯请选择功能:", reply_markup=more_reply_markup)
         del states[message.from_user.id]
     else:
