@@ -11,11 +11,20 @@ __ignore__ = True
 class TerminusExamMonitor(Monitor):
     name = "终点站考试辅助"
     chat_name = "EmbyPublicBot"
-    chat_keyword = r"(.*?(?:\n(?!本题贡献者).*?)*)\n\n本题贡献者.*?\n\n进度: \d+/\d+\s+\|\s+当前分数: \d+"
+    chat_keyword = r"(.*?(?:\n(?!本题贡献者).*?)*)\s+本题贡献者"
     allow_edit = True
     additional_auth = ["gpt"]
     debug_no_log = True
     trigger_interval = 0
+
+    async def init(self):
+        self.log.info("您已开启终点站考试辅助, 正在测试答题服务状态.")
+        result, _ = await Link(self.client).terminus_answer("请输出'正常'两个字!")
+        if result:
+            self.log.info("终点站考试辅助正常已启用, 请在机器人触发考试开始.")
+            return True
+        else:
+            return False
 
     async def on_trigger(self, message: Message, key, reply):
         self.log.info(f"新题: {key}, 解析中...")
