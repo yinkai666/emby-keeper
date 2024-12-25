@@ -41,7 +41,7 @@ def is_ok(co):
 async def get_random_media(emby: Emby):
     """获取随机视频."""
     while True:
-        items = await emby.get_items(["Movie", "Episode"], limit=10, sort="Random", ascending=False)
+        items = await emby.get_items(["Movie", "Episode"], limit=3, sort="Random", ascending=False)
         i: Union[Movie, Episode]
         for i in items:
             yield i
