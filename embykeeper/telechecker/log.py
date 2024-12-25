@@ -31,7 +31,7 @@ class TelegramStream(io.TextIOWrapper):
         while True:
             message = await self.queue.get()
             try:
-                result = await asyncio.wait_for(self.send(message), 10)
+                result = await asyncio.wait_for(self.send(message), 30)
             except asyncio.TimeoutError:
                 logger.warning("推送消息到 Telegram 超时.")
             else:
