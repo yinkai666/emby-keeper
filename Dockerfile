@@ -14,7 +14,6 @@ COPY --from=builder /src/scripts/docker-entrypoint.sh /entrypoint.sh
 
 ENV TZ="Asia/Shanghai"
 ENV EK_IN_DOCKER="1"
-ENV EK_DEBUG="1"
 
 WORKDIR /app
 RUN chmod +x /entrypoint.sh \
