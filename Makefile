@@ -7,7 +7,7 @@ USE_MIRROR ?= True
 ifeq ($(USE_MIRROR), True)
     CONDA_URL := "https://mirrors.tuna.tsinghua.edu.cn/anaconda/miniconda/Miniconda3-latest-Linux-$$(uname -i).sh"
     CONDA_CHANNEL_URL := "https://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/main"
-    PYPI_URL := "https://pypi.tuna.tsinghua.edu.cn/simple"
+    PYPI_URL := "https://mirrors.aliyun.com/pypi/simple"
 else
     CONDA_URL := "https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-$$(uname -i).sh"
     CONDA_CHANNEL_URL := "https://repo.anaconda.com/pkgs/main"

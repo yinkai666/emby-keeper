@@ -27,7 +27,7 @@ if ($ProxyBypassed){
 }
 
 Write-Host "Installing pip"
-& $TargetDirectory\python.exe $PipFile --no-warn-script-location -i "https://pypi.tuna.tsinghua.edu.cn/simple"
+& $TargetDirectory\python.exe $PipFile --no-warn-script-location -i "https://mirrors.aliyun.com/pypi/simple"
 $exitCode = $LASTEXITCODE
 
 if ($exitCode -eq 0) {
