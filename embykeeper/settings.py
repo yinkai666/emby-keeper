@@ -69,6 +69,13 @@ def check_config(config):
                         Optional("api_id"): Regex(r"^\d+$"),
                         Optional("api_hash"): Regex(r"^[a-z0-9]+$"),
                         Optional("session"): str,
+                        Optional("service"): Schema(
+                            {
+                                Optional("checkiner"): [str],
+                                Optional("monitor"): [str],
+                                Optional("messager"): [str],
+                            }
+                        ),
                     }
                 )
             ],
@@ -153,10 +160,18 @@ def write_faked_config(path, quiet=False):
     doc.add(comment("最大可同时进行的 Emby 站点保活."))
     doc["watch_concurrent"] = 3
     doc.add(nl())
-    doc.add(comment("计划任务时, 各站点之间签到的随机时间差异 (分钟), 所有站点签到将在该时间范围内完成."))
+    doc.add(
+        comment(
+            "计划任务时, 各站点之间签到的随机时间差异 (分钟), 所有站点签到将在该时间范围内完成."
+        )
+    )
     doc["random"] = 60
     doc.add(nl())
-    doc.add(comment(f"代理设置, Emby 和 Telegram 均将通过此代理连接, 服务器位于国内时请配置代理并取消注释."))
+    doc.add(
+        comment(
+            f"代理设置, Emby 和 Telegram 均将通过此代理连接, 服务器位于国内时请配置代理并取消注释."
+        )
+    )
     doc.add(comment(f"详见: https://emby-keeper.github.io/guide/配置文件#proxy-子项"))
     proxy = item(
         {
@@ -272,7 +287,8 @@ async def interactive_config(config: dict = {}, basedir=None):
         if not more:
             break
         phone = Prompt.ask(
-            pad + "请输入您的 Telegram 账号 (带国家区号) [dark_green](+861xxxxxxxxxx)[/]", console=console
+            pad + "请输入您的 Telegram 账号 (带国家区号) [dark_green](+861xxxxxxxxxx)[/]",
+            console=console,
         )
         monitor = Confirm.ask(
             pad + "是否开启该账号的自动监控功能? (需要高级账号)", default=False, console=console
@@ -298,7 +314,9 @@ async def interactive_config(config: dict = {}, basedir=None):
         )
         username = Prompt.ask(pad + "请输入您在该 Emby 站点的用户名", console=console)
         password = Prompt.ask(
-            pad + "请输入您在该 Emby 站点的密码 (不显示, 按回车确认)", password=True, console=console
+            pad + "请输入您在该 Emby 站点的密码 (不显示, 按回车确认)",
+            password=True,
+            console=console,
         )
         while True:
             time = Prompt.ask(
@@ -484,11 +502,11 @@ async def prepare_config(config_file=None, basedir=None, public=False, windows=F
     error_str = str(error)
     if error:
         if "'true' should be instance of 'bool'" in error_str:
-            error_str += "\n说明: 您可能使用了 \"true\" 或 'true' 作为是/否的配置, 请去除引号 (xxx = true)."
-        if "'false' should be instance of 'bool'" in error_str:
             error_str += (
-                "\n说明: 您可能使用了 \"false\" 或 'false' 作为是/否的配置, 请去除引号 (xxx = false)."
+                "\n说明: 您可能使用了 \"true\" 或 'true' 作为是/否的配置, 请去除引号 (xxx = true)."
             )
+        if "'false' should be instance of 'bool'" in error_str:
+            error_str += "\n说明: 您可能使用了 \"false\" 或 'false' 作为是/否的配置, 请去除引号 (xxx = false)."
         if "should be instance of 'int'" in error_str:
             error_str += f"\n说明: 您可能对需要使用数值的参数设置了字符串, 请去除引号 (xxx = 1234)."
         logger.error(

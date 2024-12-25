@@ -213,6 +213,7 @@ class Client(pyrogram.Client):
         self._last_invoke = {}
         self._invoke_lock = asyncio.Lock()
         self._login_time: datetime = None
+        self._config_index: int = None
 
     async def authorize(self):
         if self.bot_token:
@@ -414,8 +415,8 @@ class Client(pyrogram.Client):
         if query_name in special_methods:
             if self._login_time:
                 time_since_login = (datetime.now() - self._login_time).total_seconds()
-                if time_since_login < 10:
-                    wait_time = 10 - time_since_login
+                if time_since_login < 5:
+                    wait_time = 5 - time_since_login
                     logger.info(
                         f"距离登录时间 {time_since_login:.1f} 秒, 等待 {wait_time:.1f} 秒以执行下一步操作."
                     )
@@ -999,7 +1000,7 @@ class ClientsSession:
             .rstrip("=")
         )
 
-    async def login(self, account, proxy, use_telethon=True):
+    async def login(self, index, account, proxy, use_telethon=True):
         try:
             account["phone"] = "".join(account["phone"].split())
             Path(self.basedir).mkdir(parents=True, exist_ok=True)
@@ -1135,10 +1136,11 @@ class ClientsSession:
                     f.write(await client.export_session_string())
             logger.debug(f'登录账号 "{client.phone_number}" 成功.')
             client._login_time = datetime.now()
+            client._config_index = index
             return client
 
-    async def loginer(self, account):
-        client = await self.login(account, proxy=self.proxy)
+    async def loginer(self, index, account):
+        client = await self.login(index, account, proxy=self.proxy)
         if isinstance(client, Client):
             async with self.lock:
                 phone = account["phone"]
@@ -1152,7 +1154,7 @@ class ClientsSession:
     async def __aenter__(self):
         await self.test_network(self.proxy)
         asyncio.create_task(self.test_time(self.proxy))
-        for a in self.accounts:
+        for i, a in enumerate(self.accounts):
             phone = a["phone"]
             try:
                 await self.lock.acquire()
@@ -1170,7 +1172,7 @@ class ClientsSession:
                     await self.done.put(client)
                     logger.debug(f"Telegram 账号池计数增加: {phone} => {ref}")
                 else:
-                    self.pool[phone] = asyncio.create_task(self.loginer(a))
+                    self.pool[phone] = asyncio.create_task(self.loginer(i, a))
             finally:
                 try:
                     self.lock.release()
