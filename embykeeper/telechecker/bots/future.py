@@ -10,7 +10,7 @@ from aiohttp import ClientSession, TCPConnector
 from aiohttp_socks import ProxyConnector, ProxyTimeoutError, ProxyError, ProxyType
 from faker import Faker
 
-from embykeeper.utils import show_exception
+from embykeeper.utils import show_exception, truncate_str
 
 from ..link import Link
 from ._base import BotCheckin
@@ -149,7 +149,7 @@ class FutureCheckin(BotCheckin):
                             if "完成" in result:
                                 return True
                             else:
-                                self.log.warning(f"验证码识别后接口返回异常信息:\n{result}")
+                                self.log.warning(f"验证码识别后接口返回异常信息:\n{truncate_str(result, 100)}, 可能是您的请求 IP 风控等级较高导致的.")
                                 return False
                 except (ProxyTimeoutError, ProxyError, OSError):
                     self.log.warning(
