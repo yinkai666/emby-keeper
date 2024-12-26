@@ -248,7 +248,7 @@ async def login(config, continuous=False):
                 break
             except RuntimeError as e:
                 if "Unexpected JSON output" in str(e):
-                    if "cf-wrapper" in str(e):
+                    if "cf-wrapper" in str(e) or "Enable JavaScript and cookies to continue" in str(e):
                         if a.get("cf_challenge", False):
                             logger.info(
                                 f'Emby "{a["url"]}" 已启用 Cloudflare 保护, 即将请求解析 (最大支持时长 15 分钟).'
@@ -262,6 +262,10 @@ async def login(config, continuous=False):
                                 f'Emby "{a["url"]}" 已启用 Cloudflare 保护, 请使用 "cf_challenge" 配置项以允许尝试解析验证码.'
                             )
                             break
+                    else:
+                        raise
+                else:
+                    raise
             else:
                 break
         else:
