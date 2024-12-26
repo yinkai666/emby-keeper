@@ -199,6 +199,7 @@ docker run -v $(pwd)/embykeeper:/app --rm -it --net=host embykeeper/embykeeper -
     - 鸟哥轰炸 (`niaoge`): [机器人](https://t.me/nb3344bot?start=6489896414)
     - Bytevirt (`bytevirt_group`): [群组](https://t.me/bytevirtchat)
     - 金鼎轰炸 (`jinding`): [机器人](https://t.me/jdHappybot?start=6489896414)
+    - M78 星云 (`m78`): [机器人](https://t.me/M78CheckIn_bot)
 
     <!-- #endregion checkiner-other-sites -->
 - **Telegram 自动监控信息**
