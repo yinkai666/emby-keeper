@@ -4,6 +4,7 @@ from ._base import BotCheckin
 
 __ignore__ = True
 
+
 class M78Checkin(BotCheckin):
     name = "M78 星云"
     bot_username = "M78CheckIn_bot"
@@ -11,11 +12,7 @@ class M78Checkin(BotCheckin):
 
     async def message_handler(self, client, message: Message):
         text = message.caption or message.text
-        if (
-            text
-            and '欢迎来到M78星云' in text
-            and message.reply_markup
-        ):
+        if text and "欢迎来到M78星云" in text and message.reply_markup:
             keys = [k.text for r in message.reply_markup.inline_keyboard for k in r]
             for k in keys:
                 if "签到" in k or "簽到" in k:
@@ -27,7 +24,7 @@ class M78Checkin(BotCheckin):
             else:
                 self.log.warning(f"签到失败: 账户错误.")
                 return await self.fail()
-        
+
         if message.text and "请先绑定" in message.text:
             self.log.warning(f"签到失败: 账户错误.")
             return await self.fail()

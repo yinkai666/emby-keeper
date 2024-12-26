@@ -60,4 +60,3 @@ class TanhuaCheckin(AnswerBotCheckin):
             return MessageType.ANSWER | self._message_type(message)
         else:
             return self._message_type(message)
-        
