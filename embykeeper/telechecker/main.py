@@ -316,7 +316,7 @@ async def messager(config: dict):
             service_config = config.get("telegram", [])[tg._config_index].get("service", {})
             if not service_config:
                 service_config: dict = config.get("service", {})
-            names = service_config.get("monitor", None)
+            names = service_config.get("messager", None)
             clses = extract(get_cls("messager", names=names))
             if not clses:
                 log.warning("没有任何有效自动水群站点, 自动水群将跳过.")
