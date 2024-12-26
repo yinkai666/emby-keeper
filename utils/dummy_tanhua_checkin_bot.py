@@ -14,7 +14,6 @@ from pyrogram.types import (
     InlineKeyboardMarkup,
     CallbackQuery,
 )
-from pyrogram.enums import ParseMode
 
 from embykeeper.utils import AsyncTyper
 from embykeeper.telechecker.tele import Client, API_KEY
@@ -49,6 +48,24 @@ info_reply_markup = InlineKeyboardMarkup(
 
 result_reply_markup = InlineKeyboardMarkup(
     inline_keyboard=[
+        [
+            InlineKeyboardButton(text="🏠返回主菜单", callback_data="main 1000000000"),
+        ],
+    ]
+)
+
+captcha_photo = Path(__file__).parent / "data/tanhua/captcha.jpg"
+
+captcha_reply_markup = InlineKeyboardMarkup(
+    inline_keyboard=[
+        [
+            InlineKeyboardButton(text="PFMZ", callback_data="verify_wrong_1000000000"),
+            InlineKeyboardButton(text="d33u", callback_data="verify_correct_1000000000"),
+        ],
+        [
+            InlineKeyboardButton(text="YPPC", callback_data="verify_wrong_1000000000"),
+            InlineKeyboardButton(text="HTRI", callback_data="verify_wrong_1000000000"),
+        ],
         [
             InlineKeyboardButton(text="🏠返回主菜单", callback_data="main 1000000000"),
         ],
@@ -105,7 +122,19 @@ async def callback_checkin(client: Client, callback: CallbackQuery):
         await callback.message.edit_caption(caption="今日已签到", reply_markup=result_reply_markup)
     else:
         await callback.message.edit_caption(
-            caption="签到获得积分: 1\n当前积分: 2", reply_markup=result_reply_markup
+            caption="请选择正确的验证码",
+            reply_markup=captcha_reply_markup,
+        )
+        await client.send_photo(callback.message.chat.id, captcha_photo)
+    await callback.answer()
+
+
+async def callback_verify(client: Client, callback: CallbackQuery):
+    if "correct" in callback.data:
+        signed[callback.from_user.id] = True
+        await callback.message.edit_caption(
+            caption="签到获得积分: 5\n当前积分: 5",
+            reply_markup=result_reply_markup
         )
     await callback.answer()
 
@@ -131,6 +160,7 @@ async def main(config: Path):
         await bot.add_handler(MessageHandler(start, filters.command("start")))
         await bot.add_handler(CallbackQueryHandler(callback_checkin, filters.regex("checkin.*")))
         await bot.add_handler(CallbackQueryHandler(callback_info, filters.regex("info.*")))
+        await bot.add_handler(CallbackQueryHandler(callback_verify, filters.regex("verify_.*")))
         await bot.set_bot_commands(
             [
                 BotCommand("start", "Start the bot"),

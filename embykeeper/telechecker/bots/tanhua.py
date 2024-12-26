@@ -2,16 +2,18 @@ from pyrogram.types import Message
 
 from embykeeper.utils import to_iterable
 
-from ._base import BotCheckin
+from ._base import AnswerBotCheckin, MessageType
 
 
-class TanhuaCheckin(BotCheckin):
+class TanhuaCheckin(AnswerBotCheckin):
     name = "探花"
     bot_username = "TanhuaTvBot"
     additional_auth = ["prime"]
     bot_checkin_cmd = ["/start"]
     templ_panel_keywords = ["请选择功能", "用户面板", "用户名称"]
-    bot_use_captcha = False
+    bot_success_keywords = ["签到获得积分"]
+    bot_checked_keywords = ["今日已签到"]
+    bot_text_ignore = ["请选择正确的验证码"]
 
     async def message_handler(self, client, message: Message):
         text = message.caption or message.text
@@ -43,3 +45,19 @@ class TanhuaCheckin(BotCheckin):
             return await self.fail()
 
         await super().message_handler(client, message)
+
+    def _message_type(self, message: Message):
+        if message.photo:
+            if message.caption:
+                return MessageType.CAPTION
+            else:
+                return MessageType.CAPTCHA
+        elif message.text:
+            return MessageType.TEXT
+
+    def message_type(self, message: Message):
+        if self.is_valid_answer(message):
+            return MessageType.ANSWER | self._message_type(message)
+        else:
+            return self._message_type(message)
+        
