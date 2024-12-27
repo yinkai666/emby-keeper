@@ -178,10 +178,12 @@ class Link:
             user_auth_cache = authed_services.get(self.client.me.id, {}).get(service, None)
             if user_auth_cache is not None:
                 return user_auth_cache
-                
+
             # No cache, perform auth
             if not log_func:
-                result = await self.post(f"/auth {service} {self.instance}", name=f"服务 {service.upper()} 认证")
+                result = await self.post(
+                    f"/auth {service} {self.instance}", name=f"服务 {service.upper()} 认证"
+                )
                 authed_services.setdefault(self.client.me.id, {})[service] = bool(result)
                 return bool(result)
             else:
