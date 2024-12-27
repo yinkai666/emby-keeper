@@ -409,19 +409,21 @@ async def check_telegram(config: dict, basedir=None):
     if telegrams:
         logger.info("即将尝试登陆各个账号.")
         telegrams = await convert_session(telegrams, basedir=basedir)
-    config["telegram"] = telegrams
-    content = item(config).as_string().encode()
-    content = base64.b64encode(content)
-    logger.info(
-        f"您已登陆到 Telegram! 您需要将以下内容重新写入托管平台的 EK_CONFIG 环境变量 ([red]SECRET[/]), 否则登陆状态将在重启后丢失."
-    )
-    print()
-    get_console().rule("EK_CONFIG")
-    print(content.decode())
-    get_console().rule()
-    print()
-    start_now = Confirm.ask(pad + "是否立即启动?", default=True, console=console)
-    if start_now:
+        config["telegram"] = telegrams
+        content = item(config).as_string().encode()
+        content = base64.b64encode(content)
+        logger.info(
+            f"您已登陆到 Telegram! 您需要将以下内容重新写入托管平台的 EK_CONFIG 环境变量 ([red]SECRET[/]), 否则登陆状态将在重启后丢失."
+        )
+        print()
+        get_console().rule("EK_CONFIG")
+        print(content.decode())
+        get_console().rule()
+        print()
+        start_now = Confirm.ask(pad + "是否立即启动?", default=True, console=console)
+        if start_now:
+            return config
+    else:
         return config
 
 
