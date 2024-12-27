@@ -54,3 +54,36 @@
 #restart-btn {
   cursor: pointer;
 }
+
+#modal-data-box {
+  background-color: rgb(206, 206, 206);
+  border-radius: 20px;
+}
+.btn-minor {
+  border-radius: 6px;
+  background-color: #e7e1fc;
+  color: black;
+  border-style: none;
+}
+.cursor-pointer {
+  cursor: pointer;
+}
+.copy-tooltip {
+  position: fixed;
+  background-color: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  pointer-events: none;
+  z-index: 9999;
+  animation: fadeIn 0.2s ease-in-out;
+}
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}

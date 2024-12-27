@@ -61,4 +61,30 @@ window.addEventListener('DOMContentLoaded', function() {
         .finally(function () {
             editor.setOption('readOnly', false);
         });
+    function showCopyTooltip(text, event) {
+        const tooltip = document.createElement('div');
+        tooltip.className = 'copy-tooltip';
+        tooltip.textContent = text;
+        tooltip.style.left = `${event.pageX + 10}px`;
+        tooltip.style.top = `${event.pageY + 10}px`;
+        document.body.appendChild(tooltip);
+        setTimeout(() => tooltip.remove(), 1000);
+    }
+
+    function copyText(text, event) {
+        navigator.clipboard.writeText(text).then(() => {
+            showCopyTooltip('已复制', event);
+        }).catch(() => {
+            showCopyTooltip('复制失败', event);
+        });
+    }
+
+    document.getElementById('env-name').addEventListener('click', function(e) {
+        copyText('EK_CONFIG', e);
+    });
+
+    document.getElementById('modal-data-box').addEventListener('click', function(e) {
+        const modalData = document.getElementById('modal-data').textContent;
+        copyText(modalData, e);
+    });
 })
