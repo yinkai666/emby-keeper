@@ -71,7 +71,6 @@ class Link:
             fail: 当出现错误时抛出错误, 而非发送日志
         """
         for r in range(retries):
-            self.log.debug(f"[gray50]禁用提醒: {self.bot}[/]")
             try:
                 await self.client.mute_chat(self.bot)
             except FloodWait:
@@ -179,27 +178,28 @@ class Link:
             user_auth_cache = authed_services.get(self.client.me.id, {}).get(service, None)
             if user_auth_cache is not None:
                 return user_auth_cache
-        if not log_func:
-            result = await self.post(f"/auth {service} {self.instance}", name=f"服务 {service.upper()} 认证")
-            return bool(result)
-        else:
-            try:
-                await self.post(
-                    f"/auth {service} {self.instance}",
-                    name=f"服务 {service.upper()} 认证",
-                    fail=True,
-                )
-            except LinkError as e:
-                log_func(f"初始化错误: 使用 {service.upper()} 服务, 但{e}")
-                if "权限不足" in str(e):
-                    await self._show_super_ad()
-                async with authed_services_lock:
-                    authed_services.setdefault(self.client.me.id, {})[service] = False
-                return False
+                
+            # No cache, perform auth
+            if not log_func:
+                result = await self.post(f"/auth {service} {self.instance}", name=f"服务 {service.upper()} 认证")
+                authed_services.setdefault(self.client.me.id, {})[service] = bool(result)
+                return bool(result)
             else:
-                async with authed_services_lock:
+                try:
+                    await self.post(
+                        f"/auth {service} {self.instance}",
+                        name=f"服务 {service.upper()} 认证",
+                        fail=True,
+                    )
+                except LinkError as e:
+                    log_func(f"初始化错误: 使用 {service.upper()} 服务, 但{e}")
+                    if "权限不足" in str(e):
+                        await self._show_super_ad()
+                    authed_services.setdefault(self.client.me.id, {})[service] = False
+                    return False
+                else:
                     authed_services.setdefault(self.client.me.id, {})[service] = True
-                return True
+                    return True
 
     async def _show_super_ad(self):
         async with super_ad_shown_lock:
