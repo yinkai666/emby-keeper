@@ -517,8 +517,6 @@ class Client(pyrogram.Client):
         )
 
     async def handle_updates(self, updates):
-        self.last_update_time = datetime.now()
-
         if isinstance(updates, (raw.types.Updates, raw.types.UpdatesCombined)):
             is_min = any(
                 (
@@ -557,10 +555,8 @@ class Client(pyrogram.Client):
                                     limit=pts,
                                 )
                             )
-                        except RPCError:
-                            pass
-                        except ValueError:
-                            pass
+                        except (RPCError, ValueError) as e:
+                            logger.debug(f"处理空消息更新时出现未知错误: {e}.")
                         except OSError:
                             logger.info("网络不稳定, 可能遗漏消息.")
                         else:
@@ -594,6 +590,9 @@ class Client(pyrogram.Client):
         elif isinstance(updates, raw.types.UpdateShort):
             self.dispatcher.updates_queue.put_nowait((updates.update, {}, {}))
         elif isinstance(updates, raw.types.UpdatesTooLong):
+            await self.invoke(raw.functions.updates.GetState())
+            logger.warning(f"发生超长更新, 已尝试处理该更新, 部分消息可能遗漏.")
+        else:
             await self.invoke(raw.functions.updates.GetState())
             logger.warning(f"发生超长更新, 已尝试处理该更新, 部分消息可能遗漏.")
 
