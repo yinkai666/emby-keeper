@@ -23,8 +23,11 @@ class PilipiliCheckin(BotCheckin):
             keys = [k.text for r in message.reply_markup.inline_keyboard for k in r]
             for k in keys:
                 if "签到" in k:
-                    answer: BotCallbackAnswer = await message.click(k)
-                    await self.on_text(Message(id=0), answer.message)
+                    try:
+                        answer: BotCallbackAnswer = await message.click(k)
+                        await self.on_text(Message(id=0), answer.message)
+                    except TimeoutError:
+                        pass
                     return
             else:
                 self.log.warning(f"签到失败: 账户错误.")
