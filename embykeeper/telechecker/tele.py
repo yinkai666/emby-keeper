@@ -636,10 +636,6 @@ class Client(pyrogram.Client):
             self.dispatcher.updates_queue.put_nowait((updates.update, {}, {}))
         elif isinstance(updates, raw.types.UpdatesTooLong):
             await self.invoke(raw.functions.updates.GetState())
-            logger.warning(f"发生超长更新, 已尝试处理该更新, 部分消息可能遗漏.")
-        else:
-            await self.invoke(raw.functions.updates.GetState())
-            logger.warning(f"发生超长更新, 已尝试处理该更新, 部分消息可能遗漏.")
 
 
 class TelethonUtils:
