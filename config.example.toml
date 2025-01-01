@@ -37,14 +37,14 @@ random = 60
 # scheme = "socks5" # 可选: http / socks5
 
 # 服务设置, 当您需要禁用某些站点时, 请将该段取消注释并修改.
-# 该部分内容是根据 Embykeeper 5.3.2 生成的.
+# 该部分内容是根据 Embykeeper 6.0.0 生成的.
 # 详见: https://emby-keeper.github.io/guide/配置文件#service-子项
 # 使用 checkiner = ["all"] 以启用所有签到器, 使用 checkiner = ["sgk"] 以启用所有社工库签到器.
 
 # 默认启用站点:
 # [service]
-# checkiner = ["apoppro", "aurora", "awatv", "cc", "datasgk", "dvfilm", "feiyue", "feiyuedpx", "future", "ikunmusic", "jsq", "levilde", "lily", "lyrebird", "magic", "micu", "misty", "mjj", "mooncake", "pandatv", "pandatv_group", "peach", "pilipili", "plumber", "pornemby", "raismusic", "saturday", "sfcju", "shufu", "tanhua", "tdck", "terminus", "tiannan", "watermelon", "worldline", "yomo"]
-# monitor = ["bgk", "future", "infinity_fly", "misty", "pornemby_alert", "pornemby_answer", "pornemby_double", "pornemby_dragon_rain", "pornemby_nohp", "shufu", "viper"]
+# checkiner = ["apoppro", "aurora", "awatv", "cc", "datasgk", "dvfilm", "feiyue", "feiyuedpx", "future", "ikunmusic", "jsq", "levilde", "lily", "lyrebird", "magic", "micu", "misty", "mjj", "mooncake", "nebula", "pandatv", "pandatv_group", "peach", "pilipili", "plumber", "pornemby", "raismusic", "saturday", "sfcju", "shufu", "tanhua", "tdck", "terminus", "tiannan", "watermelon", "worldline", "yomo"]
+# monitor = ["bgk", "future", "infinity_fly", "misty", "pornemby_alert", "pornemby_answer", "pornemby_double", "pornemby_dragon_rain", "pornemby_nohp", "viper"]
 # messager = ["pornemby"]
 
 # 全部可用站点:
@@ -57,13 +57,13 @@ random = 60
 # 详见: https://emby-keeper.github.io/guide/配置文件#telegram-子项
 
 [[telegram]]
-phone = "+8619878711719"
+phone = "+8616741442316"
 checkin = true
 send = false # 启用该账号的自动水群功能 (需要高级账号, 谨慎使用)
 monitor = false # 启用该账号的自动监控功能 (需要高级账号)
 
 [[telegram]]
-phone = "+8616771417901"
+phone = "+8616455264681"
 checkin = true
 send = false # 启用该账号的自动水群功能 (需要高级账号, 谨慎使用)
 monitor = false # 启用该账号的自动监控功能 (需要高级账号)
@@ -72,13 +72,14 @@ monitor = false # 启用该账号的自动监控功能 (需要高级账号)
 # 详见: https://emby-keeper.github.io/guide/配置文件#emby-子项
 
 [[emby]]
-url = "https://carroll.com/"
-username = "renglish"
-password = "td&Ri6Yce_"
+url = "https://stevens-ferguson.biz/"
+username = "tiffany96"
+password = "@U@L!ep__0"
 time = [120, 240] # 模拟观看的时长范围 (秒)
 
 [[emby]]
-url = "https://www.griffith.com/"
-username = "dakotastein"
-password = "&7XFsiMl9F"
+url = "https://nelson-price.com/"
+username = "hannahbryant"
+password = "Mj6N&tF+v@"
 time = [120, 240] # 模拟观看的时长范围 (秒)
+
