@@ -8,6 +8,7 @@ from ._base import Monitor
 
 __ignore__ = True
 
+
 class ShufuMonitor(Monitor):
     name = "叔服"
     chat_name = -1001890341413
