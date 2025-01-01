@@ -202,15 +202,15 @@ async def checkiner(config: dict, instant=False):
                 ignored = []
                 successful = []
                 checked = []
-                for i, c in enumerate(checkiners):
-                    if results[i] == CheckinResult.IGNORE:
-                        ignored.append(c)
-                    elif results[i] == CheckinResult.SUCCESS:
-                        successful.append(c)
-                    elif results[i] == CheckinResult.CHECKED:
-                        checked.append(c)
+                for n, s in results:
+                    if s == CheckinResult.IGNORE:
+                        ignored.append(n)
+                    elif s == CheckinResult.SUCCESS:
+                        successful.append(n)
+                    elif s == CheckinResult.CHECKED:
+                        checked.append(n)
                     else:
-                        failed.append(c)
+                        failed.append(n)
                 spec = f"共{len(checkiners)}个"
                 if successful:
                     spec += f", {len(successful)}成功"
@@ -225,7 +225,7 @@ async def checkiner(config: dict, instant=False):
                         msg = "签到部分失败"
                     else:
                         msg = "签到失败"
-                    log.error(f"{msg} ({spec}): {', '.join([f.name for f in failed])}")
+                    log.error(f"{msg} ({spec}): {', '.join([f for f in failed])}")
                 else:
                     log.bind(log=True).info(f"签到成功 ({spec}).")
 
