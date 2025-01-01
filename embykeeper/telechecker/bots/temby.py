@@ -4,7 +4,7 @@ from urllib.parse import parse_qs, urlparse
 from pyrogram import Client
 from pyrogram.types import Message
 from pyrogram.raw.functions.messages import RequestAppWebView, GetBotApp
-from pyrogram.raw.types import InputBotAppShortName, InputBotAppID, AppWebViewResultUrl
+from pyrogram.raw.types import InputBotAppShortName, InputBotAppID, WebViewResultUrl
 from pyrogram.raw.types.bot_app import BotApp
 from pyrogram.raw.types.messages import BotApp as MessageBotApp
 from aiohttp import ClientSession, TCPConnector
@@ -56,7 +56,7 @@ class TembyCheckin(BotCheckin):
         message_app: MessageBotApp = await self.client.invoke(GetBotApp(app=app_spec, hash=0))
         app: BotApp = message_app.app
         input_app = InputBotAppID(id=app.id, access_hash=app.access_hash)
-        webview: AppWebViewResultUrl = await self.client.invoke(
+        webview: WebViewResultUrl = await self.client.invoke(
             RequestAppWebView(peer=bot_peer, start_param=star_param, platform="ios", app=input_app)
         )
         return webview.url
