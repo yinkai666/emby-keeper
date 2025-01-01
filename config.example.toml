@@ -37,7 +37,7 @@ random = 60
 # scheme = "socks5" # 可选: http / socks5
 
 # 服务设置, 当您需要禁用某些站点时, 请将该段取消注释并修改.
-# 该部分内容是根据 Embykeeper 6.0.1 生成的.
+# 该部分内容是根据 Embykeeper 6.1.0 生成的.
 # 详见: https://emby-keeper.github.io/guide/配置文件#service-子项
 # 使用 checkiner = ["all"] 以启用所有签到器, 使用 checkiner = ["sgk"] 以启用所有社工库签到器.
 
@@ -45,25 +45,25 @@ random = 60
 # [service]
 # checkiner = ["apoppro", "aurora", "awatv", "cc", "datasgk", "dvfilm", "feiyue", "feiyuedpx", "future", "ikunmusic", "jsq", "levilde", "lily", "lyrebird", "magic", "micu", "misty", "mjj", "mooncake", "moonkk", "nebula", "pandatv", "pandatv_group", "peach", "pilipili", "plumber", "pornemby", "raismusic", "saturday", "sfcju", "shufu", "tanhua", "tdck", "terminus", "tiannan", "tiannanus", "watermelon", "worldline", "yomo", "zm"]
 # monitor = ["bgk", "future", "infinity_fly", "misty", "pornemby_alert", "pornemby_answer", "pornemby_double", "pornemby_dragon_rain", "pornemby_nohp", "viper"]
-# messager = ["pornemby"]
+# messager = ["_smart"]
 
 # 全部可用站点:
 # [service]
 # checkiner = ["agentsgk", "aisgk", "aivbi", "akile", "akile_group", "akuai", "alpha", "apop", "apoppro", "aurora", "awamusic", "awatv", "baidusgk", "bearsgk", "bingdaosgk", "bitsgk", "bluesea", "bostsgk", "bytevirt_group", "carll1sgk", "carll2sgk", "cc", "charon", "charon_old", "chunjiangsgk", "ciji", "datasgk", "dingdangsgk", "dogsgk", "dvfilm", "embyhub", "fanhuasgk", "feiji", "feiyue", "feiyuedpx", "feiyuemusic", "feiyuemusic_group_old", "future", "happy", "heisi", "hka", "huasgk", "ikunmusic", "infsgk", "ingeeksgk", "jinding", "jms", "jms_iptv", "jms_old", "johnsgk", "jsq", "judog", "koisgk", "levilde", "lily", "ljyy", "ljyy_old", "lyrebird", "m78", "magic", "marmot_group_old", "mastersgk", "micu", "minisgk", "misty", "mjj", "mooncake", "moonkk", "moshensgk", "nebula", "niaoge", "pandatv", "pandatv_group", "peach", "pilipili", "pingansgk", "plumber", "pornemby", "qingfengsgk", "raismusic", "rednosesgk", "saturday", "seedsgk", "sfcju", "shufu", "shzi", "singularity", "skysink", "sssq", "starcat", "starsgk", "tanhua", "tdck", "temby", "temby_beta", "temby_old", "terminus", "terminus_old", "theend", "tianmaosgk", "tiannan", "tiannanus", "unionsgk", "watermelon", "worldline", "xraysgk", "yomo", "zhihusgk", "zhipian", "zhushousgk", "zm"]
 # monitor = ["bgk", "embyhub", "follow", "future", "infinity_fly", "judog", "misty", "polo", "pornemby_alert", "pornemby_answer", "pornemby_double", "pornemby_dragon_rain", "pornemby_nohp", "pornemby_register", "shufu", "terminus_exam", "viper"]
-# messager = ["marmot", "nakonako", "pornemby"]
+# messager = ["marmot", "nakonako", "pornemby", "smart_pornemby"]
 
 # Telegram 账号设置, 您可以重复该片段多次以增加多个账号.
 # 详见: https://emby-keeper.github.io/guide/配置文件#telegram-子项
 
 [[telegram]]
-phone = "+8616233070456"
+phone = "+8617379800265"
 checkin = true
 send = false # 启用该账号的自动水群功能 (需要高级账号, 谨慎使用)
 monitor = false # 启用该账号的自动监控功能 (需要高级账号)
 
 [[telegram]]
-phone = "+8617529373761"
+phone = "+8612204079663"
 checkin = true
 send = false # 启用该账号的自动水群功能 (需要高级账号, 谨慎使用)
 monitor = false # 启用该账号的自动监控功能 (需要高级账号)
@@ -72,13 +72,14 @@ monitor = false # 启用该账号的自动监控功能 (需要高级账号)
 # 详见: https://emby-keeper.github.io/guide/配置文件#emby-子项
 
 [[emby]]
-url = "https://allen-mccullough.com/"
-username = "myerskent"
-password = "WcP6Ht6jA&"
+url = "https://allen.com/"
+username = "richardsonlogan"
+password = "_0N))Autw0"
 time = [120, 240] # 模拟观看的时长范围 (秒)
 
 [[emby]]
-url = "https://chen-nguyen.info/"
-username = "scharles"
-password = "&U1@9RYyi!"
+url = "https://odom.net/"
+username = "victoria19"
+password = "j6LTjfw9$r"
 time = [120, 240] # 模拟观看的时长范围 (秒)
+
