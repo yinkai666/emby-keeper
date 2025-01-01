@@ -121,7 +121,7 @@ class BaseBotCheckin(ABC):
     async def _start(self):
         """签到器的入口函数的错误处理外壳."""
         try:
-            return await self.start()
+            return self.name, await self.start()
         except asyncio.CancelledError:
             raise
         except Exception as e:
