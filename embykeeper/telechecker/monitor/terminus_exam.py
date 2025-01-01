@@ -24,6 +24,7 @@ class TerminusExamMonitor(Monitor):
             self.log.info("终点站考试辅助正常已启用, 请在机器人触发考试开始.")
             return True
         else:
+            self.log.warning("终点站考试辅助服务状态不正常, 请稍后再试.")
             return False
 
     async def on_trigger(self, message: Message, key, reply):

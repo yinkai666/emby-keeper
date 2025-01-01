@@ -241,14 +241,16 @@ docker run -v $(pwd)/embykeeper:/app --rm -it --net=host embykeeper/embykeeper -
 - **Telegram 自动水群**
   <!-- #region messager-sites -->
 
-  - Pornemby (`pornemby`) (打怪兽水群): [频道](https://t.me/pornembyservice) [群组](https://t.me/Pornemby) [机器人](https://t.me/PronembyTGBot2_bot) [内建话术列表](https://github.com/emby-keeper/emby-keeper-data/blob/main/data/pornemby-common-wl%40v1.yaml)
-
   <!-- #endregion messager-sites -->
 
   - 测试中的站点 (默认禁用, 请参考[教程文档](https://emby-keeper.github.io/guide/配置文件#service-子项)启用):
     <!-- #region messager-beta-sites -->
 
     - Marmot (`marmot`) (周末早晚签到): [频道](https://t.me/Marmot_Emby_Channel) 群组 (非公开) [机器人](https://t.me/Marmot_Emby_Account_BOT)
+
+    - Pornemby (`pornemby`) (打怪兽水群): [频道](https://t.me/pornembyservice) [群组](https://t.me/Pornemby) [机器人](https://t.me/PronembyTGBot2_bot)
+
+    - Pornemby 智能化回答 (`smart_pornemby`) (打怪兽水群, AI 会考虑上下文和群组语言风格进行回答): [频道](https://t.me/pornembyservice) [群组](https://t.me/Pornemby) [机器人](https://t.me/PronembyTGBot2_bot)
 
     <!-- #endregion messager-beta-sites -->
   - 关服或无响应 (默认禁用, 请参考[教程文档](https://emby-keeper.github.io/guide/配置文件#service-子项)启用):

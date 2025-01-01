@@ -1179,7 +1179,7 @@ class ClientsSession:
         await self.test_network(self.proxy)
         asyncio.create_task(self.test_time(self.proxy))
         for i, a in enumerate(self.accounts):
-            phone = a["phone"]
+            phone = a["phone"].replace(" ", "")
             try:
                 await self.lock.acquire()
                 if phone in self.pool:

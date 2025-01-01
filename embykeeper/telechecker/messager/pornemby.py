@@ -10,6 +10,7 @@ from ..lock import (
 from ..tele import ClientsSession
 from ._base import Messager
 
+__ignore__ = True
 
 class PornembyMessager(Messager):
     name = "Pornemby"
