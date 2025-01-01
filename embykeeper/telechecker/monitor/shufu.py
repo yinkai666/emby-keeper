@@ -6,6 +6,7 @@ from embykeeper.utils import async_partial
 
 from ._base import Monitor
 
+__ignore__ = True
 
 class ShufuMonitor(Monitor):
     name = "叔服"
