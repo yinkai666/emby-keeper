@@ -237,7 +237,7 @@ class Connector(_Connector):
         try:
             return json.loads(await resp.aread())
         except json.JSONDecodeError:
-            raise RuntimeError(
+            raise httpx.HTTPError(
                 'Unexpected JSON output (status: {}): "{}"'.format(
                     resp.status_code,
                     (await resp.aread()).decode(),

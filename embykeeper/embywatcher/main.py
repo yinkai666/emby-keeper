@@ -180,8 +180,8 @@ async def play(obj: EmbyObject, loggeruser: Logger, time: float = 10):
                 return True
         except httpx.HTTPError as e:
             if retry == 2:
-                raise PlayError(f"由于连接错误无法停止播放: {e}")
-            loggeruser.debug(f"停止播放时发生连接错误，正在进行第 {retry + 1}/3 次尝试: {e}")
+                raise PlayError(f"由于连接错误或服务器错误无法停止播放: {e}")
+            loggeruser.debug(f"停止播放时发生连接错误或服务器错误，正在进行第 {retry + 1}/3 次尝试: {e}")
             await asyncio.sleep(1)
 
 
@@ -244,7 +244,7 @@ async def login(config, continuous=False):
             try:
                 info = await emby.info()
             except httpx.HTTPError as e:
-                logger.error(f'Emby ({a["url"]}) 连接错误, 请重新检查配置: {e}')
+                logger.error(f'Emby ({a["url"]}) 连接错误或服务器错误, 请重新检查配置: {e}')
                 break
             except RuntimeError as e:
                 if "Unexpected JSON output" in str(e):
@@ -359,7 +359,7 @@ async def watch(
                             return False
                         else:
                             rt = random.uniform(30, 60)
-                            loggeruser.info(f"连接失败, 等待 {rt:.0f} 秒后重试: {e}.")
+                            loggeruser.info(f"连接失败或服务器错误, 等待 {rt:.0f} 秒后重试: {e}.")
                             await asyncio.sleep(rt)
                     except PlayError as e:
                         retry += 1
