@@ -11,13 +11,15 @@ from embykeeper.telechecker.notify import start_notifier
 
 app = AsyncTyper()
 
+
 @app.async_command()
 async def log(config: Path):
     with open(config, "rb") as f:
         config = tomllib.load(f)
     await start_notifier(config)
     logger.bind(log=True).info("Test logging.")
-    
+
+
 @app.async_command()
 async def disconnect(config: Path):
     with open(config, "rb") as f:

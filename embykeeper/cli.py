@@ -296,7 +296,9 @@ async def main(
                         watchtime = config.get("watchtime", "<11:00AM,11:00PM>")
                         watchtime_match = re.match(r"<\s*(.*),\s*(.*)\s*>", watchtime)
                         if watchtime_match:
-                            start_time, end_time = [parser.parse(watchtime_match.group(i)).time() for i in (1, 2)]
+                            start_time, end_time = [
+                                parser.parse(watchtime_match.group(i)).time() for i in (1, 2)
+                            ]
                         else:
                             start_time = end_time = parser.parse(watchtime).time()
                 except parser.ParserError:
