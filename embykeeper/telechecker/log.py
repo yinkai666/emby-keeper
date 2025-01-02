@@ -54,3 +54,7 @@ class TelegramStream(io.TextIOWrapper):
             message = message[:-1]
         if message:
             self.queue.put_nowait(message)
+
+    async def join(self):
+        await self.queue.join()
+        self.watch.cancel()

@@ -302,12 +302,12 @@ class Link:
 
     async def send_log(self, message):
         """向机器人发送日志记录请求."""
-        results = await self.post(f"/log {self.instance} {message}", name="发送日志到 Telegram")
+        results = await self.post(f"/log {self.instance} {message}", name="发送日志到 Telegram ")
         return bool(results)
 
     async def send_msg(self, message):
         """向机器人发送即时日志记录请求."""
-        results = await self.post(f"/msg {self.instance} {message}", name="发送即时日志到 Telegram")
+        results = await self.post(f"/msg {self.instance} {message}", name="发送即时日志到 Telegram ")
         return bool(results)
 
     async def infer_msg(self, data):

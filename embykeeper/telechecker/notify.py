@@ -47,26 +47,28 @@ async def start_notifier(config: dict):
             notifier = None
     if notifier:
         logger.info(f'计划任务的关键消息将通过 Embykeeper Bot 发送至 "{notifier["phone"]}" 账号.')
+        stream_log = TelegramStream(
+            account=notifier,
+            proxy=config.get("proxy", None),
+            basedir=config.get("basedir", None),
+            instant=config.get("notify_immediately", False),
+        )
         logger.add(
-            TelegramStream(
-                account=notifier,
-                proxy=config.get("proxy", None),
-                basedir=config.get("basedir", None),
-                instant=config.get("notify_immediately", False),
-            ),
+            stream_log,
             format=_formatter,
             filter=_filter_log,
         )
+        stream_msg = TelegramStream(
+            account=notifier,
+            proxy=config.get("proxy", None),
+            basedir=config.get("basedir", None),
+            instant=True,
+        )
         logger.add(
-            TelegramStream(
-                account=notifier,
-                proxy=config.get("proxy", None),
-                basedir=config.get("basedir", None),
-                instant=True,
-            ),
+            stream_msg,
             format=_formatter,
             filter=_filter_msg,
         )
-        return True
+        return stream_log, stream_msg
     else:
-        return False
+        return None
