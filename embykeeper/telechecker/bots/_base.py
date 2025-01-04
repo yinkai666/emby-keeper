@@ -128,7 +128,7 @@ class BaseBotCheckin(ABC):
             if self.nofail:
                 self.log.warning(f"初始化错误, 签到器将停止.")
                 show_exception(e, regular=False)
-                return False
+                return self.name, False
             else:
                 raise
 
