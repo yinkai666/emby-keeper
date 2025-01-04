@@ -24,7 +24,7 @@ class SmartMessager:
     max_interval: int = None  # 预设两条消息间的最大间隔时间
     at: Tuple[time, time] = None  # 可发送的时间范围
     msg_per_day: int = 10  # 每天发送的消息数量
-    min_msg_gap = 5 # 最小消息间隔
+    min_msg_gap = 5  # 最小消息间隔
 
     site_last_message_time = None
     site_lock = asyncio.Lock()
@@ -134,7 +134,7 @@ class SmartMessager:
         for i in range(len(self.timeline)):
             if self.timeline[i] < now_timestamp:
                 self.timeline[i] += 86400
-                
+
         self.timeline = sorted(self.timeline)
 
         if self.timeline:
@@ -163,7 +163,7 @@ class SmartMessager:
                 async for msg in tg.get_chat_history(chat.id, limit=50):
                     i += 1
                     if self.min_msg_gap and msg.outgoing and i < self.min_msg_gap:
-                        log.info(f'低于发送消息间隔要求 ({i} < {self.min_msg_gap}), 将不发送消息.')
+                        log.info(f"低于发送消息间隔要求 ({i} < {self.min_msg_gap}), 将不发送消息.")
                         return
                     spec = []
                     text = str(msg.caption or msg.text or "")

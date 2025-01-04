@@ -17,7 +17,7 @@ class SmartPornembyMessager(SmartMessager):
     default_messages = "pornemby-common-wl@latest.yaml"
     additional_auth = ["pornemby_pack"]
     msg_per_day = 100
-    
+
     async def init(self):
         self.lock = asyncio.Lock()
         pornemby_messager_enabled[self.me.id] = True

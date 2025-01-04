@@ -255,14 +255,12 @@ async def checkiner_schedule(
             try:
                 stored_data = json.loads(timestamp_file.read_text())
                 if not isinstance(stored_data, dict):
-                    raise ValueError('invalid cache')
+                    raise ValueError("invalid cache")
                 stored_timestamp = stored_data["timestamp"]
                 stored_config = stored_data["config"]
 
                 if stored_config != current_config:
-                    logger.bind(scheme="telechecker").info(
-                        "计划任务配置已更改，将重新计算下次执行时间."
-                    )
+                    logger.bind(scheme="telechecker").info("计划任务配置已更改，将重新计算下次执行时间.")
                     config_changed = True
                 else:
                     next_dt = datetime.fromtimestamp(stored_timestamp)

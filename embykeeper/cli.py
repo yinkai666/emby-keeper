@@ -203,7 +203,7 @@ async def main(
 
     if emby == "-":
         emby = default_interval
-        
+
     if subsonic == "-":
         subsonic = default_interval
 
