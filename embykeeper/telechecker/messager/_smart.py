@@ -22,7 +22,7 @@ class SmartMessager:
     additional_auth: List[str] = []  # 额外认证要求
     min_interval: int = None  # 预设两条消息间的最小间隔时间
     max_interval: int = None  # 预设两条消息间的最大间隔时间
-    at: Tuple[str, str] = None  # 可发送的时间范围
+    at: Tuple[time, time] = None  # 可发送的时间范围
     msg_per_day: int = 10  # 每天发送的消息数量
 
     site_last_message_time = None
@@ -128,12 +128,24 @@ class SmartMessager:
             start_timestamp, end_timestamp, msg_per_day, self.min_interval, self.max_interval
         )
 
+        # 检查并调整早于当前时间的时间点到明天
+        now_timestamp = datetime.now().timestamp()
+        for i in range(len(self.timeline)):
+            if self.timeline[i] < now_timestamp:
+                self.timeline[i] += 86400
+                
+        self.timeline = sorted(self.timeline)
+
         if self.timeline:
             while True:
                 dt = datetime.fromtimestamp(self.timeline[0])
                 self.log.info(f"下一次发送将在 [blue]{dt.strftime('%m-%d %H:%M:%S')}[/] 进行.")
                 sleep_time = max(self.timeline[0] - datetime.now().timestamp(), 0)
                 await asyncio.sleep(sleep_time)
+                await self.send()
+                self.timeline.pop(0)
+                if not self.timeline:
+                    break
 
     async def init(self):
         """可重写的初始化函数, 返回 False 将视为初始化错误."""
