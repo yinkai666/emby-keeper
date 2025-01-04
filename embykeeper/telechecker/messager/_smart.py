@@ -24,6 +24,7 @@ class SmartMessager:
     max_interval: int = None  # 预设两条消息间的最大间隔时间
     at: Tuple[time, time] = None  # 可发送的时间范围
     msg_per_day: int = 10  # 每天发送的消息数量
+    min_msg_gap = 5 # 最小消息间隔
 
     site_last_message_time = None
     site_lock = asyncio.Lock()
@@ -158,7 +159,12 @@ class SmartMessager:
                 chat = await tg.get_chat(self.chat_name)
 
                 context = []
+                i = 0
                 async for msg in tg.get_chat_history(chat.id, limit=50):
+                    i += 1
+                    if self.min_msg_gap and msg.outgoing and i < self.min_msg_gap:
+                        log.info(f'低于发送消息间隔要求 ({i} < {self.min_msg_gap}), 将不发送消息.')
+                        return
                     spec = []
                     text = str(msg.caption or msg.text or "")
                     spec.append(f"消息发送时间为 {msg.date}")
@@ -198,7 +204,8 @@ class SmartMessager:
                                 f'即将在5秒后向聊天 "{chat.name}" 发送: [gray50]{truncate_str(answer, 20)}[/]'
                             )
                             await asyncio.sleep(5)
-                            await tg.send_message(chat.id, answer)
+                            msg = await tg.send_message(chat.id, answer)
                             log.info(f'已向聊天 "{chat.name}" 发送: [gray50]{truncate_str(answer, 20)}[/]')
+                            return msg
                 else:
                     log.warning(f"智能推测水群内容失败, 将不发送消息.")
