@@ -32,11 +32,13 @@ def check_config(config):
         {
             Optional("time"): str,
             Optional("watchtime"): str,
+            Optional("listentime"): str,
             Optional("interval"): Or(PositiveInt(), str),
             Optional("timeout"): PositiveInt(),
             Optional("retries"): PositiveInt(),
             Optional("concurrent"): PositiveInt(),
             Optional("watch_concurrent"): int,
+            Optional("listen_concurrent"): int,
             Optional("random"): PositiveInt(),
             Optional("notifier"): Or(str, bool, int),
             Optional("notify_immediately"): bool,
@@ -97,6 +99,21 @@ def check_config(config):
                         Optional("allow_multiple"): bool,
                         Optional("allow_stream"): bool,
                         Optional("cf_challenge"): bool,
+                    }
+                )
+            ],
+            Optional("subsonic"): [
+                Schema(
+                    {
+                        "url": Regex(
+                            r"(http|https):\/\/([\w_-]+(?:(?:\.[\w_-]+)+))([\w.,@?^=%&:\/~+#-]*[\w@?^=%&\/~+#-])"
+                        ),
+                        "username": str,
+                        "password": str,
+                        Optional("time"): Or(int, [PositiveInt()]),
+                        Optional("ua"): str,
+                        Optional("client"): str,
+                        Optional("version"): str,
                     }
                 )
             ],

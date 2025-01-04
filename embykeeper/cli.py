@@ -66,7 +66,14 @@ async def main(
         "-e",
         rich_help_panel="模块开关",
         help="启用每隔天数Emby自动保活",
-        show_default="不指定值时默认为每3天",
+        show_default="不指定值时默认为每3-12天",
+    ),
+    subsonic: str = typer.Option(
+        Flagged("", "-"),
+        "--subsonic",
+        rich_help_panel="模块开关",
+        help="启用每隔天数Subsonic自动保活",
+        show_default="不指定值时默认为3-12天",
     ),
     monitor: bool = typer.Option(False, "--monitor", "-m", rich_help_panel="模块开关", help="启用群聊监视"),
     send: bool = typer.Option(False, "--send", "-s", rich_help_panel="模块开关", help="启用自动水群"),
@@ -196,10 +203,14 @@ async def main(
 
     if emby == "-":
         emby = default_interval
+        
+    if subsonic == "-":
+        subsonic = default_interval
 
-    if not checkin and not monitor and not emby and not send:
+    if not checkin and not monitor and not emby and not send and not subsonic:
         checkin = default_time
         emby = default_interval
+        subsonic = default_interval
         monitor = True
         send = True
 
@@ -262,6 +273,11 @@ async def main(
             watcher_schedule,
             watcher_continuous_schedule,
         )
+    if subsonic:
+        from .subsonic.main import (
+            listener,
+            listener_schedule,
+        )
     if checkin or monitor or send:
         from .telechecker.main import (
             checkiner,
@@ -282,6 +298,8 @@ async def main(
             pool.add(watcher(config, instant=True))
         if checkin:
             pool.add(checkiner(config, instant=True))
+        if subsonic:
+            pool.add(listener(config, instant=True))
         await pool.wait()
         logger.debug("启动时立刻执行签到和保活: 已完成.")
 
@@ -325,6 +343,32 @@ async def main(
                                 )
                             )
                             break
+            if subsonic:
+                try:
+                    if debug_cron:
+                        start_time = end_time = (datetime.now() + timedelta(seconds=10)).time()
+                    else:
+                        listentime = config.get("listentime", "<11:00AM,11:00PM>")
+                        listentime_match = re.match(r"<\s*(.*),\s*(.*)\s*>", listentime)
+                        if listentime:
+                            start_time, end_time = [
+                                parser.parse(listentime_match.group(i)).time() for i in (1, 2)
+                            ]
+                        else:
+                            start_time = end_time = parser.parse(listentime).time()
+                except parser.ParserError:
+                    logger.error(
+                        "您设定的 listentime 不正确, 请检查格式. (例如 11:00, <11:00,14:00> / <11:00AM,2:00PM>). 模拟观看保活将不会运行."
+                    )
+                else:
+                    pool.add(
+                        listener_schedule(
+                            config,
+                            days=0 if debug_cron else subsonic,
+                            start_time=start_time,
+                            end_time=end_time,
+                        )
+                    )
             if checkin:
                 try:
                     if debug_cron:

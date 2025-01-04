@@ -15,6 +15,7 @@ scheme_names = {
     "telelink": "账号服务",
     "telenotifier": "消息推送",
     "embywatcher": "Emby保活",
+    "navidrome": "Navidrome保活",
     "datamanager": "下载器",
     "debugtool": "开发工具",
 }
@@ -37,6 +38,9 @@ def formatter(record):
         name = ifextra("name", "([magenta]{}[/]) ")
         return f"[blue]{scheme_names[scheme]}[/]{username}: {name}{{message}}"
     elif scheme == "embywatcher":
+        ident = ifextra(["server", "username"], " ([cyan]{}:{}[/])")
+        return f"[blue]{scheme_names[scheme]}[/]{ident}: {{message}}"
+    elif scheme == "navidrome":
         ident = ifextra(["server", "username"], " ([cyan]{}:{}[/])")
         return f"[blue]{scheme_names[scheme]}[/]{ident}: {{message}}"
     elif scheme == "datamanager":
