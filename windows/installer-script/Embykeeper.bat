@@ -2,13 +2,13 @@
 
 where powershell >nul 2>nul
 if not %errorlevel% == 0 (
-    echo Powershell ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½, ï¿½ï¿½ï¿½ï¿½Òªï¿½ï¿½×° Powershell ï¿½ï¿½Ê¹ï¿½Ã¸ï¿½ï¿½ï¿½ï¿½ï¿½.
+    echo Powershell ²»¿ÉÓÃ, ÄúĞèÒª°²×° Powershell ÒÔÊ¹ÓÃ¸ÃÈí¼ş.
     (((echo.%cmdcmdline%)|find /I "%~0")>nul) && pause
     exit /b 1
 )
 if not exist "%~dp0/python-*-embed-*" (
     echo **************************************************
-    echo *            ï¿½ï¿½È´ï¿½, ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Embykeeper         *
+    echo *            ÇëµÈ´ı, ÕıÔÚÏÂÔØ Embykeeper         *
     echo **************************************************
     powershell Unblock-File -Path '%~dp0downloaders\download_python.ps1'
     powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0downloaders\download_python.ps1" -Version 3.8.10 -TargetDirectory "." || goto :error
@@ -16,17 +16,17 @@ if not exist "%~dp0/python-*-embed-*" (
     powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0downloaders\download_deps.ps1" -RequirementsFile "%~dp0script\requirements.txt" -PythonPath "%~dp0python-3.8.10-embed-amd64\Scripts\python.exe" || goto :error
     xcopy /y "%~dp0script\Update.bat" "%~dp0"
     echo **************************************************
-    echo ï¿½ï¿½×°ï¿½ï¿½ï¿½! ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Embykeeper.
+    echo °²×°Íê³É! ¼´½«Æô¶¯ Embykeeper.
     timeout /t 2 /nobreak > NUL
     cls
 )
 "%~dp0/python-3.8.10-embed-amd64/python.exe" "script\cli.py" -i
 echo.
-(((echo.%cmdcmdline%)|find /I "%~0")>nul) && echo | set /p="Embykeeper ï¿½Ñ½ï¿½ï¿½ï¿½, ï¿½ë°´ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ë³ï¿½..." & pause>nul
+(((echo.%cmdcmdline%)|find /I "%~0")>nul) && echo | set /p="Embykeeper ÒÑ½áÊø, Çë°´ÈÎÒâ¼üÍË³ö..." & pause>nul
 
 goto :EOF
 
 :error
 echo **************************************************
-echo ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½, ï¿½ï¿½ï¿½ï¿½ï¿½Ë³ï¿½, ï¿½ë·´ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ï¢.
+echo ·¢Éú´íÎó, ¼´½«ÍË³ö, Çë·´À¡ÒÔÉÏĞÅÏ¢.
 (((echo.%cmdcmdline%)|find /I "%~0")>nul) && pause
