@@ -7,6 +7,7 @@ import string
 from typing import TYPE_CHECKING, Iterable, Tuple, Union
 from datetime import datetime, time, timezone
 import warnings
+import json
 
 import httpx
 from loguru import logger
@@ -623,29 +624,54 @@ async def watcher_schedule(
     instant: bool = False,
 ):
     """计划任务 - 观看一个视频."""
+    
     timestamp_file = Path(config["basedir"]) / "watcher_schedule_next_timestamp"
+    current_config = {
+        "start_time": start_time.strftime("%H:%M"),
+        "end_time": end_time.strftime("%H:%M"),
+        "days": days if isinstance(days, int) else list(days)
+    }
+    
     while True:
         next_dt = None
+        config_changed = False
+        
         if timestamp_file.exists():
             try:
-                stored_timestamp = float(timestamp_file.read_text().strip())
-                next_dt = datetime.fromtimestamp(stored_timestamp)
-                if next_dt > datetime.now():
-                    logger.info(f"从缓存中读取到下次保活时间: {next_dt.strftime('%m-%d %H:%M %p')}.")
-                    logger.debug(f"删除缓存文件以重新计算下次保活时间: {timestamp_file}")
-            except (ValueError, OSError) as e:
+                stored_data = json.loads(timestamp_file.read_text())
+                if not isinstance(stored_data, dict):
+                    raise ValueError('invalid cache')
+                stored_timestamp = stored_data["timestamp"]
+                stored_config = stored_data["config"]
+                
+                if stored_config != current_config:
+                    logger.info("计划任务配置已更改，将重新计算下次执行时间.")
+                    config_changed = True
+                else:
+                    next_dt = datetime.fromtimestamp(stored_timestamp)
+                    if next_dt > datetime.now():
+                        logger.info(f"从缓存中读取到下次保活时间: {next_dt.strftime('%m-%d %H:%M %p')}.")
+            except (ValueError, OSError, json.JSONDecodeError) as e:
                 logger.debug(f"读取存储的时间戳失败: {e}")
-        if not next_dt or next_dt <= datetime.now():
+                config_changed = True
+        
+        if not next_dt or next_dt <= datetime.now() or config_changed:
             if isinstance(days, int):
                 rand_days = days
             else:
                 rand_days = random.randint(*days)
             next_dt = next_random_datetime(start_time, end_time, interval_days=rand_days)
             logger.info(f"下一次保活将在 {next_dt.strftime('%m-%d %H:%M %p')} 进行.")
+            
             try:
-                timestamp_file.write_text(str(next_dt.timestamp()))
+                save_data = {
+                    "timestamp": next_dt.timestamp(),
+                    "config": current_config
+                }
+                timestamp_file.write_text(json.dumps(save_data))
             except OSError as e:
                 logger.debug(f"存储时间戳失败: {e}")
+        
         await asyncio.sleep((next_dt - datetime.now()).total_seconds())
         try:
             timestamp_file.unlink(missing_ok=True)
@@ -685,30 +711,53 @@ async def watcher_continuous_schedule(
     config: dict, start_time=time(11, 0), end_time=time(23, 0), days: int = 1
 ):
     """计划任务 - 持续观看."""
+    
     timestamp_file = Path(config["basedir"]) / "watcher_continuous_schedule_next_timestamp"
-
+    current_config = {
+        "start_time": start_time.strftime("%H:%M"),
+        "end_time": end_time.strftime("%H:%M"),
+        "days": days
+    }
+    
     while True:
         next_dt = None
+        config_changed = False
+        
         if timestamp_file.exists():
             try:
-                stored_timestamp = float(timestamp_file.read_text().strip())
-                next_dt = datetime.fromtimestamp(stored_timestamp)
-                if next_dt > datetime.now():
-                    logger.bind(scheme="embywatcher").info(
-                        f"从缓存中读取到下次持续观看时间: {next_dt.strftime('%m-%d %H:%M %p')}."
-                    )
-                    logger.debug(f"删除缓存文件以重新计算下次持续观看时间: {timestamp_file}")
-            except (ValueError, OSError) as e:
+                stored_data = json.loads(timestamp_file.read_text())
+                if not isinstance(stored_data, dict):
+                    raise ValueError('invalid cache')
+                stored_timestamp = stored_data["timestamp"]
+                stored_config = stored_data["config"]
+                
+                if stored_config != current_config:
+                    logger.bind(scheme="embywatcher").info("计划任务配置已更改，将重新计算下次执行时间.")
+                    config_changed = True
+                else:
+                    next_dt = datetime.fromtimestamp(stored_timestamp)
+                    if next_dt > datetime.now():
+                        logger.bind(scheme="embywatcher").info(
+                            f"从缓存中读取到下次持续观看时间: {next_dt.strftime('%m-%d %H:%M %p')}."
+                        )
+            except (ValueError, OSError, json.JSONDecodeError) as e:
                 logger.debug(f"读取存储的时间戳失败: {e}")
-        if not next_dt or next_dt <= datetime.now():
+                config_changed = True
+        
+        if not next_dt or next_dt <= datetime.now() or config_changed:
             next_dt = next_random_datetime(start_time, end_time, interval_days=days)
             logger.bind(scheme="embywatcher").info(
                 f"下次持续观看将在 {next_dt.strftime('%m-%d %H:%M %p')} 开始."
             )
             try:
-                timestamp_file.write_text(str(next_dt.timestamp()))
+                save_data = {
+                    "timestamp": next_dt.timestamp(),
+                    "config": current_config
+                }
+                timestamp_file.write_text(json.dumps(save_data))
             except OSError as e:
                 logger.debug(f"存储时间戳失败: {e}")
+        
         await asyncio.sleep((next_dt - datetime.now()).total_seconds())
         try:
             timestamp_file.unlink(missing_ok=True)

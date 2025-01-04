@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import asyncio
-from datetime import datetime
+from datetime import datetime, time
 from functools import lru_cache
 import inspect
 import pkgutil
@@ -10,6 +10,7 @@ import re
 from typing import List, Type
 from importlib import import_module
 from pathlib import Path
+import json
 
 from loguru import logger
 
@@ -230,31 +231,57 @@ async def checkiner(config: dict, instant=False):
                     log.bind(log=True).info(f"签到成功 ({spec}).")
 
 
-async def checkiner_schedule(config: dict, start_time=None, end_time=None, days: int = 1, instant=False):
+async def checkiner_schedule(
+    config: dict,
+    start_time: time = None,
+    end_time: time = None,
+    days: int = 1,
+    instant: bool = False,
+):
     """签到器计划任务."""
+
     timestamp_file = Path(config["basedir"]) / "checkiner_schedule_next_timestamp"
+    current_config = {
+        "start_time": start_time.strftime("%H:%M") if start_time else None,
+        "end_time": end_time.strftime("%H:%M") if end_time else None,
+        "days": days,
+    }
 
     while True:
         next_dt = None
+        config_changed = False
+
         if timestamp_file.exists():
             try:
-                stored_timestamp = float(timestamp_file.read_text().strip())
-                next_dt = datetime.fromtimestamp(stored_timestamp)
-                if next_dt > datetime.now():
-                    logger.bind(scheme="telechecker").info(
-                        f"从缓存中读取到下次签到时间: {next_dt.strftime('%m-%d %H:%M %p')}."
-                    )
-                    logger.debug(f"删除缓存文件以重新计算下次签到时间: {timestamp_file}")
-            except (ValueError, OSError) as e:
-                logger.debug(f"读取存储的时间戳失败: {e}")
+                stored_data = json.loads(timestamp_file.read_text())
+                if not isinstance(stored_data, dict):
+                    raise ValueError('invalid cache')
+                stored_timestamp = stored_data["timestamp"]
+                stored_config = stored_data["config"]
 
-        if not next_dt or next_dt <= datetime.now():
+                if stored_config != current_config:
+                    logger.bind(scheme="telechecker").info(
+                        "计划任务配置已更改，将重新计算下次执行时间."
+                    )
+                    config_changed = True
+                else:
+                    next_dt = datetime.fromtimestamp(stored_timestamp)
+                    if next_dt > datetime.now():
+                        logger.bind(scheme="telechecker").info(
+                            f"从缓存中读取到下次签到时间: {next_dt.strftime('%m-%d %H:%M %p')}."
+                        )
+            except (ValueError, OSError, json.JSONDecodeError) as e:
+                logger.debug(f"读取存储的时间戳失败: {e}")
+                config_changed = True
+
+        if not next_dt or next_dt <= datetime.now() or config_changed:
             next_dt = next_random_datetime(start_time, end_time, interval_days=days)
             logger.bind(scheme="telechecker").info(
                 f"下一次签到将在 {next_dt.strftime('%m-%d %H:%M %p')} 进行."
             )
             try:
-                timestamp_file.write_text(str(next_dt.timestamp()))
+                save_data = {"timestamp": next_dt.timestamp(), "config": current_config}
+                timestamp_file.write_text(json.dumps(save_data))
             except OSError as e:
                 logger.debug(f"存储时间戳失败: {e}")
 
