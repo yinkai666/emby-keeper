@@ -82,4 +82,3 @@ url = "https://www.cox-gordon.com/"
 username = "heidismith"
 password = "F3zkeAhv!9"
 time = [120, 240] # 模拟观看的时长范围 (秒)
-

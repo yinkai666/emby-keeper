@@ -14,6 +14,7 @@ from ..tele import ClientsSession
 
 __ignore__ = True
 
+
 class SmartMessager:
     """自动智能水群类."""
 
