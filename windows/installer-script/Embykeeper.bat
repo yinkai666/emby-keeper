@@ -13,7 +13,7 @@ if not exist "%~dp0/python-*-embed-*" (
     powershell Unblock-File -Path '%~dp0downloaders\download_python.ps1'
     powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0downloaders\download_python.ps1" -Version 3.8.10 -TargetDirectory "." || goto :error
     powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0downloaders\download_pip.ps1" -TargetDirectory "python-3.8.10-embed-amd64" || goto :error
-    powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0downloaders\download_deps.ps1" -RequirementsFile "%~dp0script\requirements.txt" -PythonPath "%~dp0python-3.8.10-embed-amd64\Scripts\python.exe" || goto :error
+    powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0downloaders\download_deps.ps1" -RequirementsFile "%~dp0script\requirements.txt" -PythonPath "%~dp0python-3.8.10-embed-amd64\python.exe" || goto :error
     xcopy /y "%~dp0script\Update.bat" "%~dp0"
     echo **************************************************
     echo 安装完成! 即将启动 Embykeeper.
