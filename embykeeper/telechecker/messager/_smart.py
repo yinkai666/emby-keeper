@@ -12,6 +12,7 @@ from ...utils import show_exception, truncate_str, distribute_numbers
 from ..link import Link
 from ..tele import ClientsSession
 
+__ignore__ = True
 
 class SmartMessager:
     """自动智能水群类."""
