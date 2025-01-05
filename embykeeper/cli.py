@@ -262,8 +262,19 @@ async def main(
             if interval_range_match:
                 emby = [int(interval_range_match.group(1)), int(interval_range_match.group(2))]
             else:
-                logger.error(f"无法解析保活间隔天数: {default_interval}, 保活将不会运行.")
+                logger.error(f"无法解析 Emby 保活间隔天数: {default_interval}, 保活将不会运行.")
                 emby = False
+                
+    if subsonic and not isinstance(subsonic, int):
+        try:
+            subsonic = abs(int(subsonic))
+        except ValueError:
+            interval_range_match = re.match(r"<(\d+),(\d+)>", subsonic)
+            if interval_range_match:
+                subsonic = [int(interval_range_match.group(1)), int(interval_range_match.group(2))]
+            else:
+                logger.error(f"无法解析 Subsonic 保活间隔天数: {default_interval}, 保活将不会运行.")
+                subsonic = False
 
     from .telechecker.notify import start_notifier
 

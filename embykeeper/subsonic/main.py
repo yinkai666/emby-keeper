@@ -18,7 +18,7 @@ from ..utils import next_random_datetime, show_exception
 if TYPE_CHECKING:
     from loguru import Logger
 
-logger = logger.bind(scheme="navidrome")
+logger = logger.bind(scheme="subsonic")
 
 
 async def listen(client: Subsonic, loggeruser: Logger, time: Union[float, Iterable[float]]):
@@ -146,7 +146,7 @@ async def listener(config: dict, instant: bool = False):
                 loggeruser.warning(f"一定时间内未完成播放, 保活失败.")
                 return False
 
-    logger.info("开始执行 Navidrome 保活.")
+    logger.info("开始执行 Subsonic 保活.")
     tasks = []
     concurrent = int(config.get("listen_concurrent", 3))
     if not concurrent:
@@ -155,7 +155,7 @@ async def listener(config: dict, instant: bool = False):
     async for client, loggeruser, time in login(config):
         tasks.append(wrapper(sem, client, loggeruser, time))
     if not tasks:
-        logger.info("没有指定相关的 Navidrome 服务器, 跳过保活.")
+        logger.info("没有指定相关的 Subsonic 服务器, 跳过保活.")
     results = await asyncio.gather(*tasks)
     fails = len(tasks) - sum(results)
     if fails:

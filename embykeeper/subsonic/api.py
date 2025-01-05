@@ -9,7 +9,7 @@ import random
 import httpx
 from loguru import logger
 
-logger = logger.bind(scheme="navidrome")
+logger = logger.bind(scheme="subsonic")
 
 
 @dataclass
@@ -82,14 +82,14 @@ class Subsonic:
                     proxy=proxy,
                     headers=headers,
                 )
-                logger.debug("Created new Navidrome session")
+                logger.debug("Created new Subsonic session")
             return self._session
 
     async def _make_request(
         self, endpoint: str, params: Optional[Dict[str, Any]] = None, retries: int = 3
     ) -> Dict:
         """
-        Make an async API request to Navidrome server
+        Make an async API request to Subsonic server
         """
         base_params = {
             "u": self.username,
