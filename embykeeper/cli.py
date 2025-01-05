@@ -264,7 +264,7 @@ async def main(
             else:
                 logger.error(f"无法解析 Emby 保活间隔天数: {default_interval}, 保活将不会运行.")
                 emby = False
-                
+
     if subsonic and not isinstance(subsonic, int):
         try:
             subsonic = abs(int(subsonic))
