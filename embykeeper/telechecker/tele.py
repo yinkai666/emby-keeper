@@ -40,6 +40,7 @@ from pyrogram.errors import (
     FloodWait,
     PhoneNumberInvalid,
     PhoneNumberBanned,
+    BadRequest,
 )
 from pyrogram.storage.storage import Storage
 from pyrogram.handlers import (
@@ -156,8 +157,9 @@ class Dispatcher(dispatcher.Dispatcher):
                     parsed_update, handler_type = (
                         await parser(update, users, chats) if parser is not None else (None, type(None))
                     )
-                except ValueError:
+                except (ValueError, BadRequest):
                     continue
+                
 
                 async with self.mutex:
                     groups = {i: g[:] for i, g in self.groups.items()}
