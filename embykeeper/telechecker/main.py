@@ -226,7 +226,7 @@ async def checkiner(config: dict, instant=False):
                         msg = "签到部分失败"
                     else:
                         msg = "签到失败"
-                    log.error(f"{msg} ({spec}): {', '.join([f for f in failed])}")
+                    log.bind(log=True).error(f"{msg} ({spec}): {', '.join([f for f in failed])}")
                 else:
                     log.bind(log=True).info(f"签到成功 ({spec}).")
 
