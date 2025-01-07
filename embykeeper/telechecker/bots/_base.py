@@ -14,7 +14,7 @@ from appdirs import user_data_dir
 from loguru import logger
 from PIL import Image
 from pyrogram import filters
-from pyrogram.errors import UsernameNotOccupied, FloodWait, UsernameInvalid
+from pyrogram.errors import UsernameNotOccupied, FloodWait, UsernameInvalid, ChannelInvalid, ChannelPrivate
 from pyrogram.handlers import EditedMessageHandler, MessageHandler
 from pyrogram.types import InlineKeyboardMarkup, Message, ReplyKeyboardMarkup
 from pyrogram.raw.functions.account import GetNotifySettings
@@ -282,7 +282,7 @@ class BotCheckin(BaseBotCheckin):
         while True:
             try:
                 chat = await self.client.get_chat(ident)
-            except (UsernameNotOccupied, UsernameInvalid) as e:
+            except (UsernameNotOccupied, UsernameInvalid, ChannelInvalid, ChannelPrivate) as e:
                 self.log.warning(f'初始化错误: 会话 "{ident}" 已不存在.')
                 return CheckinResult.FAIL
             except KeyError as e:
