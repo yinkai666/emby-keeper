@@ -1,4 +1,5 @@
 import asyncio
+from json import JSONDecodeError
 from urllib.parse import parse_qs, urlencode, urlparse
 
 from aiohttp import ClientSession, TCPConnector
@@ -107,6 +108,6 @@ class NebulaCheckin(BaseBotCheckin):
                 else:
                     self.log.warning(f"接收到异常返回信息: {message}")
                     await self.retry()
-        except (ProxyTimeoutError, ProxyError, OSError):
-            self.log.info("签到失败: 无法连接签到页面.")
+        except (ProxyTimeoutError, ProxyError, OSError, JSONDecodeError) as e:
+            self.log.info(f"签到失败: 无法连接签到页面 ({e.__class__.__name__}).")
             await self.retry()
