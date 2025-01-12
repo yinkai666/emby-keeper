@@ -186,9 +186,10 @@ async def play(obj: EmbyObject, loggeruser: Logger, time: float = 10):
             await asyncio.sleep(1)
 
 
-async def get_cf_clearance(config, url):
+async def get_cf_clearance(config, url, user_agent = None):
     from embykeeper.telechecker.link import Link
     from embykeeper.telechecker.tele import ClientsSession
+    from embykeeper.resocks import Resocks
 
     server_info_url = f"{url.rstrip('/')}/System/Info/Public"
     telegrams = config.get("telegram", [])
@@ -196,13 +197,20 @@ async def get_cf_clearance(config, url):
         logger.warning(f"未设置 Telegram 账号, 无法为 Emby 站点使用验证码解析.")
     async with ClientsSession.from_config(config) as clients:
         async for tg in clients:
-            cf_clearance, proxy = await Link(tg).captcha_emby(server_info_url)
-            return cf_clearance, proxy
-    return None, None
+            rid, host, key = await Link(tg).resocks()
+            resocks = Resocks(config["basedir"])
+            resocks.start(host, key)
+            try:
+                cf_clearance, _ = await Link(tg).captcha_resocks(rid , server_info_url, user_agent)
+            finally:
+                resocks.stop()
+            return cf_clearance
+    return None
 
 
 async def login(config, continuous=False):
     """登录账号."""
+    
     for a in config.get("emby", ()):
         if not continuous == a.get("continuous", False):
             continue
@@ -211,7 +219,6 @@ async def login(config, continuous=False):
         info = None
         for _ in range(3):
             cf_clearance = None
-            proxy = None
 
             device_id = a.get("device_id", None)
             if not device_id:
@@ -229,13 +236,14 @@ async def login(config, continuous=False):
                         device_id_file.write_text(device_id)
                     except OSError as e:
                         logger.debug(f"保存 device_id 文件失败: {e}")
-
+            if not a["password"]:
+                logger.warning(f'Emby "{a["url"]}" 未设置密码, 可能导致登陆失败.')
             emby = Emby(
                 url=a["url"],
                 username=a["username"],
                 password=a["password"],
                 jellyfin=a.get("jellyfin", False),
-                proxy=proxy or config.get("proxy", None),
+                proxy=config.get("proxy", None),
                 ua=a.get("ua", None),
                 device=a.get("device", None),
                 client=a.get("client", None),
@@ -245,28 +253,32 @@ async def login(config, continuous=False):
             try:
                 info = await emby.info()
             except httpx.HTTPError as e:
-                logger.error(f'Emby ({a["url"]}) 连接错误或服务器错误, 请重新检查配置: {e}')
-                break
-            except RuntimeError as e:
                 if "Unexpected JSON output" in str(e):
                     if "cf-wrapper" in str(e) or "Enable JavaScript and cookies to continue" in str(e):
                         if a.get("cf_challenge", False):
                             logger.info(
                                 f'Emby "{a["url"]}" 已启用 Cloudflare 保护, 即将请求解析 (最大支持时长 15 分钟).'
                             )
-                            cf_clearance, proxy = await get_cf_clearance(config, a["url"])
+                            cf_clearance, _ = await get_cf_clearance(config, a["url"], a.get("ua", None))
                             if not cf_clearance:
                                 logger.warning(f'Emby "{a["url"]}" 验证码解析失败而跳过.')
                                 break
                         else:
-                            logger.warning(
-                                f'Emby "{a["url"]}" 已启用 Cloudflare 保护, 请使用 "cf_challenge" 配置项以允许尝试解析验证码.'
-                            )
+                            if config.get("proxy", None):
+                                logger.warning(
+                                    f'Emby "{a["url"]}" 已启用 Cloudflare 保护, 请尝试浏览器以同样的代理访问: {a["url"]} 以解除 Cloudflare IP 限制, 然后再次运行.'
+                                )
+                            else:
+                                logger.warning(
+                                    f'Emby "{a["url"]}" 已启用 Cloudflare 保护, 请使用 "cf_challenge" 配置项以允许尝试解析验证码.'
+                                )
                             break
                     else:
-                        raise
+                        logger.error(f'Emby ({a["url"]}) 连接错误或服务器错误, 请重新检查配置: {e}')
+                        break
                 else:
-                    raise
+                    logger.error(f'Emby ({a["url"]}) 连接错误或服务器错误, 请重新检查配置: {e}')
+                    break
             else:
                 break
         else:

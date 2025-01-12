@@ -243,12 +243,23 @@ class Link:
         else:
             return None, None
 
-    async def captcha_emby(self, url: str):
-        """向机器人发送带验证码的远程网页解析请求."""
-        cmd = f"/captcha {self.instance} emby {url}"
+    async def resocks(self):
+        """向机器人发送逆向 Socks 代理隧道监听请求."""
+        cmd = f"/resocks {self.instance}"
+        results = await self.post(cmd, timeout=240, name="请求新建代理隧道以跳过验证码")
+        if results:
+            return results.get("id", None), results.get("host", None), results.get("key", None)
+        else:
+            return None, None, None
+        
+    async def captcha_resocks(self, resocks_id: str, url: str, user_agent: str = None):
+        """向机器人发送通过代理隧道进行验证码解析请求."""
+        cmd = f"/captcha_resocks {self.instance} {resocks_id} {url}"
+        if user_agent:
+            cmd += f" {user_agent}"
         results = await self.post(cmd, timeout=240, name="请求跳过验证码")
         if results:
-            return results.get("cf_clearance", None), results.get("proxy", None)
+            return results.get("cf_clearance", None), results.get("result", None)
         else:
             return None, None
 
