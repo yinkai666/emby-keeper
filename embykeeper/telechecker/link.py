@@ -251,7 +251,7 @@ class Link:
             return results.get("id", None), results.get("host", None), results.get("key", None)
         else:
             return None, None, None
-        
+
     async def captcha_resocks(self, resocks_id: str, url: str, user_agent: str = None):
         """向机器人发送通过代理隧道进行验证码解析请求."""
         cmd = f"/captcha_resocks {self.instance} {resocks_id} {url}"

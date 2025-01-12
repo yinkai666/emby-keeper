@@ -159,7 +159,6 @@ class Dispatcher(dispatcher.Dispatcher):
                     )
                 except (ValueError, BadRequest):
                     continue
-                
 
                 async with self.mutex:
                     groups = {i: g[:] for i, g in self.groups.items()}

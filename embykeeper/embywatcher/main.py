@@ -186,7 +186,7 @@ async def play(obj: EmbyObject, loggeruser: Logger, time: float = 10):
             await asyncio.sleep(1)
 
 
-async def get_cf_clearance(config, url, user_agent = None):
+async def get_cf_clearance(config, url, user_agent=None):
     from embykeeper.telechecker.link import Link
     from embykeeper.telechecker.tele import ClientsSession
     from embykeeper.resocks import Resocks
@@ -201,7 +201,7 @@ async def get_cf_clearance(config, url, user_agent = None):
             resocks = Resocks(config["basedir"])
             resocks.start(host, key)
             try:
-                cf_clearance, _ = await Link(tg).captcha_resocks(rid , server_info_url, user_agent)
+                cf_clearance, _ = await Link(tg).captcha_resocks(rid, server_info_url, user_agent)
             finally:
                 resocks.stop()
             return cf_clearance
@@ -210,7 +210,7 @@ async def get_cf_clearance(config, url, user_agent = None):
 
 async def login(config, continuous=False):
     """登录账号."""
-    
+
     for a in config.get("emby", ()):
         if not continuous == a.get("continuous", False):
             continue
