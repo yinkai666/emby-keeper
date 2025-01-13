@@ -99,6 +99,7 @@ def check_config(config):
                         Optional("allow_multiple"): bool,
                         Optional("allow_stream"): bool,
                         Optional("cf_challenge"): bool,
+                        Optional("use_proxy"): bool,
                     }
                 )
             ],

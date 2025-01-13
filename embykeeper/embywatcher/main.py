@@ -198,8 +198,12 @@ async def get_cf_clearance(config, url, user_agent=None):
     async with ClientsSession.from_config(config) as clients:
         async for tg in clients:
             rid, host, key = await Link(tg).resocks()
+            if not rid:
+                return None
             resocks = Resocks(config["basedir"])
-            resocks.start(host, key)
+            if not await resocks.start(host, key):
+                logger.warning(f"连接到反向代理服务器失败.")
+                return None
             try:
                 cf_clearance, _ = await Link(tg).captcha_resocks(rid, server_info_url, user_agent)
             finally:
@@ -210,7 +214,7 @@ async def get_cf_clearance(config, url, user_agent=None):
 
 async def login(config, continuous=False):
     """登录账号."""
-
+    
     for a in config.get("emby", ()):
         if not continuous == a.get("continuous", False):
             continue
@@ -243,7 +247,7 @@ async def login(config, continuous=False):
                 username=a["username"],
                 password=a["password"],
                 jellyfin=a.get("jellyfin", False),
-                proxy=config.get("proxy", None),
+                proxy=config.get("proxy", None) if a.get("use_proxy", True) else None,
                 ua=a.get("ua", None),
                 device=a.get("device", None),
                 client=a.get("client", None),
@@ -259,7 +263,7 @@ async def login(config, continuous=False):
                             logger.info(
                                 f'Emby "{a["url"]}" 已启用 Cloudflare 保护, 即将请求解析 (最大支持时长 15 分钟).'
                             )
-                            cf_clearance, _ = await get_cf_clearance(config, a["url"], a.get("ua", None))
+                            cf_clearance = await get_cf_clearance(config, a["url"], a.get("ua", None))
                             if not cf_clearance:
                                 logger.warning(f'Emby "{a["url"]}" 验证码解析失败而跳过.')
                                 break
