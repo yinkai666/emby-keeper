@@ -11,6 +11,7 @@ import inspect
 from pathlib import Path
 import pickle
 import random
+import sqlite3
 import struct
 import sys
 from typing import AsyncGenerator, Optional, Union
@@ -222,7 +223,6 @@ class Client(pyrogram.Client):
         self._special_invoke_lock = asyncio.Lock()
         self._last_invoke = {}
         self._invoke_lock = asyncio.Lock()
-        self._login_time: datetime = None
         self._config_index: int = None
 
     async def authorize(self):
@@ -424,15 +424,6 @@ class Client(pyrogram.Client):
         query_name = query.__class__.__name__
 
         if query_name in special_methods:
-            if self._login_time:
-                time_since_login = (datetime.now() - self._login_time).total_seconds()
-                if time_since_login < 5:
-                    wait_time = 5 - time_since_login
-                    logger.info(
-                        f"距离登录时间 {time_since_login:.1f} 秒, 等待 {wait_time:.1f} 秒以执行下一步操作."
-                    )
-                    await asyncio.sleep(wait_time)
-
             async with self._special_invoke_lock:
                 now = datetime.now().timestamp()
                 last_invoke = self._last_special_invoke.get(query_name, 0)
@@ -451,13 +442,16 @@ class Client(pyrogram.Client):
                 self._last_invoke[query_name] = datetime.now().timestamp()
 
         logger.trace(f"请求: {query_name}")
-        return await super().invoke(
-            query,
-            retries=retries,
-            timeout=timeout,
-            sleep_threshold=sleep_threshold,
-            business_connection_id=business_connection_id,
-        )
+        try:
+            return await super().invoke(
+                query,
+                retries=retries,
+                timeout=timeout,
+                sleep_threshold=sleep_threshold,
+                business_connection_id=business_connection_id,
+            )
+        except sqlite3.ProgrammingError:
+            pass
 
     @asynccontextmanager
     async def catch_edit(self, message: types.Message, filter=None):
@@ -1086,7 +1080,7 @@ class ClientsSession:
                         sleep_threshold=30,
                     )
                     try:
-                        await asyncio.wait_for(client.start(), 120)
+                        await asyncio.wait_for(client.start(), 20)
                     except asyncio.TimeoutError:
                         if proxy:
                             logger.error(f"无法连接到 Telegram 服务器, 请检查您代理的可用性.")
@@ -1160,7 +1154,6 @@ class ClientsSession:
                 with open(session_string_file, "w+", encoding="utf-8") as f:
                     f.write(await client.export_session_string())
             logger.debug(f'登录账号 "{client.phone_number}" 成功.')
-            client._login_time = datetime.now()
             client._config_index = index
             return client
 
