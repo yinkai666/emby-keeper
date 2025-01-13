@@ -1,3 +1,4 @@
+import asyncio
 import platform
 import subprocess
 import requests
@@ -87,21 +88,27 @@ class Resocks:
     def execute(self, *args) -> subprocess.Popen:
         """Execute resocks with given arguments and return Popen object"""
         self.ensure_binary()
-        return subprocess.Popen(
-            [str(self.executable_path), *args], stdout=subprocess.PIPE, stderr=subprocess.PIPE
-        )
+        return subprocess.Popen([str(self.executable_path), *args])
 
-    def start(self, host: str, key: str) -> None:
+    async def start(self, host: str, key: str) -> bool:
         """Start resocks listen server
 
         Args:
             host: Server address with port
             key: Authentication key
+
+        Returns:
+            bool: True if started successfully, False if process exits within 0.5s
         """
         if self.process and self.process.poll() is None:
             raise RuntimeError("Resocks is already running")
 
-        self.process = self.execute("listen", str(host), "-k", key)
+        self.process = self.execute(str(host), "-k", key)
+        
+        await asyncio.sleep(1)
+        if self.process.poll() is not None:
+            return False
+        return True
 
     def stop(self) -> None:
         """Stop resocks server if running"""

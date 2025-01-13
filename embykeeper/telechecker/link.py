@@ -73,6 +73,8 @@ class Link:
             name: 请求名称, 用于用户提示
             fail: 当出现错误时抛出错误, 而非发送日志
         """
+        self.log.info(f"正在进行服务请求: {name}")
+        
         if photo and file:
             raise ValueError("can not use both photo and file")
 
@@ -246,7 +248,7 @@ class Link:
     async def resocks(self):
         """向机器人发送逆向 Socks 代理隧道监听请求."""
         cmd = f"/resocks {self.instance}"
-        results = await self.post(cmd, timeout=240, name="请求新建代理隧道以跳过验证码")
+        results = await self.post(cmd, timeout=20, name="请求新建代理隧道以跳过验证码")
         if results:
             return results.get("id", None), results.get("host", None), results.get("key", None)
         else:
