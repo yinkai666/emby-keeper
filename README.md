@@ -49,32 +49,11 @@ Embykeeper 支持 Docker 或 PyPI 安装 (Linux / Windows), 也支持云部署, 
 
 若您没有服务器, 您可以通过免费托管平台进行部署, 点击下方按钮开始部署:
 
-<div>
-  <a href="https://huggingface.co/spaces/embykeeper/embykeeper?duplicate=true">
-    <img src="https://github.com/emby-keeper/emby-keeper/raw/main/images/deploy-to-hf.svg" alt="Deploy to Huggingface Space" style="margin-right: 42px;">
-  </a>
-  <a href="https://blog.zetx.tech/2024/05/19/embykeeper-hf-tutorial/">
-    <img src="https://github.com/emby-keeper/emby-keeper/raw/main/images/hf-tutorial.svg" alt="Tutorial">
-  </a>
-</div>
+[![Deploy to Huggingface Space](https://github.com/emby-keeper/emby-keeper/raw/main/images/deploy-to-hf.svg)](https://huggingface.co/spaces/embykeeper/embykeeper?duplicate=true)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[![Tutorial](https://github.com/emby-keeper/emby-keeper/raw/main/images/hf-tutorial.svg)](https://blog.zetx.tech/2024/05/19/embykeeper-hf-tutorial/)
 
-<div>
-  <a href="https://app.koyeb.com/deploy?repository=github.com/emby-keeper/emby-keeper&branch=stable&type=git&name=embykeeper&builder=dockerfile&ports=1818;http;/&env[EK_WEBPASS]=">
-    <img src="https://github.com/emby-keeper/emby-keeper/raw/main/images/deploy-to-koyeb.svg" alt="Deploy to Koyeb" style="margin-right: 42px;">
-  </a>
-  <a href="https://blog.zetx.tech/2025/01/14/embykeeper-koyeb-tutorial">
-    <img src="https://github.com/emby-keeper/emby-keeper/raw/main/images/koyeb-tutorial.svg" alt="Tutorial">
-  </a>
-</div>
+[![Deploy to Koyeb](https://github.com/emby-keeper/emby-keeper/raw/main/images/deploy-to-koyeb.svg)](https://app.koyeb.com/deploy?repository=github.com/emby-keeper/emby-keeper&branch=stable&type=git&name=embykeeper&builder=dockerfile&ports=1818;http;/&env[EK_WEBPASS]=)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[![Tutorial](https://github.com/emby-keeper/emby-keeper/raw/main/images/koyeb-tutorial.svg)](https://blog.zetx.tech/2025/01/14/embykeeper-koyeb-tutorial)
 
-<div>
-  <a href="https://render.com/deploy?repo=https://github.com/emby-keeper/emby-keeper/tree/stable">
-    <img src="https://github.com/emby-keeper/emby-keeper/raw/main/images/deploy-to-render.svg" alt="Deploy to Render" style="margin-right: 42px;">
-  </a>
-  <a href="https://blog.zetx.tech/2023/06/26/embykeeper-render-tutorial">
-    <img src="https://github.com/emby-keeper/emby-keeper/raw/main/images/render-tutorial.svg" alt="Tutorial">
-  </a>
-</div>
+[![Deploy to Render](https://github.com/emby-keeper/emby-keeper/raw/main/images/deploy-to-render.svg)](https://render.com/deploy?repo=https://github.com/emby-keeper/emby-keeper/tree/stable)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[![Tutorial](https://github.com/emby-keeper/emby-keeper/raw/main/images/render-tutorial.svg)](https://blog.zetx.tech/2023/06/26/embykeeper-render-tutorial)
 
 若您有服务器, 我们推荐使用 [Docker 部署](https://emby-keeper.github.io/guide/Linux-Docker-部署):
 
