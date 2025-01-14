@@ -281,6 +281,7 @@ async def main(
     if emby:
         from .embywatcher.main import (
             watcher,
+            watcher_continuous,
             watcher_schedule,
             watcher_continuous_schedule,
         )
@@ -307,6 +308,7 @@ async def main(
     if instant and not debug_cron:
         if emby:
             pool.add(watcher(config, instant=True))
+            pool.add(watcher_continuous(config))
         if checkin:
             pool.add(checkiner(config, instant=True))
         if subsonic:
