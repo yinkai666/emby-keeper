@@ -136,6 +136,7 @@ class Link:
                         self.log.warning(f"{name}错误: {errmsg}.")
                         return False
                 elif status == "ok":
+                    self.log.info(f"服务请求完成: {name}")
                     return results
                 else:
                     if fail:
@@ -330,7 +331,7 @@ class Link:
         bio.seek(0)
         bio.name = "data.yaml"
 
-        results = await self.post(f"/infer_msg {self.instance}", file=bio, name="发送话术推测请求")
+        results = await self.post(f"/infer_msg {self.instance}", timeout=120, file=bio, name="发送话术推测请求")
         if results:
             return results.get("answer", None), results.get("by", None)
         else:
