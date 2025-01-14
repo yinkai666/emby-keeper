@@ -191,7 +191,7 @@ async def get_cf_clearance(config, url, user_agent=None):
     from embykeeper.telechecker.tele import ClientsSession
     from embykeeper.resocks import Resocks
 
-    server_info_url = f"{url.rstrip('/')}/System/Info/Public"
+    server_info_url = f"{url.rstrip('/')}"
     telegrams = config.get("telegram", [])
     if not len(telegrams):
         logger.warning(f"未设置 Telegram 账号, 无法为 Emby 站点使用验证码解析.")
@@ -201,10 +201,10 @@ async def get_cf_clearance(config, url, user_agent=None):
             if not rid:
                 return None
             resocks = Resocks(config["basedir"])
-            if not await resocks.start(host, key):
-                logger.warning(f"连接到反向代理服务器失败.")
-                return None
             try:
+                if not await resocks.start(host, key):
+                    logger.warning(f"连接到反向代理服务器失败.")
+                    return None
                 cf_clearance, _ = await Link(tg).captcha_resocks(rid, server_info_url, user_agent)
             finally:
                 resocks.stop()
@@ -261,7 +261,7 @@ async def login(config, continuous=False):
                     if "cf-wrapper" in str(e) or "Enable JavaScript and cookies to continue" in str(e):
                         if a.get("cf_challenge", False):
                             logger.info(
-                                f'Emby "{a["url"]}" 已启用 Cloudflare 保护, 即将请求解析 (最大支持时长 15 分钟).'
+                                f'Emby "{a["url"]}" 已启用 Cloudflare 保护, 即将请求解析.'
                             )
                             cf_clearance = await get_cf_clearance(config, a["url"], a.get("ua", None))
                             if not cf_clearance:
