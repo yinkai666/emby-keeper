@@ -212,7 +212,7 @@ async def checkiner(config: dict, instant=False):
                         checked.append(n)
                     else:
                         failed.append(n)
-                spec = f"共{len(checkiners)}个"
+                spec = f"共{len(successful) + len(checked) + len(failed)}个"
                 if successful:
                     spec += f", {len(successful)}成功"
                 if checked:
