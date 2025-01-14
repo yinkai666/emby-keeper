@@ -51,10 +51,6 @@ Embykeeper 支持 Docker 或 PyPI 安装 (Linux / Windows), 也支持云部署, 
 
 [![Deploy to Huggingface Space](https://github.com/emby-keeper/emby-keeper/raw/main/images/deploy-to-hf.svg)](https://huggingface.co/spaces/embykeeper/embykeeper?duplicate=true)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[![Tutorial](https://github.com/emby-keeper/emby-keeper/raw/main/images/hf-tutorial.svg)](https://blog.zetx.tech/2024/05/19/embykeeper-hf-tutorial/)
 
-[![Deploy to Koyeb](https://github.com/emby-keeper/emby-keeper/raw/main/images/deploy-to-koyeb.svg)](https://app.koyeb.com/deploy?repository=github.com/emby-keeper/emby-keeper&branch=stable&type=git&name=embykeeper&builder=dockerfile&ports=1818;http;/&env[EK_WEBPASS]=)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[![Tutorial](https://github.com/emby-keeper/emby-keeper/raw/main/images/koyeb-tutorial.svg)](https://blog.zetx.tech/2025/01/14/embykeeper-koyeb-tutorial)
-
-[![Deploy to Render](https://github.com/emby-keeper/emby-keeper/raw/main/images/deploy-to-render.svg)](https://render.com/deploy?repo=https://github.com/emby-keeper/emby-keeper/tree/stable)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[![Tutorial](https://github.com/emby-keeper/emby-keeper/raw/main/images/render-tutorial.svg)](https://blog.zetx.tech/2023/06/26/embykeeper-render-tutorial)
-
 若您有服务器, 我们推荐使用 [Docker 部署](https://emby-keeper.github.io/guide/Linux-Docker-部署):
 
 ```bash
