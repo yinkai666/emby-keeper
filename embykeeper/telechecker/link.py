@@ -58,7 +58,7 @@ class Link:
         photo=None,
         file=None,
         condition: Callable = None,
-        timeout: int = 20,
+        timeout: int = 60,
         retries=3,
         name: str = None,
         fail: bool = False,
