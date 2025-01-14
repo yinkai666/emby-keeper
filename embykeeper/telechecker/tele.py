@@ -442,18 +442,13 @@ class Client(pyrogram.Client):
                 self._last_invoke[query_name] = datetime.now().timestamp()
 
         logger.trace(f"请求: {query_name}")
-        try:
-            return await super().invoke(
-                query,
-                retries=retries,
-                timeout=timeout,
-                sleep_threshold=sleep_threshold,
-                business_connection_id=business_connection_id,
-            )
-        except OSError:
-            logger.debug("Telegram 连接不稳定, 可能遗漏信息.")
-        except sqlite3.ProgrammingError:
-            pass
+        return await super().invoke(
+            query,
+            retries=retries,
+            timeout=timeout,
+            sleep_threshold=sleep_threshold,
+            business_connection_id=business_connection_id,
+        )
 
     @asynccontextmanager
     async def catch_edit(self, message: types.Message, filter=None):
