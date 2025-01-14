@@ -924,23 +924,18 @@ class ClientsSession:
                 return False
 
     async def test_time(self, proxy=None):
-        url = "https://timeapi.io/api/Time/current/zone?timeZone=UTC"
+        url = "https://ip.ddnspod.com/timestamp"
         connector = self.get_connector(proxy=proxy)
         async with aiohttp.ClientSession(connector=connector) as session:
             try:
                 async with session.get(url) as resp:
                     if resp.status == 200:
-                        resp_dict: dict = await resp.json()
+                        timestamp = int((await resp.content.read()).decode())
                     else:
                         logger.warning(f"世界时间接口异常, 系统时间检测将跳过, 敬请注意. 程序将继续运行.")
 
-                api_time_str = resp_dict["dateTime"]
-                api_time = datetime.strptime(api_time_str.split(".")[0], "%Y-%m-%dT%H:%M:%S")
-                api_time = api_time.replace(tzinfo=timezone.utc)
-                api_timestamp = api_time.timestamp()
-
                 nowtime = datetime.now(timezone.utc).timestamp()
-                if abs(nowtime - api_timestamp) > 30:
+                if abs(nowtime - timestamp/1000) > 30:
                     logger.warning(
                         f"您的系统时间设置不正确, 与世界时间差距过大, 可能会导致连接失败, 敬请注意. 程序将继续运行."
                     )
