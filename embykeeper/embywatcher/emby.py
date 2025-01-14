@@ -85,16 +85,11 @@ class Connector(_Connector):
 
     def get_fake_headers(self):
         headers = {}
-        ios_uas = [
-            "CFNetwork/1335.0.3 Darwin/21.6.0",
-            "CFNetwork/1406.0.4 Darwin/22.4.0",
-            "CFNetwork/1333.0.4 Darwin/21.5.0",
-        ]
-        client = "Filebox" if not self.client else self.client
+        client = "Fileball" if not self.client else self.client
         device = "iPhone" if not self.device else self.device
         device_id = str(self.get_device_uuid()).upper() if not self.device_id else self.device_id
-        version = f"1.3.{random.randint(13, 15)}" if not self.client_version else self.client_version
-        ua = f"Fileball/230 {random.choice(ios_uas)}" if not self.ua else self.ua
+        version = f"1.3.{random.randint(28, 30)}" if not self.client_version else self.client_version
+        ua = f"Fileball/{version}" if not self.ua else self.ua
         auth_headers = {
             "Client": client,
             "Device": device,
