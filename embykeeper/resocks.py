@@ -105,7 +105,7 @@ class Resocks:
 
         self.process = self.execute(str(host), "-k", key)
         
-        await asyncio.sleep(1)
+        await asyncio.sleep(3)
         if self.process.poll() is not None:
             return False
         return True
