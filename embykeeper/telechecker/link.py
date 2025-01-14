@@ -74,7 +74,7 @@ class Link:
             fail: 当出现错误时抛出错误, 而非发送日志
         """
         self.log.info(f"正在进行服务请求: {name}")
-        
+
         if photo and file:
             raise ValueError("can not use both photo and file")
 

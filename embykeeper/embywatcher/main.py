@@ -214,7 +214,7 @@ async def get_cf_clearance(config, url, user_agent=None):
 
 async def login(config, continuous=False):
     """登录账号."""
-    
+
     for a in config.get("emby", ()):
         if not continuous == a.get("continuous", False):
             continue
@@ -260,9 +260,7 @@ async def login(config, continuous=False):
                 if "Unexpected JSON output" in str(e):
                     if "cf-wrapper" in str(e) or "Enable JavaScript and cookies to continue" in str(e):
                         if a.get("cf_challenge", False):
-                            logger.info(
-                                f'Emby "{a["url"]}" 已启用 Cloudflare 保护, 即将请求解析.'
-                            )
+                            logger.info(f'Emby "{a["url"]}" 已启用 Cloudflare 保护, 即将请求解析.')
                             cf_clearance = await get_cf_clearance(config, a["url"], a.get("ua", None))
                             if not cf_clearance:
                                 logger.warning(f'Emby "{a["url"]}" 验证码解析失败而跳过.')
