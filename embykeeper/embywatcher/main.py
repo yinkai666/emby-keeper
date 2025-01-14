@@ -251,6 +251,7 @@ async def login(config, continuous=False):
                 ua=a.get("ua", None),
                 device=a.get("device", None),
                 client=a.get("client", None),
+                client_version=a.get("client_version", None),
                 device_id=device_id,
                 cf_clearance=cf_clearance,
             )

@@ -31,6 +31,7 @@ class Connector(_Connector):
         ua=None,
         device=None,
         client=None,
+        client_version=None,
         cf_clearance=None,
         **kw,
     ):
@@ -39,6 +40,7 @@ class Connector(_Connector):
         self.ua = ua
         self.device = device
         self.client = client
+        self.client_version = client_version
         self.fake_headers = self.get_fake_headers()
         self.watch = asyncio.create_task(self.watchdog())
         self.cf_clearance = cf_clearance
@@ -91,7 +93,7 @@ class Connector(_Connector):
         client = "Filebox" if not self.client else self.client
         device = "iPhone" if not self.device else self.device
         device_id = str(self.get_device_uuid()).upper() if not self.device_id else self.device_id
-        version = f"1.3.{random.randint(13, 15)}"
+        version = f"1.3.{random.randint(13, 15)}" if not self.client_version else self.client_version
         ua = f"Fileball/230 {random.choice(ios_uas)}" if not self.ua else self.ua
         auth_headers = {
             "Client": client,
