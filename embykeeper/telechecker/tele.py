@@ -450,6 +450,8 @@ class Client(pyrogram.Client):
                 sleep_threshold=sleep_threshold,
                 business_connection_id=business_connection_id,
             )
+        except OSError:
+            logger.debug("Telegram 连接不稳定, 可能遗漏信息.")
         except sqlite3.ProgrammingError:
             pass
 
