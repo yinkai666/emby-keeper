@@ -10,6 +10,13 @@
 
 解压后运行 `Embykeeper.bat`, Embykeeper 将会自动安装到当前文件夹中.
 
+:::info 如果运行失败
+
+如果您遇到了 `SSLEOFError` / `ConnectionError` 等问题, 请转用 `Embykeeper-NoMirror.bat`.
+
+如果还是不行, 请检查您的网络环境, 或进行反馈.
+:::
+
 安装后 Embykeeper 将首次运行并在当前目录下生成模板 `config.toml` 文件 (您也可以从[这里](https://github.com/emby-keeper/emby-keeper/blob/main/config.example.toml)下载).
 
 <!--@include: ./_简要配置.md-->

@@ -8,14 +8,24 @@ param(
     [Parameter()]
     [string]$PythonPath="Scripts\python.exe",
     [Parameter()]
-    [switch]$Update = $false
+    [switch]$Update = $false,
+    [Parameter()]
+    [switch]$NoMirror = $false
 )
 
 Write-Host "Installing dependencies"
 if ($Update) {
-    & $PythonPath -m pip install -i "https://mirrors.aliyun.com/pypi/simple" -U embykeeper --no-warn-script-location
+    if ($NoMirror) {
+        & $PythonPath -m pip install -U embykeeper --no-warn-script-location
+    } else {
+        & $PythonPath -m pip install -i "https://mirrors.aliyun.com/pypi/simple" -U embykeeper --no-warn-script-location
+    }
 } else {
-    & $PythonPath -m pip install -i "https://mirrors.aliyun.com/pypi/simple" -r $RequirementsFile --no-warn-script-location
+    if ($NoMirror) {
+        & $PythonPath -m pip install -r $RequirementsFile --no-warn-script-location
+    } else {
+        & $PythonPath -m pip install -i "https://mirrors.aliyun.com/pypi/simple" -r $RequirementsFile --no-warn-script-location
+    }
 }
 
 $exitCode = $LASTEXITCODE
