@@ -331,7 +331,9 @@ class Link:
         bio.seek(0)
         bio.name = "data.yaml"
 
-        results = await self.post(f"/infer_msg {self.instance}", timeout=120, file=bio, name="发送话术推测请求")
+        results = await self.post(
+            f"/infer_msg {self.instance}", timeout=120, file=bio, name="发送话术推测请求"
+        )
         if results:
             return results.get("answer", None), results.get("by", None)
         else:

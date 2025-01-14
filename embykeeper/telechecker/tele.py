@@ -935,7 +935,7 @@ class ClientsSession:
                         logger.warning(f"世界时间接口异常, 系统时间检测将跳过, 敬请注意. 程序将继续运行.")
 
                 nowtime = datetime.now(timezone.utc).timestamp()
-                if abs(nowtime - timestamp/1000) > 30:
+                if abs(nowtime - timestamp / 1000) > 30:
                     logger.warning(
                         f"您的系统时间设置不正确, 与世界时间差距过大, 可能会导致连接失败, 敬请注意. 程序将继续运行."
                     )
