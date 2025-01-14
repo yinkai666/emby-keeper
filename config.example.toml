@@ -1,6 +1,6 @@
 # 这是一个配置文件范例.
 # 所有账户信息为生成, 请填写您的账户信息.
-# 查看帮助与详情: https://emby-keeper.github.io/guide/安装指南
+# 查看帮助与详情: https://emby-keeper.github.io#安装与使用
 
 # 每天进行 Telegram Bot 签到的时间范围, 等同于命令行 "-c" 参数.
 time = "<8:00AM,10:00AM>"
@@ -37,7 +37,7 @@ random = 60
 # scheme = "socks5" # 可选: http / socks5
 
 # 服务设置, 当您需要禁用某些站点时, 请将该段取消注释并修改.
-# 该部分内容是根据 Embykeeper 6.2.2 生成的.
+# 该部分内容是根据 Embykeeper 6.3.0 生成的.
 # 详见: https://emby-keeper.github.io/guide/配置文件#service-子项
 # 使用 checkiner = ["all"] 以启用所有签到器, 使用 checkiner = ["sgk"] 以启用所有社工库签到器.
 
@@ -57,13 +57,13 @@ random = 60
 # 详见: https://emby-keeper.github.io/guide/配置文件#telegram-子项
 
 [[telegram]]
-phone = "+8613526629699"
+phone = "+8616380798084"
 checkin = true
 send = false # 启用该账号的自动水群功能 (需要高级账号, 谨慎使用)
 monitor = false # 启用该账号的自动监控功能 (需要高级账号)
 
 [[telegram]]
-phone = "+8618432612905"
+phone = "+8617610948341"
 checkin = true
 send = false # 启用该账号的自动水群功能 (需要高级账号, 谨慎使用)
 monitor = false # 启用该账号的自动监控功能 (需要高级账号)
@@ -72,13 +72,14 @@ monitor = false # 启用该账号的自动监控功能 (需要高级账号)
 # 详见: https://emby-keeper.github.io/guide/配置文件#emby-子项
 
 [[emby]]
-url = "https://rose-liu.info/"
-username = "theresa93"
-password = "9!2ofDquyU"
+url = "https://www.mccarthy.com/"
+username = "rmcgrath"
+password = ")3XLC1yESG"
 time = [120, 240] # 模拟观看的时长范围 (秒)
 
 [[emby]]
-url = "https://anderson-lozano.com/"
-username = "qmiller"
-password = "t$8CTHbm!L"
+url = "https://www.castillo.info/"
+username = "moorejesse"
+password = "jO05F_b&(j"
 time = [120, 240] # 模拟观看的时长范围 (秒)
+
