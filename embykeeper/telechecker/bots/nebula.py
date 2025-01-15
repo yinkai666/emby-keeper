@@ -2,13 +2,14 @@ import asyncio
 from json import JSONDecodeError
 from urllib.parse import parse_qs, urlencode, urlparse
 
-from aiohttp import ClientSession, TCPConnector
-from aiohttp_socks import ProxyConnector, ProxyTimeoutError, ProxyError, ProxyType
+from aiohttp import ClientSession
+from aiohttp_socks import ProxyTimeoutError, ProxyError
 from pyrogram.raw.functions.messages import RequestWebView
 from pyrogram.raw.functions.users import GetFullUser
 from faker import Faker
 
-from ...utils import remove_prefix
+from embykeeper.utils import remove_prefix, get_connector
+
 from ..link import Link
 from ._base import BaseBotCheckin
 
@@ -75,16 +76,7 @@ class NebulaCheckin(BaseBotCheckin):
         useragent = Faker().safari()
         query["token"] = token
         url_checkin = scheme._replace(query=urlencode(query, True)).geturl()
-        if self.proxy:
-            connector = ProxyConnector(
-                proxy_type=ProxyType[self.proxy["scheme"].upper()],
-                host=self.proxy["hostname"],
-                port=self.proxy["port"],
-                username=self.proxy.get("username", None),
-                password=self.proxy.get("password", None),
-            )
-        else:
-            connector = TCPConnector()
+        connector = get_connector(self.proxy)
         try:
             async with ClientSession(connector=connector) as session:
                 async with session.get(url_checkin, headers={"User-Agent": useragent}) as resp:

@@ -6,11 +6,11 @@ from urllib.parse import parse_qs, urlparse
 
 from pyrogram.types import Message
 from pyrogram.raw.functions.messages import RequestWebView
-from aiohttp import ClientSession, TCPConnector
-from aiohttp_socks import ProxyConnector, ProxyTimeoutError, ProxyError, ProxyType
+from aiohttp import ClientSession
+from aiohttp_socks import ProxyTimeoutError, ProxyError
 from faker import Faker
 
-from embykeeper.utils import show_exception, truncate_str
+from embykeeper.utils import show_exception, truncate_str, get_connector
 
 from ..link import Link
 from ._base import BotCheckin
@@ -119,16 +119,7 @@ class FutureCheckin(BotCheckin):
             params = parse_qs(scheme.query)
             url_submit = scheme._replace(path="/x/api/submit", query="", fragment="").geturl()
             uuid = params.get("id", [None])[0]
-            if self.proxy:
-                connector = ProxyConnector(
-                    proxy_type=ProxyType[self.proxy["scheme"].upper()],
-                    host=self.proxy["hostname"],
-                    port=self.proxy["port"],
-                    username=self.proxy.get("username", None),
-                    password=self.proxy.get("password", None),
-                )
-            else:
-                connector = TCPConnector()
+            connector = get_connector(self.proxy)
             origin = scheme._replace(path="/", query="", fragment="").geturl()
             useragent = Faker().safari()
             headers = {

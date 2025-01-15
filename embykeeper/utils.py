@@ -396,3 +396,20 @@ def distribute_numbers(min_value, max_value, num_elements=1, min_distance=0, max
         numbers = sorted(numbers + [value])
         results.append(value)
     return sorted(results)
+
+def get_connector(proxy=None, **kw):
+    import aiohttp
+    from aiohttp_socks import ProxyConnector, ProxyType
+    
+    if proxy:
+        connector = ProxyConnector(
+            proxy_type=ProxyType[proxy["scheme"].upper()],
+            host=proxy["hostname"],
+            port=proxy["port"],
+            username=proxy.get("username", None),
+            password=proxy.get("password", None),
+            **kw,
+        )
+    else:
+        connector = aiohttp.TCPConnector(**kw)
+    return connector

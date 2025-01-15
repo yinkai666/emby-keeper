@@ -11,7 +11,6 @@ import inspect
 from pathlib import Path
 import pickle
 import random
-import sqlite3
 import struct
 import sys
 from typing import AsyncGenerator, Optional, Union
@@ -54,10 +53,10 @@ from pyrogram.handlers import (
 from pyrogram.handlers.handler import Handler
 from aiocache import Cache
 import aiohttp
-from aiohttp_socks import ProxyConnector, ProxyType, ProxyConnectionError, ProxyTimeoutError
+from aiohttp_socks import ProxyConnectionError, ProxyTimeoutError
 
 from embykeeper import var, __name__ as __product__, __version__
-from embykeeper.utils import async_partial, show_exception, to_iterable
+from embykeeper.utils import async_partial, show_exception, to_iterable, get_connector
 
 if typing.TYPE_CHECKING:
     from telethon import TelegramClient
@@ -882,23 +881,9 @@ class ClientsSession:
         if not self.watch:
             self.__class__.watch = asyncio.create_task(self.watchdog())
 
-    def get_connector(self, proxy=None, **kw):
-        if proxy:
-            connector = ProxyConnector(
-                proxy_type=ProxyType[proxy["scheme"].upper()],
-                host=proxy["hostname"],
-                port=proxy["port"],
-                username=proxy.get("username", None),
-                password=proxy.get("password", None),
-                **kw,
-            )
-        else:
-            connector = aiohttp.TCPConnector(**kw)
-        return connector
-
     async def test_network(self, proxy=None):
         url = "https://www.gstatic.com/generate_204"
-        connector = self.get_connector(proxy=proxy)
+        connector = get_connector(proxy=proxy)
         async with aiohttp.ClientSession(connector=connector) as session:
             try:
                 async with session.get(url) as resp:
@@ -925,7 +910,7 @@ class ClientsSession:
 
     async def test_time(self, proxy=None):
         url = "https://ip.ddnspod.com/timestamp"
-        connector = self.get_connector(proxy=proxy)
+        connector = get_connector(proxy=proxy)
         async with aiohttp.ClientSession(connector=connector) as session:
             try:
                 async with session.get(url) as resp:

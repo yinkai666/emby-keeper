@@ -5,11 +5,10 @@ from typing import Iterable, Union
 
 import aiofiles
 import aiohttp
-from aiohttp_socks import ProxyConnector, ProxyType
 from cachetools import TTLCache
 from loguru import logger
 
-from .utils import format_byte_human, nonblocking, show_exception, to_iterable
+from .utils import format_byte_human, nonblocking, show_exception, to_iterable, get_connector
 
 logger = logger.bind(scheme="datamanager")
 
@@ -84,16 +83,7 @@ async def get_datas(basedir: Path, names: Union[Iterable[str], str], proxy: dict
                     for data_url in cdn_urls:
                         url = f"{data_url}/data/{name}"
                         logger.debug(f"正在尝试 URL: {url}")
-                        if proxy:
-                            connector = ProxyConnector(
-                                proxy_type=ProxyType[proxy["scheme"].upper()],
-                                host=proxy["hostname"],
-                                port=proxy["port"],
-                                username=proxy.get("username", None),
-                                password=proxy.get("password", None),
-                            )
-                        else:
-                            connector = aiohttp.TCPConnector()
+                        connector = get_connector(proxy)
                         async with aiohttp.ClientSession(connector=connector) as session:
                             try:
                                 async with session.get(url) as resp:

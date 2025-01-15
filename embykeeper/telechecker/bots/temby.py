@@ -7,9 +7,11 @@ from pyrogram.raw.functions.messages import RequestAppWebView, GetBotApp
 from pyrogram.raw.types import InputBotAppShortName, InputBotAppID, WebViewResultUrl
 from pyrogram.raw.types.bot_app import BotApp
 from pyrogram.raw.types.messages import BotApp as MessageBotApp
-from aiohttp import ClientSession, TCPConnector
-from aiohttp_socks import ProxyConnector, ProxyTimeoutError, ProxyError, ProxyType
+from aiohttp import ClientSession
+from aiohttp_socks import ProxyTimeoutError, ProxyError
 from faker import Faker
+
+from embykeeper.utils import get_connector
 
 from ..link import Link
 from ._base import BotCheckin
@@ -70,16 +72,7 @@ class TembyCheckin(BotCheckin):
             params = parse_qs(scheme.query)
             messageid = params.get("tgWebAppStartParam", [None])[0]
             url_submit = scheme._replace(query="", fragment="").geturl()
-            if self.proxy:
-                connector = ProxyConnector(
-                    proxy_type=ProxyType[self.proxy["scheme"].upper()],
-                    host=self.proxy["hostname"],
-                    port=self.proxy["port"],
-                    username=self.proxy.get("username", None),
-                    password=self.proxy.get("password", None),
-                )
-            else:
-                connector = TCPConnector()
+            connector = get_connector(self.proxy)
             useragent = Faker().safari()
             headers = {
                 "Referer": url,
