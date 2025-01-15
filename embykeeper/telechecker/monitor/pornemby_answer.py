@@ -15,7 +15,7 @@ from ._base import Monitor
 
 
 class _PornembyAnswerResultMonitor(Monitor):
-    name = "Pornemby 科举答案"
+    name = "Pornemby 问题答案"
     chat_keyword = r"问题\d*：(.*?)\n+A:(.*)\n+B:(.*)\n+C:(.*)\n+D:(.*)\n+答案为：([ABCD])"
     additional_auth = ["pornemby_pack"]
     allow_edit = True
@@ -28,7 +28,7 @@ class _PornembyAnswerResultMonitor(Monitor):
 
 
 class _PornembyAnswerAnswerMonitor(Monitor):
-    name = "Pornemby 科举"
+    name = "Pornemby 问题回答"
     history_chat_name = "Pornemby"
     chat_user = [
         "pornemby_question_bot",
@@ -36,10 +36,10 @@ class _PornembyAnswerAnswerMonitor(Monitor):
         "PronembyTGBot3_bot",
         "PornembyBot",
         "Porn_Emby_Bot",
+        "Porn_Emby_Script",
     ]
     chat_keyword = r"问题\d*：(.*?)\n+(A:.*\n+B:.*\n+C:.*\n+D:.*)\n(?!\n*答案)"
     additional_auth = ["pornemby_pack"]
-    allow_edit = True
 
     cache = {}
     lock = asyncio.Lock()

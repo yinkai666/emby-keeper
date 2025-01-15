@@ -208,7 +208,8 @@ docker run -v $(pwd)/embykeeper:/app --rm -it --net=host embykeeper/embykeeper -
   <!-- #region monitor-sites -->
 
   - Pornemby:
-    - 科举考试 (`pornemby_answer`): [群组](https://t.me/Pornemby)
+    - 问题回答 (`pornemby_answer`): [群组](https://t.me/Pornemby)
+    - 科举考试 (`pornemby_exam`): [群组](https://t.me/Pornemby)
     - 自动抢注 (`pornemby_register`): [群组](https://t.me/Pornemby)
     - 自动抢红包雨 (`pornemby_dragon_rain`): [群组](https://t.me/Pornemby)
     - 自动翻倍 (`pornemby_double`): [群组](https://t.me/Pornemby)
