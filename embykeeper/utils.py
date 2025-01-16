@@ -398,10 +398,10 @@ def distribute_numbers(min_value, max_value, num_elements=1, min_distance=0, max
     return sorted(results)
 
 
-def get_proxy_str(proxy_dict=None):
+def get_proxy_str(proxy_dict: dict = None):
     if proxy_dict:
         proxy = f"{proxy_dict['scheme']}://"
-        if proxy_dict.get("username"):
+        if proxy_dict.get("username", None):
             proxy += f"{proxy_dict['username']}:{proxy_dict['password']}@"
         proxy += f"{proxy_dict['hostname']}:{proxy_dict['port']}"
     else:
