@@ -114,7 +114,7 @@ class Connector(_Connector):
             async with await self._get_session_lock():
                 session = self._sessions.get(loop_id)
                 if not session:
-                    
+
                     proxy = get_proxy_str(self.proxy)
 
                     cookies = {}

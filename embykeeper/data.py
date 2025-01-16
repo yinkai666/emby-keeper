@@ -85,10 +85,7 @@ async def get_datas(basedir: Path, names: Union[Iterable[str], str], proxy: dict
                         logger.debug(f"正在尝试 URL: {url}")
                         proxy_url = get_proxy_str(proxy) if proxy else None
                         async with httpx.AsyncClient(
-                            http2=True,
-                            proxy=proxy_url,
-                            verify=False,
-                            follow_redirects=True
+                            http2=True, proxy=proxy_url, verify=False, follow_redirects=True
                         ) as client:
                             try:
                                 resp = await client.get(url)

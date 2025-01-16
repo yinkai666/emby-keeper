@@ -65,7 +65,7 @@ class Subsonic:
         """Get or create an HTTP session"""
         async with self._session_lock:
             if not self._session or self._session.is_closed:
-                
+
                 proxy = proxy = get_proxy_str(self.proxy)
 
                 timeout = httpx.Timeout(connect=10.0, read=None, write=10.0, pool=10.0)
