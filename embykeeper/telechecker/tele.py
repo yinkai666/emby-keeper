@@ -841,7 +841,7 @@ class ClientsSession:
         url = "https://www.gstatic.com/generate_204"
         proxy_str = get_proxy_str(proxy)
         try:
-            async with httpx.AsyncClient(proxy=proxy_str) as client:
+            async with httpx.AsyncClient(http2=True, proxy=proxy_str) as client:
                 resp = await client.get(url)
                 if resp.status_code == 204:
                     return True
@@ -866,7 +866,7 @@ class ClientsSession:
         url = "https://ip.ddnspod.com/timestamp"
         proxy_str = get_proxy_str(proxy)
         try:
-            async with httpx.AsyncClient(proxy=proxy_str) as client:
+            async with httpx.AsyncClient(http2=True, proxy=proxy_str) as client:
                 resp = await client.get(url)
                 if resp.status_code == 200:
                     timestamp = int(resp.content.decode())

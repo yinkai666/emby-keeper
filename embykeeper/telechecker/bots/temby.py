@@ -82,7 +82,7 @@ class TembyCheckin(BotCheckin):
                 "cf-turnstile-response": token,
             }
             try:
-                async with httpx.AsyncClient(proxy=get_proxy_str(self.proxy)) as client:
+                async with httpx.AsyncClient(http2=True, proxy=get_proxy_str(self.proxy)) as client:
                     resp = await client.get(url_submit, headers=headers, params=params)
                     result = resp.text
                     if "好像还没有通过验证" in result:

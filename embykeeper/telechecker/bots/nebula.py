@@ -77,7 +77,7 @@ class NebulaCheckin(BaseBotCheckin):
         url_checkin = scheme._replace(query=urlencode(query, True)).geturl()
         proxy = get_proxy_str(self.proxy)
         try:
-            async with httpx.AsyncClient(proxy=proxy) as client:
+            async with httpx.AsyncClient(http2=True, proxy=proxy) as client:
                 resp = await client.get(url_checkin, headers={"User-Agent": useragent})
                 results = resp.json()
                 message = results["message"]
