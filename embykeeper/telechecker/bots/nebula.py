@@ -7,7 +7,7 @@ from pyrogram.raw.functions.messages import RequestWebView
 from pyrogram.raw.functions.users import GetFullUser
 from faker import Faker
 
-from embykeeper.utils import remove_prefix, get_connector, get_proxy_str
+from embykeeper.utils import remove_prefix, get_proxy_str
 
 from ..link import Link
 from ._base import BaseBotCheckin
