@@ -301,7 +301,10 @@ class Monitor:
         for key in self.keys(message):
             spec = self.get_spec(key)
             if not self.debug_no_log:
-                self.log.info(f"监听到关键信息: {truncate_str(spec, 30)}.")
+                if spec:
+                    self.log.info(f"监听到关键信息: {truncate_str(spec, 30)}.")
+                else:
+                    self.log.info(f"监听到关键信息.")
             if random.random() >= self.chat_probability:
                 self.log.info(f"由于概率设置, 不予回应: {spec}.")
                 return False
