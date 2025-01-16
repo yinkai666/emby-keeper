@@ -1,16 +1,21 @@
+from __future__ import annotations
+
 import asyncio
 from datetime import date, datetime, time
 from pathlib import Path
-from typing import List, Tuple
+from typing import TYPE_CHECKING, List, Tuple
 
 from loguru import logger
 from pyrogram.types import User
 import yaml
 
-from ...data import get_data
-from ...utils import show_exception, truncate_str, distribute_numbers
+from embykeeper.data import get_data
+from embykeeper.utils import show_exception, truncate_str, distribute_numbers
 from ..link import Link
-from ..tele import ClientsSession
+from ..tele import ClientsSession, Client
+
+if TYPE_CHECKING:
+    from loguru import Logger
 
 __ignore__ = True
 
@@ -154,42 +159,78 @@ class SmartMessager:
         """可重写的初始化函数, 返回 False 将视为初始化错误."""
         return True
 
+    async def get_infer_prompt(self, tg: Client, log: Logger, time: datetime = None):
+        chat = await tg.get_chat(self.chat_name)
+        context = []
+        i = 0
+        async for msg in tg.get_chat_history(chat.id, limit=50):
+            i += 1
+            if self.min_msg_gap and msg.outgoing and i < self.min_msg_gap:
+                log.info(f"低于发送消息间隔要求 ({i} < {self.min_msg_gap}), 将不发送消息.")
+                return
+            spec = []
+            text = str(msg.caption or msg.text or "")
+            spec.append(f"消息发送时间为 {msg.date}")
+            if msg.photo:
+                spec.append("包含一张照片")
+            if msg.reply_to_message_id:
+                rmsg = await tg.get_messages(chat.id, msg.reply_to_message_id)
+                spec.append(f"回复了消息: {truncate_str(str(rmsg.caption or rmsg.text or ''), 60)}")
+            spec = " ".join(spec)
+            ctx = truncate_str(text, 180)
+            if msg.from_user and msg.from_user.name:
+                ctx = f"{msg.from_user.name}说: {ctx}"
+            if spec:
+                ctx += f" ({spec})"
+            context.append(ctx)
+        
+        prompt = "我需要你在一个群聊中进行合理的回复."
+        if self.example_messages:
+            prompt += "\n该群聊的聊天风格类似于以下条目:\n\n"
+            for msg in self.example_messages:
+                prompt += f"- {msg}\n"
+        if context:
+            prompt += "\n该群聊最近的几条消息及其特征为 (最早到晚):\n\n"
+            for ctx in list(reversed(context)):
+                prompt += f"- {ctx}\n"
+        prompt += '\n其他信息:\n\n'
+        prompt += f'- 我的用户名: {tg.me.name}\n'
+        prompt += f'- 当前时间: {(time or datetime.now()).strftime("%Y-%m-%d %H:%M:%S")}\n'
+        use_prompt = self.config.get("prompt")
+        if use_prompt:
+            prompt += f'\n{use_prompt}'
+        else:
+            extra_prompt = self.config.get("extra_prompt")
+            prompt += (
+                "\n请根据以上的信息, 给出一个合理的回复, 要求:\n"
+                "1. 回复必须简短, 不超过20字, 不能含有说明解释, 表情包, 或 emoji\n"
+                "2. 回复必须符合群聊的语气和风格\n" 
+                "3. 回复必须自然, 不能太过刻意\n"
+                "4. 回复必须是中文\n\n"
+                "5. 如果其他人正在就某个问题进行讨论不便打断, 或你有不知道怎么回答的问题, 请输出: SKIP\n\n"
+                "6. 如果已经有很长时间没有人说话, 请勿发送继续XX等语句, 此时请输出: SKIP\n\n"
+                "7. 请更加偏重该群聊最近的几条消息, 如果存在近期的讨论, 加入讨论, 偏向于附和, 允许复读他人消息\n\n"
+                "8. 请勿@其他人或呼喊其他人\n\n"
+                "9. 输出内容请勿包含自己的用户名和冒号\n\n"
+                "10. 输出内容请勿重复自己之前说过的话\n\n"
+            )
+            if extra_prompt:
+                prompt += f'{extra_prompt}'
+            prompt += "\n请直接输出你的回答:"
+        return prompt
+        
     async def send(self, dummy: bool = False):
         async with ClientsSession([self.account], proxy=self.proxy, basedir=self.basedir) as clients:
             async for tg in clients:
-                log = self.log.bind(username=tg.me.name)
                 chat = await tg.get_chat(self.chat_name)
-
-                context = []
-                i = 0
-                async for msg in tg.get_chat_history(chat.id, limit=50):
-                    i += 1
-                    if self.min_msg_gap and msg.outgoing and i < self.min_msg_gap:
-                        log.info(f"低于发送消息间隔要求 ({i} < {self.min_msg_gap}), 将不发送消息.")
-                        return
-                    spec = []
-                    text = str(msg.caption or msg.text or "")
-                    spec.append(f"消息发送时间为 {msg.date}")
-                    if msg.photo:
-                        spec.append("包含一张照片")
-                    if msg.reply_to_message_id:
-                        rmsg = await tg.get_messages(chat.id, msg.reply_to_message_id)
-                        spec.append(f"回复了消息: {truncate_str(str(rmsg.caption or rmsg.text or ''), 60)}")
-                    spec = " ".join(spec)
-                    ctx = truncate_str(text, 180)
-                    if msg.from_user and msg.from_user.name:
-                        ctx = f"{msg.from_user.name}说: {ctx}"
-                    if spec:
-                        ctx += f" ({spec})"
-                    context.append(ctx)
-
-                payload = {}
-                if context:
-                    payload["context"] = list(reversed(context))
-                if self.example_messages:
-                    payload["messages"] = self.example_messages
-
-                answer, _ = await Link(tg).infer_msg(payload)
+                log = self.log.bind(username=tg.me.name)
+                
+                prompt = await self.get_infer_prompt(tg, log)
+                
+                if not prompt:
+                    return
+    
+                answer, _ = await Link(tg).infer(prompt)
 
                 if answer:
                     if len(answer) > 50:

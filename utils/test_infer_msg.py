@@ -57,7 +57,7 @@ async def call_infer(tg: Client, url: str = None, analyze: Path = None):
 
     print(payload)
 
-    answer, _ = await Link(tg).infer_msg(payload)
+    answer, _ = await Link(tg).infer(payload)
 
     return answer
 

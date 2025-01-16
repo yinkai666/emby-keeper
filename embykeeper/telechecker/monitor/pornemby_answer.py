@@ -36,7 +36,7 @@ class _PornembyAnswerAnswerMonitor(Monitor):
         "PronembyTGBot3_bot",
         "PornembyBot",
         "Porn_Emby_Bot",
-        "Porn_Emby_Script",
+        "Porn_Emby_Scriptbot",
     ]
     chat_keyword = r"问题\d*：(.*?)\n+(A:.*\n+B:.*\n+C:.*\n+D:.*)\n(?!\n*答案)"
     additional_auth = ["pornemby_pack"]
@@ -176,9 +176,11 @@ class _PornembyAnswerAnswerMonitor(Monitor):
             buttons = [k.text for r in message.reply_markup.inline_keyboard for k in r]
             answer_options = self.key_map[result]
             for button_text in buttons:
-                if button_text in answer_options:
-                    answer = await message.click(button_text)
-                    self.log.debug(f"回答返回值: {answer.message} {spec}.")
+                if any((o in button_text) for o in answer_options):
+                    try:
+                        await message.click(button_text)
+                    except TimeoutError:
+                        pass
                     break
             else:
                 self.log.info(f"点击失败: 未找到匹配的按钮文本 {result} {spec}.")

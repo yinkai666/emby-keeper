@@ -324,15 +324,15 @@ class Link:
         results = await self.post(f"/msg {self.instance} {message}", name="发送即时日志到 Telegram ")
         return bool(results)
 
-    async def infer_msg(self, data):
+    async def infer(self, prompt: str):
         """向机器人发送话术推测记录请求."""
         bio = BytesIO()
-        bio.write(yaml.dump(data, allow_unicode=True).encode("utf-8"))
+        bio.write(prompt.encode("utf-8"))
         bio.seek(0)
-        bio.name = "data.yaml"
+        bio.name = "data.txt"
 
         results = await self.post(
-            f"/infer_msg {self.instance}", timeout=120, file=bio, name="发送话术推测请求"
+            f"/infer {self.instance}", timeout=120, file=bio, name="发送话术推测请求"
         )
         if results:
             return results.get("answer", None), results.get("by", None)
