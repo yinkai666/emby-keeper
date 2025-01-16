@@ -11,8 +11,6 @@ class TdckCheckin(AnswerBotCheckin):
     additional_auth = ["prime"]
     bot_checkin_cmd = ["/start"]
     templ_panel_keywords = ["请选择功能", "用户面板", "用户名称"]
-    bot_success_keywords = ["签到获得积分"]
-    bot_checked_keywords = ["今日已签到"]
     bot_text_ignore = ["请选择正确的验证码"]
 
     async def message_handler(self, client, message: Message):
