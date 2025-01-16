@@ -41,6 +41,7 @@ from pyrogram.errors import (
     PhoneNumberInvalid,
     PhoneNumberBanned,
     BadRequest,
+    AuthKeyDuplicated,
 )
 from pyrogram.storage.storage import Storage
 from pyrogram.handlers import (
@@ -1028,7 +1029,7 @@ class ClientsSession:
                 except ApiIdPublishedFlood:
                     logger.warning(f'登录账号 "{account["phone"]}" 时发生 API key 限制, 将被跳过.')
                     break
-                except Unauthorized as e:
+                except (Unauthorized, AuthKeyDuplicated) as e:
                     if config_session_string:
                         logger.error(
                             f'账号 "{account["phone"]}" 由于配置中提供的 session 已被注销, 将被跳过.'
