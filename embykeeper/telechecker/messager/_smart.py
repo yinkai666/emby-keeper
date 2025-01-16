@@ -183,7 +183,7 @@ class SmartMessager:
             if spec:
                 ctx += f" ({spec})"
             context.append(ctx)
-        
+
         prompt = "我需要你在一个群聊中进行合理的回复."
         if self.example_messages:
             prompt += "\n该群聊的聊天风格类似于以下条目:\n\n"
@@ -193,18 +193,18 @@ class SmartMessager:
             prompt += "\n该群聊最近的几条消息及其特征为 (最早到晚):\n\n"
             for ctx in list(reversed(context)):
                 prompt += f"- {ctx}\n"
-        prompt += '\n其他信息:\n\n'
-        prompt += f'- 我的用户名: {tg.me.name}\n'
+        prompt += "\n其他信息:\n\n"
+        prompt += f"- 我的用户名: {tg.me.name}\n"
         prompt += f'- 当前时间: {(time or datetime.now()).strftime("%Y-%m-%d %H:%M:%S")}\n'
         use_prompt = self.config.get("prompt")
         if use_prompt:
-            prompt += f'\n{use_prompt}'
+            prompt += f"\n{use_prompt}"
         else:
             extra_prompt = self.config.get("extra_prompt")
             prompt += (
                 "\n请根据以上的信息, 给出一个合理的回复, 要求:\n"
                 "1. 回复必须简短, 不超过20字, 不能含有说明解释, 表情包, 或 emoji\n"
-                "2. 回复必须符合群聊的语气和风格\n" 
+                "2. 回复必须符合群聊的语气和风格\n"
                 "3. 回复必须自然, 不能太过刻意\n"
                 "4. 回复必须是中文\n\n"
                 "5. 如果其他人正在就某个问题进行讨论不便打断, 或你有不知道怎么回答的问题, 请输出: SKIP\n\n"
@@ -215,21 +215,21 @@ class SmartMessager:
                 "10. 输出内容请勿重复自己之前说过的话\n\n"
             )
             if extra_prompt:
-                prompt += f'{extra_prompt}'
+                prompt += f"{extra_prompt}"
             prompt += "\n请直接输出你的回答:"
         return prompt
-        
+
     async def send(self, dummy: bool = False):
         async with ClientsSession([self.account], proxy=self.proxy, basedir=self.basedir) as clients:
             async for tg in clients:
                 chat = await tg.get_chat(self.chat_name)
                 log = self.log.bind(username=tg.me.name)
-                
+
                 prompt = await self.get_infer_prompt(tg, log)
-                
+
                 if not prompt:
                     return
-    
+
                 answer, _ = await Link(tg).infer(prompt)
 
                 if answer:

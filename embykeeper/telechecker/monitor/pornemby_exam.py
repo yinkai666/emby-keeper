@@ -34,7 +34,9 @@ class _PornembyExamAnswerMonitor(Monitor):
         "Porn_Emby_Bot",
         "Porn_Emby_Scriptbot",
     ]
-    chat_keyword = r"问题\d*：根据以上封面图，猜猜是什么番号？\n+A:(.*)\n+B:(.*)\n+C:(.*)\n+D:(.*)\n(?!\n*答案)"
+    chat_keyword = (
+        r"问题\d*：根据以上封面图，猜猜是什么番号？\n+A:(.*)\n+B:(.*)\n+C:(.*)\n+D:(.*)\n(?!\n*答案)"
+    )
     additional_auth = ["pornemby_pack"]
     allow_edit = True
 
@@ -44,12 +46,12 @@ class _PornembyExamAnswerMonitor(Monitor):
         "C": ["C", "🅲"],
         "D": ["D", "🅳"],
     }
-    
+
     async def get_cover_image_javdatabase(self, code: str):
         # 添加重试次数
         max_retries = 3
         retry_count = 0
-        
+
         while retry_count < max_retries:
             try:
                 proxy = get_proxy_str(self.proxy)
@@ -72,7 +74,9 @@ class _PornembyExamAnswerMonitor(Monitor):
                             continue
                         return None
                     html = response.content.decode()
-                    pattern = f'<div id="thumbnailContainer".*(https://www.javdatabase.com/covers/thumb/.*/.*.webp)'
+                    pattern = (
+                        f'<div id="thumbnailContainer".*(https://www.javdatabase.com/covers/thumb/.*/.*.webp)'
+                    )
                     match = re.search(pattern, html)
                     if not match:
                         self.log.warning(
@@ -93,22 +97,24 @@ class _PornembyExamAnswerMonitor(Monitor):
             except Exception as e:
                 retry_count += 1
                 if retry_count < max_retries:
-                    self.log.info(f"获取封面图片失败，正在进行第 {retry_count + 1} 次重试: {e.__class__.__name__}: {str(e)}")
+                    self.log.info(
+                        f"获取封面图片失败，正在进行第 {retry_count + 1} 次重试: {e.__class__.__name__}: {str(e)}"
+                    )
                     continue
                 self.log.warning(f"获取封面图片失败: {e.__class__.__name__}: {str(e)}")
                 show_exception(e)
                 return None
-            
+
             # 如果执行到这里说明成功获取了图片，直接返回
             break
-        
+
         return None
 
     async def get_cover_image_r18_dev(self, code: str):
         # 添加重试次数
         max_retries = 3
         retry_count = 0
-        
+
         while retry_count < max_retries:
             try:
                 proxy = get_proxy_str(self.proxy)
@@ -165,15 +171,17 @@ class _PornembyExamAnswerMonitor(Monitor):
             except Exception as e:
                 retry_count += 1
                 if retry_count < max_retries:
-                    self.log.info(f"获取封面图片失败，正在进行第 {retry_count + 1} 次重试: {e.__class__.__name__}: {str(e)}")
+                    self.log.info(
+                        f"获取封面图片失败，正在进行第 {retry_count + 1} 次重试: {e.__class__.__name__}: {str(e)}"
+                    )
                     continue
                 self.log.warning(f"获取封面图片失败: {e.__class__.__name__}: {str(e)}")
                 show_exception(e)
                 return None
-            
+
             # 如果执行到这里说明成功获取了图片，直接返回
             break
-        
+
         return None
 
     def compare_images(self, img1_bytes: BytesIO, img2_bytes: BytesIO) -> float:
@@ -243,6 +251,7 @@ class _PornembyExamAnswerMonitor(Monitor):
                 self.log.info(f"点击失败: 未找到匹配的按钮文本 {result}.")
         else:
             self.log.warning("未找到匹配的封面图片")
+
 
 class PornembyExamMonitor:
     class PornembyExamResultMonitor(_PornembyExamResultMonitor):
