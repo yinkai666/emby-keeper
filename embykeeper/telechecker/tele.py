@@ -23,7 +23,7 @@ from rich.prompt import Prompt
 from appdirs import user_data_dir
 from loguru import logger
 import pyrogram
-from pyrogram import raw, types, utils, filters, dispatcher, session
+from pyrogram import raw, types, utils, filters, dispatcher
 from pyrogram.enums import SentCodeType
 from pyrogram.errors import (
     ChannelPrivate,
@@ -218,10 +218,6 @@ class Client(pyrogram.Client):
         self.cache = Cache()
         self.lock = asyncio.Lock()
         self.dispatcher = Dispatcher(self)
-        self._last_special_invoke = {}
-        self._special_invoke_lock = asyncio.Lock()
-        self._last_invoke = {}
-        self._invoke_lock = asyncio.Lock()
         self._config_index: int = None
 
     async def authorize(self):
@@ -408,46 +404,6 @@ class Client(pyrogram.Client):
             yield future
         finally:
             await self.remove_handler(handler, group=0)
-
-    async def invoke(
-        self: "pyrogram.Client",
-        query: raw.core.TLObject,
-        retries: int = session.Session.MAX_RETRIES,
-        timeout: float = session.Session.WAIT_TIMEOUT,
-        sleep_threshold: float = None,
-        business_connection_id: str = None,
-    ):
-        special_methods = {"SendMessage", "DeleteMessages"}
-        except_methods = {"GetMessages", "GetChannelDifference", "GetStickerSet"}
-
-        query_name = query.__class__.__name__
-
-        if query_name in special_methods:
-            async with self._special_invoke_lock:
-                now = datetime.now().timestamp()
-                last_invoke = self._last_special_invoke.get(query_name, 0)
-                if now - last_invoke < 3:
-                    wait_time = 3 - (now - last_invoke)
-                    await asyncio.sleep(wait_time)
-                self._last_special_invoke[query_name] = datetime.now().timestamp()
-
-        if query_name not in except_methods:
-            async with self._invoke_lock:
-                now = datetime.now().timestamp()
-                last_invoke = self._last_invoke.get(query_name, 0)
-                if now - last_invoke < 1:
-                    wait_time = 1 - (now - last_invoke)
-                    await asyncio.sleep(wait_time)
-                self._last_invoke[query_name] = datetime.now().timestamp()
-
-        logger.trace(f"请求: {query_name}")
-        return await super().invoke(
-            query,
-            retries=retries,
-            timeout=timeout,
-            sleep_threshold=sleep_threshold,
-            business_connection_id=business_connection_id,
-        )
 
     @asynccontextmanager
     async def catch_edit(self, message: types.Message, filter=None):
