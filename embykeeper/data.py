@@ -4,11 +4,11 @@ from pathlib import Path
 from typing import Iterable, Union
 
 import aiofiles
-import aiohttp
+import httpx
 from cachetools import TTLCache
 from loguru import logger
 
-from .utils import format_byte_human, nonblocking, show_exception, to_iterable, get_connector
+from .utils import format_byte_human, nonblocking, show_exception, to_iterable, get_proxy_str
 
 logger = logger.bind(scheme="datamanager")
 
@@ -26,20 +26,20 @@ async def refresh_version(connector):
     async with nonblocking(lock):
         for data_url in cdn_urls:
             url = f"{data_url}/version"
-            async with aiohttp.ClientSession(connector=connector) as session:
+            async with httpx.AsyncClient(http2=True, follow_redirects=True) as client:
                 try:
-                    async with session.get(url) as resp:
-                        if resp.status == 200:
-                            result = await resp.text()
-                            for l in result.splitlines():
-                                if l:
-                                    a, b = l.split("=")
-                                    versions[a.strip()] = b.strip()
-                            break
-                        else:
-                            logger.warning(f"资源文件版本信息获取失败 ({resp.status})")
-                            return False
-                except aiohttp.ClientConnectorError as e:
+                    resp = await client.get(url)
+                    if resp.status_code == 200:
+                        result = resp.text
+                        for l in result.splitlines():
+                            if l:
+                                a, b = l.split("=")
+                                versions[a.strip()] = b.strip()
+                        break
+                    else:
+                        logger.warning(f"资源文件版本信息获取失败 ({resp.status_code})")
+                        return False
+                except httpx.HTTPError as e:
                     continue
                 except Exception as e:
                     logger.warning(f"资源文件版本信息获取失败 ({e})")
@@ -83,43 +83,48 @@ async def get_datas(basedir: Path, names: Union[Iterable[str], str], proxy: dict
                     for data_url in cdn_urls:
                         url = f"{data_url}/data/{name}"
                         logger.debug(f"正在尝试 URL: {url}")
-                        connector = get_connector(proxy)
-                        async with aiohttp.ClientSession(connector=connector) as session:
+                        proxy_url = get_proxy_str(proxy) if proxy else None
+                        async with httpx.AsyncClient(
+                            http2=True,
+                            proxy=proxy_url,
+                            verify=False,
+                            follow_redirects=True
+                        ) as client:
                             try:
-                                async with session.get(url) as resp:
-                                    if resp.status == 200:
-                                        file_size = int(resp.headers.get("Content-Length", 0))
-                                        logger.info(f"开始下载: {name} ({format_byte_human(file_size)})")
-                                        async with aiofiles.open(basedir / name, mode="wb+") as f:
-                                            timer = time.time()
-                                            length = 0
-                                            async for chunk in resp.content.iter_chunked(512):
-                                                if time.time() - timer > 3:
-                                                    timer = time.time()
-                                                    logger.info(
-                                                        f"正在下载: {name} ({format_byte_human(length)} / {format_byte_human(file_size)})"
-                                                    )
-                                                await f.write(chunk)
-                                                length += len(chunk)
-                                        logger.info(f"下载完成: {name} ({format_byte_human(file_size)})")
-                                        yield basedir / name
+                                resp = await client.get(url)
+                                if resp.status_code == 200:
+                                    file_size = int(resp.headers.get("content-length", 0))
+                                    logger.info(f"开始下载: {name} ({format_byte_human(file_size)})")
+                                    async with aiofiles.open(basedir / name, mode="wb+") as f:
+                                        timer = time.time()
+                                        length = 0
+                                        async for chunk in resp.aiter_bytes(chunk_size=512):
+                                            if time.time() - timer > 3:
+                                                timer = time.time()
+                                                logger.info(
+                                                    f"正在下载: {name} ({format_byte_human(length)} / {format_byte_human(file_size)})"
+                                                )
+                                            await f.write(chunk)
+                                            length += len(chunk)
+                                    logger.info(f"下载完成: {name} ({format_byte_human(file_size)})")
+                                    yield basedir / name
+                                    break
+                                elif resp.status_code in (403, 404) and not version_matching:
+                                    await refresh_version(connector=None)
+                                    if name in versions:
+                                        logger.debug(f'解析版本 "{name}" -> "{versions[name]}"')
+                                        name = versions[name]
+                                        version_matching = True
                                         break
-                                    elif resp.status in (403, 404) and not version_matching:
-                                        await refresh_version(connector=connector)
-                                        if name in versions:
-                                            logger.debug(f'解析版本 "{name}" -> "{versions[name]}"')
-                                            name = versions[name]
-                                            version_matching = True
-                                            break
-                                        else:
-                                            logger.warning(f"下载失败: {name} ({resp.status})")
-                                            yield None
-                                            break
                                     else:
-                                        logger.warning(f"下载失败: {name} ({resp.status})")
+                                        logger.warning(f"下载失败: {name} ({resp.status_code})")
                                         yield None
                                         break
-                            except aiohttp.ClientConnectorError as e:
+                                else:
+                                    logger.warning(f"下载失败: {name} ({resp.status_code})")
+                                    yield None
+                                    break
+                            except httpx.HTTPError as e:
                                 (basedir / name).unlink(missing_ok=True)
                                 continue
                             except Exception as e:

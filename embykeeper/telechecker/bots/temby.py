@@ -7,11 +7,10 @@ from pyrogram.raw.functions.messages import RequestAppWebView, GetBotApp
 from pyrogram.raw.types import InputBotAppShortName, InputBotAppID, WebViewResultUrl
 from pyrogram.raw.types.bot_app import BotApp
 from pyrogram.raw.types.messages import BotApp as MessageBotApp
-from aiohttp import ClientSession
-from aiohttp_socks import ProxyTimeoutError, ProxyError
 from faker import Faker
+import httpx
 
-from embykeeper.utils import get_connector
+from embykeeper.utils import get_proxy_str
 
 from ..link import Link
 from ._base import BotCheckin
@@ -72,7 +71,6 @@ class TembyCheckin(BotCheckin):
             params = parse_qs(scheme.query)
             messageid = params.get("tgWebAppStartParam", [None])[0]
             url_submit = scheme._replace(query="", fragment="").geturl()
-            connector = get_connector(self.proxy)
             useragent = Faker().safari()
             headers = {
                 "Referer": url,
@@ -84,14 +82,14 @@ class TembyCheckin(BotCheckin):
                 "cf-turnstile-response": token,
             }
             try:
-                async with ClientSession(connector=connector) as session:
-                    async with session.get(url_submit, headers=headers, params=params) as resp:
-                        result = await resp.text()
-                        if "好像还没有通过验证" in result:
-                            return False
-                        elif "签到失败" in result:
-                            return False
-                        else:
-                            return True
-            except (ProxyTimeoutError, ProxyError, OSError):
+                async with httpx.AsyncClient(proxy=get_proxy_str(self.proxy)) as client:
+                    resp = await client.get(url_submit, headers=headers, params=params)
+                    result = resp.text
+                    if "好像还没有通过验证" in result:
+                        return False
+                    elif "签到失败" in result:
+                        return False
+                    else:
+                        return True
+            except (httpx.HTTPError, OSError):
                 return False

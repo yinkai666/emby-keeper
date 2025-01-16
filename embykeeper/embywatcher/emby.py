@@ -15,6 +15,7 @@ with warnings.catch_warnings():
     from embypy.utils.asyncio import async_func
     from embypy.utils.connector import Connector as _Connector
 
+from embykeeper.utils import get_proxy_str
 
 from .. import __version__
 
@@ -113,13 +114,8 @@ class Connector(_Connector):
             async with await self._get_session_lock():
                 session = self._sessions.get(loop_id)
                 if not session:
-                    if self.proxy:
-                        proxy = f"{self.proxy['scheme']}://"
-                        if self.proxy.get("username"):
-                            proxy += f"{self.proxy['username']}:{self.proxy['password']}@"
-                        proxy += f"{self.proxy['hostname']}:{self.proxy['port']}"
-                    else:
-                        proxy = None
+                    
+                    proxy = get_proxy_str(self.proxy)
 
                     cookies = {}
                     if self.cf_clearance:

@@ -2,13 +2,12 @@ import asyncio
 from json import JSONDecodeError
 from urllib.parse import parse_qs, urlencode, urlparse
 
-from aiohttp import ClientSession
-from aiohttp_socks import ProxyTimeoutError, ProxyError
+import httpx
 from pyrogram.raw.functions.messages import RequestWebView
 from pyrogram.raw.functions.users import GetFullUser
 from faker import Faker
 
-from embykeeper.utils import remove_prefix, get_connector
+from embykeeper.utils import remove_prefix, get_connector, get_proxy_str
 
 from ..link import Link
 from ._base import BaseBotCheckin
@@ -76,11 +75,11 @@ class NebulaCheckin(BaseBotCheckin):
         useragent = Faker().safari()
         query["token"] = token
         url_checkin = scheme._replace(query=urlencode(query, True)).geturl()
-        connector = get_connector(self.proxy)
+        proxy = get_proxy_str(self.proxy)
         try:
-            async with ClientSession(connector=connector) as session:
-                async with session.get(url_checkin, headers={"User-Agent": useragent}) as resp:
-                    results = await resp.json()
+            async with httpx.AsyncClient(proxy=proxy) as client:
+                resp = await client.get(url_checkin, headers={"User-Agent": useragent})
+                results = resp.json()
                 message = results["message"]
                 if any(s in message for s in ("未找到用户", "权限错误")):
                     self.log.info("签到失败: 账户错误.")
@@ -100,6 +99,6 @@ class NebulaCheckin(BaseBotCheckin):
                 else:
                     self.log.warning(f"接收到异常返回信息: {message}")
                     await self.retry()
-        except (ProxyTimeoutError, ProxyError, OSError, JSONDecodeError) as e:
+        except (httpx.HTTPError, OSError, JSONDecodeError) as e:
             self.log.info(f"签到失败: 无法连接签到页面 ({e.__class__.__name__}).")
             await self.retry()

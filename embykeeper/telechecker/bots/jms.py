@@ -1,10 +1,10 @@
-import aiohttp
+import httpx
 from pyrogram.types import Message
 from pyrogram.raw.functions.messages import AcceptUrlAuth
 from pyrogram.raw.types import UrlAuthResultAccepted
 from faker import Faker
 
-from embykeeper.utils import get_connector
+from embykeeper.utils import get_proxy_str
 
 from ._base import BotCheckin
 
@@ -30,10 +30,9 @@ class JMSCheckin(BotCheckin):
                         )
                     )
                     url = r.url
-                    connector = get_connector(self.proxy)
                     for _ in range(1, 3):
-                        async with aiohttp.ClientSession(connector=connector) as session:
-                            async with session.get(url, headers={"User-Agent": Faker().safari()}) as resp:
-                                if resp.status == 200:
-                                    return
+                        async with httpx.AsyncClient(proxies=get_proxy_str(self.proxy)) as client:
+                            resp = await client.get(url, headers={"User-Agent": Faker().safari()})
+                            if resp.status_code == 200:
+                                return
         return await super().message_handler(client, message)

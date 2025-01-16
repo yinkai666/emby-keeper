@@ -9,6 +9,8 @@ import random
 import httpx
 from loguru import logger
 
+from embykeeper.utils import get_proxy_str
+
 logger = logger.bind(scheme="subsonic")
 
 
@@ -63,13 +65,8 @@ class Subsonic:
         """Get or create an HTTP session"""
         async with self._session_lock:
             if not self._session or self._session.is_closed:
-                if self.proxy:
-                    proxy = f"{self.proxy['scheme']}://"
-                    if self.proxy.get("username"):
-                        proxy += f"{self.proxy['username']}:{self.proxy['password']}@"
-                    proxy += f"{self.proxy['hostname']}:{self.proxy['port']}"
-                else:
-                    proxy = None
+                
+                proxy = proxy = get_proxy_str(self.proxy)
 
                 timeout = httpx.Timeout(connect=10.0, read=None, write=10.0, pool=10.0)
 

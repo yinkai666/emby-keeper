@@ -6,11 +6,10 @@ from urllib.parse import parse_qs, urlparse
 
 from pyrogram.types import Message
 from pyrogram.raw.functions.messages import RequestWebView
-from aiohttp import ClientSession
-from aiohttp_socks import ProxyTimeoutError, ProxyError
 from faker import Faker
+import httpx
 
-from embykeeper.utils import show_exception, truncate_str, get_connector
+from embykeeper.utils import show_exception, truncate_str, get_proxy_str
 
 from ..link import Link
 from ._base import BotCheckin
@@ -119,7 +118,6 @@ class FutureCheckin(BotCheckin):
             params = parse_qs(scheme.query)
             url_submit = scheme._replace(path="/x/api/submit", query="", fragment="").geturl()
             uuid = params.get("id", [None])[0]
-            connector = get_connector(self.proxy)
             origin = scheme._replace(path="/", query="", fragment="").geturl()
             useragent = Faker().safari()
             headers = {
@@ -134,17 +132,17 @@ class FutureCheckin(BotCheckin):
             }
             for i in range(10):
                 try:
-                    async with ClientSession(connector=connector) as session:
-                        async with session.post(url_submit, headers=headers, data=data) as resp:
-                            result = await resp.text()
-                            if "完成" in result:
-                                return True
-                            else:
-                                self.log.warning(
-                                    f"验证码识别后接口返回异常信息:\n{truncate_str(result, 100)}, 可能是您的请求 IP 风控等级较高导致的."
-                                )
-                                return False
-                except (ProxyTimeoutError, ProxyError, OSError):
+                    async with httpx.AsyncClient(proxy=get_proxy_str(self.proxy)) as client:
+                        resp = await client.post(url_submit, headers=headers, data=data)
+                        result = resp.text
+                        if "完成" in result:
+                            return True
+                        else:
+                            self.log.warning(
+                                f"验证码识别后接口返回异常信息:\n{truncate_str(result, 100)}, 可能是您的请求 IP 风控等级较高导致的."
+                            )
+                            return False
+                except (httpx.ProxyError, httpx.TimeoutException, OSError):
                     self.log.warning(
                         f"无法连接到站点的页面, 可能是您的网络或代理不稳定, 正在重试 ({i+1}/10)."
                     )

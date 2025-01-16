@@ -1,14 +1,14 @@
 import asyncio
 import random
-from urllib.parse import parse_qs, urlencode, urlparse, urljoin
+from urllib.parse import parse_qs, urlparse
 
 from pyrogram import filters
 from pyrogram.types import Message
 from pyrogram.raw.functions.messages import RequestWebView
-from aiohttp import ClientSession
+import httpx
 from faker import Faker
 
-from embykeeper.utils import get_connector
+from embykeeper.utils import get_proxy_str
 
 from ..link import Link
 from ._base import Monitor
@@ -32,7 +32,6 @@ class FutureMonitor(Monitor):
             params = parse_qs(scheme.query)
             url_submit = scheme._replace(path="/x/api/submit", query="", fragment="").geturl()
             uuid = params.get("id", [None])[0]
-            connector = get_connector(self.proxy)
             origin = scheme._replace(path="/", query="", fragment="").geturl()
             useragent = Faker().safari()
             headers = {
@@ -46,11 +45,11 @@ class FutureMonitor(Monitor):
                 "cf-turnstile-response": token,
             }
             try:
-                async with ClientSession(connector=connector) as session:
-                    async with session.post(url_submit, headers=headers, data=data) as resp:
-                        result = await resp.text()
-                        if "完成" in result:
-                            return True
+                async with httpx.AsyncClient(proxy=get_proxy_str(self.proxy)) as client:
+                    resp = await client.post(url_submit, headers=headers, data=data)
+                    result = resp.text
+                    if "完成" in result:
+                        return True
             except:
                 return False
 

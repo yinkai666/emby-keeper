@@ -53,11 +53,10 @@ from pyrogram.handlers import (
 
 from pyrogram.handlers.handler import Handler
 from aiocache import Cache
-import aiohttp
-from aiohttp_socks import ProxyConnectionError, ProxyTimeoutError
+import httpx
 
 from embykeeper import var, __name__ as __product__, __version__
-from embykeeper.utils import async_partial, show_exception, to_iterable, get_connector
+from embykeeper.utils import async_partial, get_proxy_str, show_exception, to_iterable
 
 if typing.TYPE_CHECKING:
     from telethon import TelegramClient
@@ -305,13 +304,6 @@ class Client(pyrogram.Client):
             return asyncio.ensure_future(dummy())
         else:
             return self.dispatcher.remove_handler(handler, group)
-
-    async def invoke(self, *args, **kw):
-        try:
-            return await super().invoke(*args, **kw)
-        except TimeoutError:
-            logger.warning("网络异常, 无法连接到 Telegram 服务器, 可能导致操作失败. 正在重连.")
-            return await super().invoke(*args, **kw)
 
     async def get_dialogs(
         self, limit: int = 0, exclude_pinned=None, folder_id=None
@@ -847,51 +839,52 @@ class ClientsSession:
 
     async def test_network(self, proxy=None):
         url = "https://www.gstatic.com/generate_204"
-        connector = get_connector(proxy=proxy)
-        async with aiohttp.ClientSession(connector=connector) as session:
-            try:
-                async with session.get(url) as resp:
-                    if resp.status == 204:
-                        return True
-                    else:
-                        logger.warning(f"检测网络状态时发生错误, 网络检测将被跳过.")
-                        return False
-            except (ProxyConnectionError, ProxyTimeoutError) as e:
-                un = connector._proxy_username
-                pw = connector._proxy_password
-                auth = f"{un}:{pw}@" if un or pw else ""
-                proxy_url = f"{connector._proxy_type.name.lower()}://{auth}{connector._proxy_host}:{connector._proxy_port}"
+        proxy_str = get_proxy_str(proxy)
+        try:
+            async with httpx.AsyncClient(proxy=proxy_str) as client:
+                resp = await client.get(url)
+                if resp.status_code == 204:
+                    return True
+                else:
+                    logger.warning(f"检测网络状态时发生错误, 网络检测将被跳过.")
+                    return False
+        except httpx.ProxyError as e:
+            if proxy_str:
                 logger.warning(
-                    f"无法连接到您的代理 ({proxy_url}), 您的网络状态可能不好, 敬请注意. 程序将继续运行."
+                    f"无法连接到您的代理 ({proxy_str}), 您的网络状态可能不好, 敬请注意. 程序将继续运行."
                 )
-            except OSError as e:
-                logger.warning(f"无法连接到网络 (Google), 您的网络状态可能不好, 敬请注意. 程序将继续运行.")
-                return False
-            except Exception as e:
-                logger.warning(f"检测网络状态时发生错误, 网络检测将被跳过.")
-                show_exception(e)
-                return False
+            return False
+        except httpx.ConnectError:
+            logger.warning(f"无法连接到网络 (Google), 您的网络状态可能不好, 敬请注意. 程序将继续运行.")
+            return False
+        except Exception as e:
+            logger.warning(f"检测网络状态时发生错误, 网络检测将被跳过.")
+            show_exception(e)
+            return False
 
     async def test_time(self, proxy=None):
         url = "https://ip.ddnspod.com/timestamp"
-        connector = get_connector(proxy=proxy)
-        async with aiohttp.ClientSession(connector=connector) as session:
-            try:
-                async with session.get(url) as resp:
-                    if resp.status == 200:
-                        timestamp = int((await resp.content.read()).decode())
-                    else:
-                        logger.warning(f"世界时间接口异常, 系统时间检测将跳过, 敬请注意. 程序将继续运行.")
-
+        proxy_str = get_proxy_str(proxy)
+        try:
+            async with httpx.AsyncClient(proxy=proxy_str) as client:
+                resp = await client.get(url)
+                if resp.status_code == 200:
+                    timestamp = int(resp.content.decode())
+                else:
+                    logger.warning(f"世界时间接口异常, 系统时间检测将跳过, 敬请注意. 程序将继续运行.")
+                    return False
                 nowtime = datetime.now(timezone.utc).timestamp()
                 if abs(nowtime - timestamp / 1000) > 30:
                     logger.warning(
                         f"您的系统时间设置不正确, 与世界时间差距过大, 可能会导致连接失败, 敬请注意. 程序将继续运行."
                     )
-            except Exception as e:
-                logger.warning(f"检测世界时间发生错误, 时间检测将被跳过.")
-                show_exception(e)
-                return False
+        except httpx.HTTPError:
+            logger.warning(f"检测世界时间发生错误, 时间检测将被跳过.")
+            return False
+        except Exception as e:
+            logger.warning(f"检测世界时间发生错误, 时间检测将被跳过.")
+            show_exception(e)
+            return False
 
     @staticmethod
     async def get_session_string_from_telethon(account, proxy):

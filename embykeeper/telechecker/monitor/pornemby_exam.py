@@ -8,7 +8,7 @@ from pyrogram.types import Message
 from PIL import Image
 import numpy as np
 
-from embykeeper.utils import show_exception
+from embykeeper.utils import show_exception, get_proxy_str
 
 from ..lock import pornemby_alert
 from ._base import Monitor
@@ -41,13 +41,7 @@ class _PornembyExamAnswerMonitor(Monitor):
         # 先获取 content_id
         detail_url = f"https://r18.dev/videos/vod/movies/detail/-/dvd_id={code.lower()}/json"
         try:
-            if self.proxy:
-                proxy = f"{self.proxy['scheme']}://"
-                if self.proxy.get("username"):
-                    proxy += f"{self.proxy['username']}:{self.proxy['password']}@"
-                proxy += f"{self.proxy['hostname']}:{self.proxy['port']}"
-            else:
-                proxy = None
+            proxy = get_proxy_str(self.proxy)
             # 使用 httpx 创建异步客户端
             async with httpx.AsyncClient(
                 http2=True,
