@@ -177,7 +177,7 @@ class SmartMessager:
                         spec.append(f"回复了消息: {truncate_str(str(rmsg.caption or rmsg.text or ''), 60)}")
                     spec = " ".join(spec)
                     ctx = truncate_str(text, 180)
-                    if msg.from_user.name:
+                    if msg.from_user and msg.from_user.name:
                         ctx = f"{msg.from_user.name}说: {ctx}"
                     if spec:
                         ctx += f" ({spec})"
