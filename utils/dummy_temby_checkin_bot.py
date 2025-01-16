@@ -12,21 +12,22 @@ from embykeeper.telechecker.tele import Client
 
 app = AsyncTyper()
 
+
 async def dump(client: Client, message: Message):
     if message.text:
         logger.debug(f"<- {message.text}")
 
+
 async def send_signin_link(client: Client, message: Message):
-    markup = InlineKeyboardMarkup([[
-        InlineKeyboardButton(
-            "签到",
-            url="https://t.me/HiEmbyBot/SignIn?startapp=123456789"
-        )
-    ]])
+    markup = InlineKeyboardMarkup(
+        [[InlineKeyboardButton("签到", url="https://t.me/HiEmbyBot/SignIn?startapp=123456789")]]
+    )
     await message.reply("请在一分钟内点击下方按钮完成签到", reply_markup=markup)
+
 
 async def send_success_message(client: Client, message: Message):
     await message.reply("🎉签到成功\n\n恭喜您获得了1枚金币，您目前拥有2枚!")
+
 
 @app.async_command()
 async def main(config: Path):
@@ -50,6 +51,7 @@ async def main(config: Path):
         )
         logger.info(f"Started listening for commands: @{bot.me.username}.")
         await asyncio.Event().wait()
+
 
 if __name__ == "__main__":
     app()
