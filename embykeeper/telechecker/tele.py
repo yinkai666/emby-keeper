@@ -306,6 +306,13 @@ class Client(pyrogram.Client):
         else:
             return self.dispatcher.remove_handler(handler, group)
 
+    async def invoke(self, *args, **kw):
+        try:
+            return await super().invoke(*args, **kw)
+        except TimeoutError:
+            logger.warning("网络异常, 无法连接到 Telegram 服务器, 可能导致操作失败. 正在重连.")
+            return await super().invoke(*args, **kw)
+    
     async def get_dialogs(
         self, limit: int = 0, exclude_pinned=None, folder_id=None
     ) -> Optional[AsyncGenerator["types.Dialog", None]]:
