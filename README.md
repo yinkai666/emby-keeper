@@ -122,6 +122,7 @@ docker run -v $(pwd)/embykeeper:/app --rm -it --net=host embykeeper/embykeeper -
   - SaturDay.Lite (`saturday`): [频道](https://t.me/saturday_lite_channel) [群组](https://t.me/SaturDay_Lite) [机器人](https://t.me/saturday_lite_bot)
   - 月饼 (`moonkk`): [频道](https://t.me/Mooncake_notify) [群组](https://t.me/Mooncake_Emby) [机器人](https://t.me/Moonkkbot)
   - 鹅 (`zm`): [机器人](https://t.me/ZXCHSJSHbot)
+  - 起点站 (`tdck`): [群组](https://t.me/tdckemby) [机器人](https://t.me/StartTdckBot)
 
   <!-- #endregion checkiner-sites -->
 
@@ -135,7 +136,6 @@ docker run -v $(pwd)/embykeeper:/app --rm -it --net=host embykeeper/embykeeper -
     - Ciji (`ciji`): [机器人](https://t.me/MM_nastool_bot)
     - StarCat (`starcat`): [频道](https://t.me/StarCatEmby) [群组](https://t.me/StarCatEmby) [机器人](https://t.me/StarCatBot)
     - 音海拾贝 (`navidrome`): [频道](https://t.me/navidrom_notify) [群组](https://t.me/navidrom_talk) [机器人](https://t.me/navidrome_bot)
-    - 起点站 (`tdck`): [群组](https://t.me/tdckemby) [机器人](https://t.me/StartTdckBot)
 
     <!-- #endregion checkiner-beta-sites -->
   - 关服, 无响应, 或已停用签到功能 (默认禁用, 请参考[教程文档](https://emby-keeper.github.io/guide/配置文件#service-子项)启用):
