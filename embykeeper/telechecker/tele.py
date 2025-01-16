@@ -565,8 +565,6 @@ class Client(pyrogram.Client):
                     self.dispatcher.updates_queue.put_nowait((diff.other_updates[0], {}, {}))
         elif isinstance(updates, raw.types.UpdateShort):
             self.dispatcher.updates_queue.put_nowait((updates.update, {}, {}))
-        elif isinstance(updates, raw.types.UpdatesTooLong):
-            await self.invoke(raw.functions.updates.GetState())
 
 
 class TelethonUtils:
