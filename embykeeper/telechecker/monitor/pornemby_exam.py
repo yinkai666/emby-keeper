@@ -2,14 +2,13 @@ import asyncio
 from io import BytesIO
 import random
 import re
-import re
 
-import aiohttp
+import httpx
 from pyrogram.types import Message
 from PIL import Image
 import numpy as np
 
-from embykeeper.utils import get_connector, show_exception
+from embykeeper.utils import show_exception
 
 from ..lock import pornemby_alert
 from ._base import Monitor
@@ -37,29 +36,54 @@ class _PornembyExamAnswerMonitor(Monitor):
     additional_auth = ["pornemby_pack"]
     
     async def get_cover_image(self, code: str):
-        url = f"https://www.javdatabase.com/movies/{code.lower()}/"
+        # 先获取 content_id
+        detail_url = f"https://r18.dev/videos/vod/movies/detail/-/dvd_id={code.lower()}/json"
         try:
-            connector = get_connector(self.proxy)
-            async with aiohttp.ClientSession(connector=connector) as session:
-                async with session.get(url) as response:
-                    if response.status != 200:
-                        self.log.warning(f"获取封面图片失败: 网址访问错误: {url} ({response.status}).")
-                        print(await response.text())
-                        return None
-                    html = await response.text()
-                    pattern = f'<img[^>]*alt="{code.upper()} JAV Movie Cover"[^>]*src="([^"]*)"'
-                    match = re.search(pattern, html)
-                    if match:
-                        img_url = match.group(1)
-                        async with session.get(img_url) as img_response:
-                            if img_response.status == 200:
-                                return BytesIO(await img_response.read())
-                            else:
-                                self.log.warning(f"获取封面图片失败: 网址访问错误: {img_url} ({img_response.status}).")
-                                return None
-                    else:
-                        self.log.warning(f"获取封面图片失败: 无法在目标网页找到关键图片: {url}.")
-                        return None
+            if self.proxy:
+                proxy = f"{self.proxy['scheme']}://"
+                if self.proxy.get("username"):
+                    proxy += f"{self.proxy['username']}:{self.proxy['password']}@"
+                proxy += f"{self.proxy['hostname']}:{self.proxy['port']}"
+            else:
+                proxy = None
+            # 使用 httpx 创建异步客户端
+            async with httpx.AsyncClient(
+                http2=True,
+                proxy=proxy,
+                verify=False,
+                follow_redirects=True,
+            ) as client:
+                # 获取 content_id
+                response = await client.get(detail_url)
+                if response.status_code != 200:
+                    self.log.warning(f"获取影片详情失败: 网址访问错误: {detail_url} ({response.status_code}).")
+                    return None
+                detail_json = response.json()
+                content_id = detail_json.get('content_id')
+                if not content_id:
+                    self.log.warning(f"获取影片详情失败: 无法获取 content_id: {detail_url}")
+                    return None
+                
+                # 获取封面图片 URL
+                combined_url = f"https://r18.dev/videos/vod/movies/detail/-/combined={content_id}/json"
+                response = await client.get(combined_url)
+                if response.status_code != 200:
+                    self.log.warning(f"获取封面详情失败: 网址访问错误: {combined_url} ({response.status_code}).")
+                    return None
+                combined_json = response.json()
+                jacket_url = combined_json.get('jacket_thumb_url')
+                if not jacket_url:
+                    self.log.warning(f"获取封面详情失败: 无法获取封面URL: {combined_url}")
+                    return None
+                
+                # 下载封面图片
+                img_response = await client.get(jacket_url)
+                if img_response.status_code == 200:
+                    return BytesIO(img_response.content)
+                else:
+                    self.log.warning(f"获取封面图片失败: 网址访问错误: {jacket_url} ({img_response.status_code}).")
+                    return None
+                
         except Exception as e:
             self.log.warning(f"获取封面图片失败: {e.__class__.__name__}: {str(e)}")
             show_exception(e)
