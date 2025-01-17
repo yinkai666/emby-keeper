@@ -5,6 +5,8 @@ import string
 from pyrogram.types import Message
 from PIL import Image
 
+from ...ocr import OCRService
+
 from ...utils import async_partial, nonblocking
 from ...data import get_datas
 from ..lock import misty_locks
@@ -25,22 +27,6 @@ class MistyMonitor(Monitor):
     additional_auth = ["prime"]
 
     async def init(self, initial=True, force_lock=True):
-        from ddddocr import DdddOcr
-
-        async with self.ocr_lock:
-            if isinstance(self.ocr, str):
-                data = []
-                files = (f"{self.ocr}.onnx", f"{self.ocr}.json")
-                async for p in get_datas(self.basedir, files, proxy=self.proxy, caller=self.name):
-                    if p is None:
-                        self.log.info(f"初始化错误: 无法下载所需文件.")
-                        return False
-                    else:
-                        data.append(p)
-                self.__class__.ocr = DdddOcr(
-                    show_ad=False, import_onnx_path=str(data[0]), charsets_path=str(data[1])
-                )
-
         misty_monitor_pool[self.client.me.id] = self
         self.captcha = None
         self.log.info(f"正在初始化机器人状态.")
@@ -61,9 +47,15 @@ class MistyMonitor(Monitor):
                         msg = await wr("⚡️注册账号")
                         if "请输入验证码" in (msg.caption or msg.text):
                             data = await self.client.download_media(msg, in_memory=True)
-                            image = Image.open(data)
+                            ocr = await OCRService.get(
+                                ocr_name=self.ocr,
+                                basedir=self.basedir,
+                                proxy=self.proxy,
+                            )
+                            with ocr:
+                                ocr_text = await ocr.run(data)
                             self.captcha = (
-                                self.ocr.classification(image)
+                                ocr_text
                                 .translate(str.maketrans("", "", string.punctuation))
                                 .replace(" ", "")
                             )

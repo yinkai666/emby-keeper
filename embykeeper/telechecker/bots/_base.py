@@ -14,7 +14,13 @@ from appdirs import user_data_dir
 from loguru import logger
 from PIL import Image
 from pyrogram import filters
-from pyrogram.errors import UsernameNotOccupied, FloodWait, UsernameInvalid, ChannelInvalid, ChannelPrivate
+from pyrogram.errors import (
+    UsernameNotOccupied,
+    FloodWait,
+    UsernameInvalid,
+    ChannelInvalid,
+    ChannelPrivate,
+)
 from pyrogram.handlers import EditedMessageHandler, MessageHandler
 from pyrogram.types import InlineKeyboardMarkup, Message, ReplyKeyboardMarkup
 from pyrogram.raw.functions.account import GetNotifySettings
@@ -22,7 +28,7 @@ from pyrogram.raw.types import PeerNotifySettings, InputNotifyPeer
 from thefuzz import fuzz, process
 
 from embykeeper import __name__ as __product__
-from embykeeper.data import get_datas
+from embykeeper.ocr import CharRange, OCRService
 from embykeeper.utils import show_exception, to_iterable, format_timedelta_human, AsyncCountPool
 
 from ..lock import ocrs, ocrs_lock
@@ -72,17 +78,6 @@ class CheckinResult(IntEnum):
     IGNORE = auto()
 
 
-class CharRange(IntEnum):
-    NUMBER = 0
-    LLETTER = 1
-    ULETTER = 2
-    LLETTER_ULETTER = 3
-    NUMBER_LLETTER = 4
-    NUMBER_ULETTER = 5
-    NUMBER_LLETTER_ULETTER = 6
-    NOT_NUMBER_LLETTER_ULETTER = 7
-
-
 class BaseBotCheckin(ABC):
     """基础签到类."""
 
@@ -118,7 +113,9 @@ class BaseBotCheckin(ABC):
         self.proxy = proxy
         self.config = config
         self.finished = asyncio.Event()  # 签到完成事件
-        self.log = logger.bind(scheme="telechecker", name=self.name, username=client.me.name)  # 日志组件
+        self.log = logger.bind(
+            scheme="telechecker", name=self.name, username=client.me.name
+        )  # 日志组件
 
     async def _start(self):
         """签到器的入口函数的错误处理外壳."""
@@ -220,42 +217,6 @@ class BotCheckin(BaseBotCheckin):
             except ValueError:
                 pass
 
-    async def get_ocr(self, ocr: str = None, range: Optional[Union[CharRange, str]] = None):
-        """加载特定标签的 OCR 模型, 默认加载 ddddocr 默认模型."""
-        from ddddocr import DdddOcr
-        from onnxruntime.capi.onnxruntime_pybind11_state import InvalidProtobuf
-
-        while True:
-            async with ocrs_lock:
-                if ocr in ocrs:
-                    return ocrs[ocr]
-                use_probability = False
-                if not ocr:
-                    model = DdddOcr(beta=True, show_ad=False)
-                    if range:
-                        use_probability = True
-                        model.set_ranges(range)
-                else:
-                    data = []
-                    files = (f"{ocr}.onnx", f"{ocr}.json")
-                    async for p in get_datas(self.basedir, files, proxy=self.proxy, caller=self.name):
-                        if p is None:
-                            self.log.warning(f"初始化错误: 无法下载所需文件.")
-                            return None
-                        else:
-                            data.append(p)
-                    try:
-                        model = DdddOcr(
-                            show_ad=False, import_onnx_path=str(data[0]), charsets_path=str(data[1])
-                        )
-                    except InvalidProtobuf:
-                        self.log.warning(f"文件下载不完全, 正在重试下载.")
-                        Path(str(data[0])).unlink()
-                        Path(str(data[1])).unlink()
-                        continue
-                ocrs[ocr] = model, use_probability
-                return model, use_probability
-
     async def start(self):
         """签到器的入口函数."""
         skip = self.config.get("skip", None)
@@ -272,7 +233,9 @@ class BotCheckin(BaseBotCheckin):
                 if current_count < skip:
                     self.interval_pool[self.client.me.id] += 1
                     if not quiet:
-                        self.log.info(f"跳过签到: 根据配置跳过 (还需跳过 {skip - current_count} 次).")
+                        self.log.info(
+                            f"跳过签到: 根据配置跳过 (还需跳过 {skip - current_count} 次)."
+                        )
                     return CheckinResult.IGNORE
                 else:
                     self.interval_pool[self.client.me.id] = 0
@@ -336,7 +299,9 @@ class BotCheckin(BaseBotCheckin):
             if not self.chat_name:
                 self.log.debug(f"[gray50]禁用提醒 {self.timeout} 秒: {bot.username}[/]")
                 peer = InputNotifyPeer(peer=await self.client.resolve_peer(ident))
-                settings: PeerNotifySettings = await self.client.invoke(GetNotifySettings(peer=peer))
+                settings: PeerNotifySettings = await self.client.invoke(
+                    GetNotifySettings(peer=peer)
+                )
                 old_mute_until = settings.mute_until
                 try:
                     await self.client.mute_chat(ident, time.time() + self.timeout + 10)
@@ -382,7 +347,9 @@ class BotCheckin(BaseBotCheckin):
                 if not self.chat_name:
                     if old_mute_until:
                         try:
-                            await asyncio.wait_for(self.client.mute_chat(ident, until=old_mute_until), 3)
+                            await asyncio.wait_for(
+                                self.client.mute_chat(ident, until=old_mute_until), 3
+                            )
                         except asyncio.TimeoutError:
                             self.log.debug(f"[gray50]重新设置通知设置失败: {ident}[/]")
                         except FloodWait:
@@ -397,7 +364,9 @@ class BotCheckin(BaseBotCheckin):
                     if self.checked_retries and self._checked_retries < self.checked_retries:
                         self._checked_retries += 1
                         now = datetime.now()
-                        midnight = now.replace(hour=0, minute=0, second=0, microsecond=0) + timedelta(days=1)
+                        midnight = now.replace(
+                            hour=0, minute=0, second=0, microsecond=0
+                        ) + timedelta(days=1)
                         max_sleep = midnight - now
                         sleep = timedelta(hours=self._checked_retries)
                         if sleep > max_sleep:
@@ -424,7 +393,9 @@ class BotCheckin(BaseBotCheckin):
     async def walk_history(self, limit=0):
         """处理 limit 条历史消息, 并检测是否有验证码."""
         try:
-            async for m in self.client.get_chat_history(self.chat_name or self.bot_username, limit=limit):
+            async for m in self.client.get_chat_history(
+                self.chat_name or self.bot_username, limit=limit
+            ):
                 if MessageType.CAPTCHA in self.message_type(m):
                     await self.on_photo(m)
                     return True
@@ -515,15 +486,14 @@ class BotCheckin(BaseBotCheckin):
     async def on_photo(self, message: Message):
         """分析分析传入的验证码图片并返回验证码."""
         data = await self.client.download_media(message, in_memory=True)
-        image = Image.open(data)
-        ocr, use_probability = await self.get_ocr(self.ocr)
-        if use_probability:
-            ocr_result = ocr.classification(image, probability=True)
-            ocr_text = ""
-            for i in ocr_result["probability"]:
-                ocr_text += ocr_result["charsets"][i.index(max(i))]
-        else:
-            ocr_text = ocr_result = ocr.classification(image)
+        ocr = await OCRService.get(
+            ocr_name=self.ocr,
+            char_range=self.bot_captcha_char_range,
+            basedir=self.basedir,
+            proxy=self.proxy,
+        )
+        with ocr:
+            ocr_text = await ocr.run(data)
         captcha = ocr_text.translate(str.maketrans("", "", string.punctuation)).replace(" ", "")
         if captcha:
             self.log.debug(f"[gray50]接收验证码: {captcha}.[/]")
@@ -552,7 +522,8 @@ class BotCheckin(BaseBotCheckin):
         if any(s in text for s in to_iterable(self.bot_text_ignore)):
             pass
         elif any(
-            s in text for s in to_iterable(self.bot_account_fail_keywords) or default_keywords["account_fail"]
+            s in text
+            for s in to_iterable(self.bot_account_fail_keywords) or default_keywords["account_fail"]
         ):
             self.log.warning(f"签到失败: 账户错误.")
             await self.fail()
@@ -563,14 +534,20 @@ class BotCheckin(BaseBotCheckin):
         ):
             self.log.warning(f"签到失败: 尝试次数过多.")
             await self.fail()
-        elif any(s in text for s in to_iterable(self.bot_checked_keywords) or default_keywords["checked"]):
+        elif any(
+            s in text for s in to_iterable(self.bot_checked_keywords) or default_keywords["checked"]
+        ):
             self.log.info(f"今日已经签到过了.")
             self._checked = True
             self.finished.set()
-        elif any(s in text for s in to_iterable(self.bot_fail_keywords) or default_keywords["fail"]):
+        elif any(
+            s in text for s in to_iterable(self.bot_fail_keywords) or default_keywords["fail"]
+        ):
             self.log.info(f"签到失败: 验证码错误或网络错误, 正在重试.")
             await self.retry()
-        elif any(s in text for s in to_iterable(self.bot_success_keywords) or default_keywords["success"]):
+        elif any(
+            s in text for s in to_iterable(self.bot_success_keywords) or default_keywords["success"]
+        ):
             if await self.before_success():
                 if self.bot_success_pat:
                     matches = re.search(self.bot_success_pat, text)
@@ -581,7 +558,9 @@ class BotCheckin(BaseBotCheckin):
                             )
                         except IndexError:
                             try:
-                                self.log.info(f"[yellow]签到成功[/]: 当前/增加 {matches.group(1)} 分.")
+                                self.log.info(
+                                    f"[yellow]签到成功[/]: 当前/增加 {matches.group(1)} 分."
+                                )
                             except IndexError:
                                 self.log.info(f"[yellow]签到成功[/].")
                     else:
@@ -705,7 +684,9 @@ class AnswerBotCheckin(BotCheckin):
         try:
             answer = None
             captcha = None
-            async for m in self.client.get_chat_history(self.chat_name or self.bot_username, limit=limit):
+            async for m in self.client.get_chat_history(
+                self.chat_name or self.bot_username, limit=limit
+            ):
                 if MessageType.ANSWER in self.message_type(m):
                     answer = answer or m
                 if MessageType.CAPTCHA in self.message_type(m):
