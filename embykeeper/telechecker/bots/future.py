@@ -79,7 +79,7 @@ class FutureCheckin(BotCheckin):
                         )
                     ).url
                     if not await self.solve_captcha(url_auth):
-                        self.log.error("签到失败: 验证码解析失败, 正在重试.")
+                        self.log.warning("签到失败: 验证码解析失败, 正在重试.")
                         await asyncio.sleep(self.bot_retry_wait)
                         await self.retry()
                         return
