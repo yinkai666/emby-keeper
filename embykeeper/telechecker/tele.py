@@ -1010,6 +1010,7 @@ class ClientsSession:
                         proxy=proxy,
                         workdir=self.basedir,
                         sleep_threshold=30,
+                        workers=64,
                     )
                     try:
                         await asyncio.wait_for(client.start(), 20)
