@@ -109,6 +109,7 @@ class PornembyAlertMonitor(Monitor):
     async def on_trigger(self, message: Message, key, reply):
         # 管理员回复水群消息: 永久停止, 若存在关键词即回复
         # 用户回复水群消息, 停止 3600 秒, 若存在关键词即回复
+        
         if message.reply_to_message_id in pornemby_messager_mids.get(self.client.me.id, []):
             if await self.check_admin(message.chat, message.from_user):
                 await self.set_alert(reason="管理员回复了水群消息")
@@ -136,12 +137,11 @@ class PornembyAlertMonitor(Monitor):
             return
 
         if not self.pin_checked:
-            async for pinned in self.client.search_messages(message.chat.id, filter=MessagesFilter.PINNED):
-                self.pin_checked = True
+            if message.chat.pinned_message:
                 keyword = self.check_keyword(pinned, self.user_alert_keywords + self.admin_alert_keywords)
                 if keyword:
                     await self.set_alert(86400, reason=f'检查到现有置顶消息中包含风险关键词: "{keyword}"')
-                    break
+                    self.pin_checked = True
 
         # 管理员发送消息, 若不在列表中停止 3600 秒, 否则停止 86400 秒
         # 用户发送列表中消息, 停止 1800 秒
