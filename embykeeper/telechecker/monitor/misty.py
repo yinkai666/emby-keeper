@@ -54,11 +54,9 @@ class MistyMonitor(Monitor):
                             )
                             with ocr:
                                 ocr_text = await ocr.run(data)
-                            self.captcha = (
-                                ocr_text
-                                .translate(str.maketrans("", "", string.punctuation))
-                                .replace(" ", "")
-                            )
+                            self.captcha = ocr_text.translate(
+                                str.maketrans("", "", string.punctuation)
+                            ).replace(" ", "")
                             self.log.debug(f"接收到验证码: {self.captcha}")
                 except (asyncio.TimeoutError, TypeError):
                     continue

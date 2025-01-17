@@ -113,9 +113,7 @@ class BaseBotCheckin(ABC):
         self.proxy = proxy
         self.config = config
         self.finished = asyncio.Event()  # 签到完成事件
-        self.log = logger.bind(
-            scheme="telechecker", name=self.name, username=client.me.name
-        )  # 日志组件
+        self.log = logger.bind(scheme="telechecker", name=self.name, username=client.me.name)  # 日志组件
 
     async def _start(self):
         """签到器的入口函数的错误处理外壳."""
@@ -233,9 +231,7 @@ class BotCheckin(BaseBotCheckin):
                 if current_count < skip:
                     self.interval_pool[self.client.me.id] += 1
                     if not quiet:
-                        self.log.info(
-                            f"跳过签到: 根据配置跳过 (还需跳过 {skip - current_count} 次)."
-                        )
+                        self.log.info(f"跳过签到: 根据配置跳过 (还需跳过 {skip - current_count} 次).")
                     return CheckinResult.IGNORE
                 else:
                     self.interval_pool[self.client.me.id] = 0
@@ -299,9 +295,7 @@ class BotCheckin(BaseBotCheckin):
             if not self.chat_name:
                 self.log.debug(f"[gray50]禁用提醒 {self.timeout} 秒: {bot.username}[/]")
                 peer = InputNotifyPeer(peer=await self.client.resolve_peer(ident))
-                settings: PeerNotifySettings = await self.client.invoke(
-                    GetNotifySettings(peer=peer)
-                )
+                settings: PeerNotifySettings = await self.client.invoke(GetNotifySettings(peer=peer))
                 old_mute_until = settings.mute_until
                 try:
                     await self.client.mute_chat(ident, time.time() + self.timeout + 10)
@@ -347,9 +341,7 @@ class BotCheckin(BaseBotCheckin):
                 if not self.chat_name:
                     if old_mute_until:
                         try:
-                            await asyncio.wait_for(
-                                self.client.mute_chat(ident, until=old_mute_until), 3
-                            )
+                            await asyncio.wait_for(self.client.mute_chat(ident, until=old_mute_until), 3)
                         except asyncio.TimeoutError:
                             self.log.debug(f"[gray50]重新设置通知设置失败: {ident}[/]")
                         except FloodWait:
@@ -364,9 +356,7 @@ class BotCheckin(BaseBotCheckin):
                     if self.checked_retries and self._checked_retries < self.checked_retries:
                         self._checked_retries += 1
                         now = datetime.now()
-                        midnight = now.replace(
-                            hour=0, minute=0, second=0, microsecond=0
-                        ) + timedelta(days=1)
+                        midnight = now.replace(hour=0, minute=0, second=0, microsecond=0) + timedelta(days=1)
                         max_sleep = midnight - now
                         sleep = timedelta(hours=self._checked_retries)
                         if sleep > max_sleep:
@@ -393,9 +383,7 @@ class BotCheckin(BaseBotCheckin):
     async def walk_history(self, limit=0):
         """处理 limit 条历史消息, 并检测是否有验证码."""
         try:
-            async for m in self.client.get_chat_history(
-                self.chat_name or self.bot_username, limit=limit
-            ):
+            async for m in self.client.get_chat_history(self.chat_name or self.bot_username, limit=limit):
                 if MessageType.CAPTCHA in self.message_type(m):
                     await self.on_photo(m)
                     return True
@@ -522,8 +510,7 @@ class BotCheckin(BaseBotCheckin):
         if any(s in text for s in to_iterable(self.bot_text_ignore)):
             pass
         elif any(
-            s in text
-            for s in to_iterable(self.bot_account_fail_keywords) or default_keywords["account_fail"]
+            s in text for s in to_iterable(self.bot_account_fail_keywords) or default_keywords["account_fail"]
         ):
             self.log.warning(f"签到失败: 账户错误.")
             await self.fail()
@@ -534,20 +521,14 @@ class BotCheckin(BaseBotCheckin):
         ):
             self.log.warning(f"签到失败: 尝试次数过多.")
             await self.fail()
-        elif any(
-            s in text for s in to_iterable(self.bot_checked_keywords) or default_keywords["checked"]
-        ):
+        elif any(s in text for s in to_iterable(self.bot_checked_keywords) or default_keywords["checked"]):
             self.log.info(f"今日已经签到过了.")
             self._checked = True
             self.finished.set()
-        elif any(
-            s in text for s in to_iterable(self.bot_fail_keywords) or default_keywords["fail"]
-        ):
+        elif any(s in text for s in to_iterable(self.bot_fail_keywords) or default_keywords["fail"]):
             self.log.info(f"签到失败: 验证码错误或网络错误, 正在重试.")
             await self.retry()
-        elif any(
-            s in text for s in to_iterable(self.bot_success_keywords) or default_keywords["success"]
-        ):
+        elif any(s in text for s in to_iterable(self.bot_success_keywords) or default_keywords["success"]):
             if await self.before_success():
                 if self.bot_success_pat:
                     matches = re.search(self.bot_success_pat, text)
@@ -558,9 +539,7 @@ class BotCheckin(BaseBotCheckin):
                             )
                         except IndexError:
                             try:
-                                self.log.info(
-                                    f"[yellow]签到成功[/]: 当前/增加 {matches.group(1)} 分."
-                                )
+                                self.log.info(f"[yellow]签到成功[/]: 当前/增加 {matches.group(1)} 分.")
                             except IndexError:
                                 self.log.info(f"[yellow]签到成功[/].")
                     else:
@@ -684,9 +663,7 @@ class AnswerBotCheckin(BotCheckin):
         try:
             answer = None
             captcha = None
-            async for m in self.client.get_chat_history(
-                self.chat_name or self.bot_username, limit=limit
-            ):
+            async for m in self.client.get_chat_history(self.chat_name or self.bot_username, limit=limit):
                 if MessageType.ANSWER in self.message_type(m):
                     answer = answer or m
                 if MessageType.CAPTCHA in self.message_type(m):

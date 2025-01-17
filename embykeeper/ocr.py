@@ -32,7 +32,7 @@ class OCRService:
         char_range: Optional[Union[CharRange, str]] = None,
         basedir: str = None,
         proxy: dict = None,
-    ) :
+    ):
         # 创建用于标识唯一实例的键
         key = (ocr_name, char_range)
         async with cls._pool_lock:
@@ -133,7 +133,7 @@ class OCRService:
         request_id = str(uuid.uuid4())
         future = asyncio.Future()
         self._pending_requests[request_id] = future
-        
+
         try:
             self._last_active = time.time()
             self._queue_in.put(("process", (request_id, image_data.getvalue())))
@@ -222,9 +222,7 @@ class OCRService:
                         return
                     data.append(p)
                 try:
-                    model = DdddOcr(
-                        show_ad=False, import_onnx_path=str(data[0]), charsets_path=str(data[1])
-                    )
+                    model = DdddOcr(show_ad=False, import_onnx_path=str(data[0]), charsets_path=str(data[1]))
                 except InvalidProtobuf:
                     queue_out.put(("error", "文件下载不完全"))
                     return
