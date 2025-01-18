@@ -744,7 +744,7 @@ class ClientsSession:
     watch = None
 
     @classmethod
-    def from_config(cls, config, in_memory=True, quiet=False, **kw):
+    def from_config(cls, config, in_memory=False, quiet=False, **kw):
         accounts = config.get("telegram", [])
         for k, (v, d) in kw.items():
             accounts = [a for a in accounts if a.get(k, d) in to_iterable(v)]
@@ -824,7 +824,7 @@ class ClientsSession:
                 await client.storage.close()
                 logger.debug(f'登出账号 "{client.phone_number}".')
 
-    def __init__(self, accounts, proxy=None, basedir=None, in_memory=True, quiet=False):
+    def __init__(self, accounts, proxy=None, basedir=None, in_memory=False, quiet=False):
         self.accounts = accounts
         self.proxy = proxy
         self.basedir = basedir or user_data_dir(__product__)
@@ -969,12 +969,7 @@ class ClientsSession:
                         with open(session_string_file, encoding="utf-8") as f:
                             file_session_string = session_string = f.read().strip()
                 if self.in_memory is None:
-                    in_memory = True
-                    if not session_string:
-                        if session_file.is_file():
-                            in_memory = False
-                elif session_string:
-                    in_memory = True
+                    in_memory = False
                 else:
                     in_memory = self.in_memory
                 if session_string or session_file.is_file():
