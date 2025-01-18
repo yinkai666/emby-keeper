@@ -19,6 +19,7 @@ class _PornembyAnswerResultMonitor(Monitor):
     chat_keyword = r"问题\d*：(.*?)\n+A:(.*)\n+B:(.*)\n+C:(.*)\n+D:(.*)\n+答案为：([ABCD])"
     additional_auth = ["pornemby_pack"]
     allow_edit = True
+    allow_caption = False
 
     key_map = {"A": 1, "B": 2, "C": 3, "D": 4}
 
