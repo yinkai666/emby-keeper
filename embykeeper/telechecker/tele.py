@@ -8,9 +8,11 @@ from datetime import datetime, timezone
 import asyncio
 import getpass
 import inspect
+import os
 from pathlib import Path
 import pickle
 import random
+import sqlite3
 import struct
 import sys
 from typing import AsyncGenerator, Optional, Union
@@ -50,6 +52,9 @@ from pyrogram.handlers import (
     DisconnectHandler,
     EditedMessageHandler,
 )
+from pyrogram.storage.memory_storage import MemoryStorage
+from pyrogram.storage.sqlite_storage import SQLiteStorage
+from pyrogram.storage.file_storage import USERNAMES_SCHEMA, UPDATE_STATE_SCHEMA
 
 from pyrogram.handlers.handler import Handler
 from aiocache import Cache
@@ -211,6 +216,98 @@ class Dispatcher(dispatcher.Dispatcher):
                 logger.error("更新控制器错误.")
                 show_exception(e, regular=False)
 
+class FileStorage(SQLiteStorage):
+    FILE_EXTENSION = ".session"
+
+    def __init__(self, name: str, workdir: Path, session_string: str = None):
+        super().__init__(name)
+
+        self.database = workdir / (self.name + self.FILE_EXTENSION)
+        self.session_string = session_string
+
+    def update(self):
+        version = self.version()
+
+        if version == 1:
+            with self.conn:
+                self.conn.execute("DELETE FROM peers")
+
+            version += 1
+
+        if version == 2:
+            with self.conn:
+                self.conn.execute("ALTER TABLE sessions ADD api_id INTEGER")
+
+            version += 1
+
+        if version == 3:
+            with self.conn:
+                self.conn.executescript(USERNAMES_SCHEMA)
+
+            version += 1
+
+        if version == 4:
+            with self.conn:
+                self.conn.executescript(UPDATE_STATE_SCHEMA)
+
+            version += 1
+
+        if version == 5:
+            with self.conn:
+                self.conn.execute("CREATE INDEX idx_usernames_id ON usernames (id);")
+
+            version += 1
+
+        self.version(version)
+
+    async def open(self):
+        path = self.database
+        file_exists = path.is_file()
+
+        self.conn = sqlite3.connect(str(path), timeout=1, check_same_thread=False)
+
+        if not file_exists:
+            self.create()
+            if self.session_string:
+                # Old format
+                if len(self.session_string) in [self.SESSION_STRING_SIZE, self.SESSION_STRING_SIZE_64]:
+                    dc_id, test_mode, auth_key, user_id, is_bot = struct.unpack(
+                        (self.OLD_SESSION_STRING_FORMAT
+                        if len(self.session_string) == self.SESSION_STRING_SIZE else
+                        self.OLD_SESSION_STRING_FORMAT_64),
+                        base64.urlsafe_b64decode(self.session_string + "=" * (-len(self.session_string) % 4))
+                    )
+
+                    await self.dc_id(dc_id)
+                    await self.test_mode(test_mode)
+                    await self.auth_key(auth_key)
+                    await self.user_id(user_id)
+                    await self.is_bot(is_bot)
+                    await self.date(0)
+
+                    logger.warning("You are using an old session string format. Use export_session_string to update")
+                    return
+
+                dc_id, api_id, test_mode, auth_key, user_id, is_bot = struct.unpack(
+                    self.SESSION_STRING_FORMAT,
+                    base64.urlsafe_b64decode(self.session_string + "=" * (-len(self.session_string) % 4))
+                )
+
+                await self.dc_id(dc_id)
+                await self.api_id(api_id)
+                await self.test_mode(test_mode)
+                await self.auth_key(auth_key)
+                await self.user_id(user_id)
+                await self.is_bot(is_bot)
+                await self.date(0)
+        else:
+            self.update()
+
+        with self.conn:
+            self.conn.execute("VACUUM")
+
+    async def delete(self):
+        os.remove(self.database)
 
 class Client(pyrogram.Client):
     def __init__(self, *args, **kw):
@@ -218,6 +315,10 @@ class Client(pyrogram.Client):
         self.cache = Cache()
         self.lock = asyncio.Lock()
         self.dispatcher = Dispatcher(self)
+        if self.in_memory:
+            self.storage = MemoryStorage(self.name, self.session_string)
+        else:
+            self.storage = FileStorage(self.name, self.workdir, self.session_string)
         self._config_index: int = None
 
     async def authorize(self):
