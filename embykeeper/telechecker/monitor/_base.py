@@ -119,8 +119,8 @@ class Monitor:
     trigger_interval: float = 2  # 每次触发的最低时间间隔
     additional_auth: List[str] = []  # 额外认证要求
     debug_no_log = False  # 调试模式不显示冗余日志
-    allow_caption: bool = True # 是否允许带照片的消息
-    allow_text: bool = True # 是否允许不带照片的消息
+    allow_caption: bool = True  # 是否允许带照片的消息
+    allow_text: bool = True  # 是否允许不带照片的消息
 
     def __init__(self, client: Client, nofail=True, basedir=None, proxy=None, config: dict = {}):
         """

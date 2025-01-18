@@ -99,7 +99,6 @@ class PornembyAlertMonitor(Monitor):
             async with self.lock:
                 self.alert_remaining = float("inf")
 
-
     async def on_trigger(self, message: Message, key, reply):
         # 管理员回复水群消息: 永久停止, 若存在关键词即回复
         # 用户回复水群消息, 停止 3600 秒, 若存在关键词即回复
@@ -121,7 +120,9 @@ class PornembyAlertMonitor(Monitor):
 
         # 新置顶消息, 若不在列表中停止 3600 秒, 否则停止 86400 秒
         if message.service == MessageServiceType.PINNED_MESSAGE:
-            keyword = self.check_keyword(message.pinned_message, self.user_alert_keywords + self.admin_alert_keywords)
+            keyword = self.check_keyword(
+                message.pinned_message, self.user_alert_keywords + self.admin_alert_keywords
+            )
             if keyword:
                 await self.set_alert(86400, reason=f'有新消息被置顶, 且包含风险关键词: "{keyword}"')
             else:
