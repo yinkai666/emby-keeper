@@ -14,6 +14,7 @@ from ._base import Monitor
 
 __ignore__ = True
 
+
 class PornembyAlertMonitor(Monitor):
     name = "Pornemby 风险急停监控"
     chat_name = "Pornemby"
@@ -104,7 +105,9 @@ class PornembyAlertMonitor(Monitor):
     async def on_trigger(self, message: Message, key, reply):
         # 管理员回复水群消息, 永久停止, 若存在关键词即回复
         # 用户回复水群消息, 停止 3600 秒, 若存在关键词即回复
-        if message.reply_to_message_id and message.reply_to_message_id in pornemby_messager_mids.get(self.client.me.id, []):
+        if message.reply_to_message_id and message.reply_to_message_id in pornemby_messager_mids.get(
+            self.client.me.id, []
+        ):
             if await self.check_admin(message.chat, message.from_user):
                 await self.set_alert(reason="管理员回复了水群消息")
             else:
@@ -118,12 +121,16 @@ class PornembyAlertMonitor(Monitor):
                         await message.reply(random.choice(self.reply_words))
                         self.last_reply = datetime.now()
             return
-    
+
         # 管理员 @ 当前用户, 永久停止
         # 非管理员 @ 当前用户, 停止 3600 秒
         if message.entities:
             for entity in message.entities:
-                if entity.type == MessageEntityType.MENTION and entity.user and entity.user.id == self.client.me.id:
+                if (
+                    entity.type == MessageEntityType.MENTION
+                    and entity.user
+                    and entity.user.id == self.client.me.id
+                ):
                     if await self.check_admin(message.chat, message.from_user):
                         await self.set_alert(reason="管理员 @ 了当前用户")
                     else:

@@ -129,7 +129,7 @@ async def play(obj: EmbyObject, loggeruser: Logger, time: float = 10):
         resp = await c.post("Sessions/Playing", MediaSourceId=media_source_id, data=playing_info(0))
 
         if not is_ok(resp):
-            raise PlayError("无法开始播放")        
+            raise PlayError("无法开始播放")
         t = time
         last_report_t = t
         progress_errors = 0

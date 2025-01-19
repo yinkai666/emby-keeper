@@ -15,9 +15,10 @@ from .var import console, tele_used, emby_used
 if TYPE_CHECKING:
     from .telechecker.tele import Client
 
+
 async def topper():
     """在控制台底部实时显示系统资源使用情况."""
-    
+
     process = psutil.Process()
 
     def get_client_stats(pool: Dict[str, Tuple[Union[Client, Task], int]]) -> Tuple[int, int, int, str]:
@@ -34,11 +35,11 @@ async def topper():
                 else:
                     idle += 1
                 # 获取队列和任务统计
-                if hasattr(client, 'dispatcher'):
+                if hasattr(client, "dispatcher"):
                     try:
                         qsize = client.dispatcher.updates_queue.qsize()
                         tasks = client.dispatcher.handler_worker_tasks
-                        active = sum(1 for t in tasks if t.get_coro().cr_await.__name__ != 'get')
+                        active = sum(1 for t in tasks if t.get_coro().cr_await.__name__ != "get")
                         if qsize > 0 or active > 0:
                             # 当队列超过10或handler使用率超过80%时显示红色
                             if qsize >= 10 or (active / len(tasks) >= 0.8):
@@ -47,7 +48,7 @@ async def topper():
                                 queue_stats.append(f"[{qsize}:{active}/{len(tasks)}]")
                     except:
                         queue_stats.append("[Error]")
-        
+
         queue_text = f" Queue: {' '.join(queue_stats)}" if queue_stats else ""
         return pending, using, idle, queue_text
 
@@ -62,47 +63,53 @@ async def topper():
     def get_stats():
         # 创建状态表格
         table = Table(show_header=False, box=None)
-        
+
         # 系统资源状态
         mem_mb = process.memory_info().rss / 1024 / 1024
         cpu_percent = process.cpu_percent()
         mem_text = f"[red]{mem_mb:.1f}[/red]" if mem_mb > 1024 else f"{mem_mb:.1f}"
-        sys_stats = [("Embykeeper >", "bright_blue"), (f"MEM: {mem_text} MB, CPU: {cpu_percent:.1f}%", "bright_blue")]
-        
+        sys_stats = [
+            ("Embykeeper >", "bright_blue"),
+            (f"MEM: {mem_text} MB, CPU: {cpu_percent:.1f}%", "bright_blue"),
+        ]
+
         # OCR状态
         ocr_stats = get_ocr_stats()
         if ocr_stats:
             sys_stats.append((ocr_stats, "bright_blue"))
-        
+
         # Client状态
         if tele_used:
             from .telechecker.tele import ClientsSession, Dispatcher
             from .telechecker.link import Link
-            
+
             pending, using, idle, queue_text = get_client_stats(ClientsSession.pool)
             client_stats = []
-            if pending: client_stats.append(f"Pending({pending})")
-            if using: client_stats.append(f"Using({using})")
-            if idle: client_stats.append(f"Idle({idle})")
+            if pending:
+                client_stats.append(f"Pending({pending})")
+            if using:
+                client_stats.append(f"Using({using})")
+            if idle:
+                client_stats.append(f"Idle({idle})")
             if client_stats:
                 sys_stats.append((f"Tele: {'/'.join(client_stats)}{queue_text}", "bright_blue"))
-            
+
             if Link.post_count > 0:
                 sys_stats.append((f"Link: {Link.post_count}", "bright_blue"))
-                
+
             if Dispatcher.updates_count > 0:
                 sys_stats.append((f"Updates: {Dispatcher.updates_count}", "bright_blue"))
-            
+
         if emby_used:
             from .embywatcher.emby import Connector
-            
+
             if Connector.playing_count > 0:
                 sys_stats.append((f"Play: {Connector.playing_count}", "bright_blue"))
 
         table.add_column(style="bright_blue", justify="left")
         for _ in range(len(sys_stats) - 1):
             table.add_column(style="bright_blue", justify="left")
-        
+
         table.add_row(*[text for text, _ in sys_stats])
         return Group(Rule(style="bright_blue"), table)
 
@@ -120,4 +127,4 @@ async def topper():
     except (KeyboardInterrupt, asyncio.CancelledError):
         live.update("")  # 先清空显示内容
         live.stop()  # 然后停止 Live
-        raise 
+        raise

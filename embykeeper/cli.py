@@ -140,7 +140,9 @@ async def main(
         False, "--analyze", "-A", rich_help_panel="调试工具", help="仅启动历史信息分析"
     ),
     dump: List[str] = typer.Option([], "--dump", "-D", rich_help_panel="调试工具", help="仅启动更新日志"),
-    top: bool = typer.Option(True, "--no-top", "-T", rich_help_panel="调试工具", help="执行过程中显示系统调试状态"),
+    top: bool = typer.Option(
+        True, "--no-top", "-T", rich_help_panel="调试工具", help="执行过程中显示系统调试状态"
+    ),
     save: bool = typer.Option(
         False, "--save", rich_help_panel="调试参数", help="记录执行过程中的原始更新日志"
     ),
@@ -215,12 +217,12 @@ async def main(
         subsonic = default_interval
         monitor = True
         send = True
-    
+
     if top and var.console.is_terminal:
         from .top import topper
 
         asyncio.create_task(topper())
-    
+
     if save:
         from .telechecker.debug import saver
 

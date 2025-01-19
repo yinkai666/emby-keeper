@@ -117,8 +117,8 @@ class Monitor:
     notify_create_name: bool = False  # 启动时生成 unique name 并提示, 用于抢注
     allow_edit: bool = False  # 编辑消息内容后也触发
     trigger_interval: float = 2  # 每次触发的最低时间间隔
-    trigger_sim: int = 1 # 同时触发的最大并行数
-    trigger_max_time: float = 120 # 触发后处理的最长时间
+    trigger_sim: int = 1  # 同时触发的最大并行数
+    trigger_max_time: float = 120  # 触发后处理的最长时间
     additional_auth: List[str] = []  # 额外认证要求
     debug_no_log = False  # 调试模式不显示冗余日志
     allow_caption: bool = True  # 是否允许带照片的消息
