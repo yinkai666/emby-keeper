@@ -25,6 +25,8 @@ logger = logger.bind(scheme="embywatcher")
 class Connector(_Connector):
     """重写的 Emby 连接器, 以支持代理."""
 
+    playing_count = 0
+
     def __init__(
         self,
         url,

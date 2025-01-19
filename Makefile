@@ -126,10 +126,13 @@ conda/install:
 >   fi
 
 run: venv/require
->   @"$(VENV)/bin/python" -m embykeeper
+>   @"$(VENV)/bin/python" -m embykeeper -i
 
 run/debug: venv/require
->   @"$(VENV)/bin/python" -m embykeeper -dd
+>   @"$(VENV)/bin/python" -m embykeeper -i -dd
+
+run/noinstant: venv/require
+>   @"$(VENV)/bin/python" -m embykeeper
 
 run/web: venv/require
 >   @"$(VENV)/bin/python" -m embykeeperweb --public

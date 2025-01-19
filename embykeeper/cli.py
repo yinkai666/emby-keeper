@@ -57,7 +57,7 @@ async def main(
         "--checkin",
         "-c",
         rich_help_panel="模块开关",
-        show_default="不指定值时默认为8:00AM-10:00AM之间随机时间",
+        show_default="不指定值时默认为 8:00AM-10:00AM 之间随机时间",
         help="启用每日指定时间签到",
     ),
     emby: str = typer.Option(
@@ -65,14 +65,15 @@ async def main(
         "--emby",
         "-e",
         rich_help_panel="模块开关",
-        help="启用每隔天数Emby自动保活",
+        help="启用每隔天数 Emby 自动保活",
         show_default="不指定值时默认为每3-12天",
     ),
     subsonic: str = typer.Option(
         Flagged("", "-"),
         "--subsonic",
+        "-S",
         rich_help_panel="模块开关",
-        help="启用每隔天数Subsonic自动保活",
+        help="启用每隔天数 Subsonic 自动保活",
         show_default="不指定值时默认为3-12天",
     ),
     monitor: bool = typer.Option(False, "--monitor", "-m", rich_help_panel="模块开关", help="启用群聊监视"),
@@ -139,8 +140,9 @@ async def main(
         False, "--analyze", "-A", rich_help_panel="调试工具", help="仅启动历史信息分析"
     ),
     dump: List[str] = typer.Option([], "--dump", "-D", rich_help_panel="调试工具", help="仅启动更新日志"),
+    top: bool = typer.Option(True, "--no-top", "-T", rich_help_panel="调试工具", help="执行过程中显示系统调试状态"),
     save: bool = typer.Option(
-        False, "--save", "-S", rich_help_panel="调试参数", help="记录执行过程中的原始更新日志"
+        False, "--save", rich_help_panel="调试参数", help="记录执行过程中的原始更新日志"
     ),
     public: bool = typer.Option(
         False,
@@ -213,6 +215,16 @@ async def main(
         subsonic = default_interval
         monitor = True
         send = True
+    
+    if top and var.console.is_terminal:
+        from .top import topper
+
+        asyncio.create_task(topper())
+    
+    if save:
+        from .telechecker.debug import saver
+
+        asyncio.create_task(saver(config))
 
     if follow:
         from .telechecker.debug import follower
@@ -262,7 +274,7 @@ async def main(
             if interval_range_match:
                 emby = [int(interval_range_match.group(1)), int(interval_range_match.group(2))]
             else:
-                logger.error(f"无法解析 Emby 保活间隔天数: {default_interval}, 保活将不会运行.")
+                logger.error(f"无法解析 Emby 保活间隔天数: {emby}, 保活将不会运行.")
                 emby = False
 
     if subsonic and not isinstance(subsonic, int):
@@ -273,7 +285,7 @@ async def main(
             if interval_range_match:
                 subsonic = [int(interval_range_match.group(1)), int(interval_range_match.group(2))]
             else:
-                logger.error(f"无法解析 Subsonic 保活间隔天数: {default_interval}, 保活将不会运行.")
+                logger.error(f"无法解析 Subsonic 保活间隔天数: {subsonic}, 保活将不会运行.")
                 subsonic = False
 
     from .telechecker.notify import start_notifier
@@ -299,11 +311,6 @@ async def main(
         )
 
     pool = AsyncTaskPool()
-
-    if save:
-        from .telechecker.debug import saver
-
-        asyncio.create_task(saver(config))
 
     if instant and not debug_cron:
         if emby:

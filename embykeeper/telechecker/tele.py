@@ -63,6 +63,8 @@ import httpx
 from embykeeper import var, __name__ as __product__, __version__
 from embykeeper.utils import async_partial, get_proxy_str, show_exception, to_iterable
 
+var.tele_used.set()
+
 if typing.TYPE_CHECKING:
     from telethon import TelegramClient
 
@@ -113,6 +115,8 @@ pyrogram_session_logger.addHandler(LogRedirector())
 
 
 class Dispatcher(dispatcher.Dispatcher):
+    updates_count = 0
+
     def __init__(self, client: Client):
         super().__init__(client)
         self.mutex = asyncio.Lock()
@@ -150,6 +154,7 @@ class Dispatcher(dispatcher.Dispatcher):
     async def handler_worker(self):
         while True:
             packet = await self.updates_queue.get()
+            Dispatcher.updates_count += 1
 
             if packet is None:
                 break

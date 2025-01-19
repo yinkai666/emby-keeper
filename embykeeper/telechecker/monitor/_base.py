@@ -16,7 +16,7 @@ from pyrogram.handlers import EditedMessageHandler, MessageHandler
 from pyrogram.types import Message, User
 
 from embykeeper import __name__ as __product__
-from embykeeper.utils import show_exception, to_iterable, truncate_str, AsyncCountPool
+from embykeeper.utils import show_exception, to_iterable, truncate_str, AsyncCountPool, optional
 
 from ..tele import Client
 from ..link import Link
@@ -117,6 +117,8 @@ class Monitor:
     notify_create_name: bool = False  # 启动时生成 unique name 并提示, 用于抢注
     allow_edit: bool = False  # 编辑消息内容后也触发
     trigger_interval: float = 2  # 每次触发的最低时间间隔
+    trigger_sim: int = 1 # 同时触发的最大并行数
+    trigger_max_time: float = 120 # 触发后处理的最长时间
     additional_auth: List[str] = []  # 额外认证要求
     debug_no_log = False  # 调试模式不显示冗余日志
     allow_caption: bool = True  # 是否允许带照片的消息
@@ -140,7 +142,10 @@ class Monitor:
         self.log = logger.bind(scheme="telemonitor", name=self.name, username=client.me.name)
         self.session = None
         self.failed = asyncio.Event()
-        self.lock = asyncio.Lock()
+        if self.trigger_sim:
+            self.sem = asyncio.Semaphore(self.trigger_sim)
+        else:
+            self.sem = None
 
     def get_filter(self):
         """设定要监控的目标."""
@@ -305,7 +310,6 @@ class Monitor:
         if message.text and not self.allow_text:
             return
         for key in self.keys(message):
-            print(key)
             spec = self.get_spec(key)
             if not self.debug_no_log:
                 if spec:
@@ -313,7 +317,7 @@ class Monitor:
                 else:
                     self.log.info(f"监听到关键信息.")
             if random.random() >= self.chat_probability:
-                self.log.info(f"由于概率设置, 不予回应: {spec}.")
+                self.log.info(f"由于概率设置, 不予回应: {truncate_str(spec, 30)}")
                 return False
             reply = await self.get_reply(message, key)
             if self.session:
@@ -323,8 +327,11 @@ class Monitor:
             self.session = Session(reply, follows=self.chat_follow_user, delays=self.chat_delay)
             if await self.session.wait():
                 self.session = None
-                async with self.lock:
-                    await self.on_trigger(message, key, reply)
+                async with optional(self.sem):
+                    try:
+                        await asyncio.wait_for(self.on_trigger(message, key, reply), self.trigger_max_time)
+                    except asyncio.TimeoutError:
+                        self.log.warning(f"处理超时: {truncate_str(spec, 30)}")
                     await asyncio.sleep(self.trigger_interval)
         else:
             if self.session and not self.session.followed.is_set():

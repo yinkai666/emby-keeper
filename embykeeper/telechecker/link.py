@@ -26,6 +26,7 @@ class Link:
     """云服务类, 用于认证和高级权限任务通讯."""
 
     bot = "embykeeper_auth_bot"
+    post_count = 0
 
     def __init__(self, client: Client):
         self.client = client
@@ -73,79 +74,84 @@ class Link:
             name: 请求名称, 用于用户提示
             fail: 当出现错误时抛出错误, 而非发送日志
         """
-        self.log.info(f"正在进行服务请求: {name}")
+        Link.post_count += 1
+        try:
+            self.log.info(f"正在进行服务请求: {name}")
 
-        if photo and file:
-            raise ValueError("can not use both photo and file")
+            if photo and file:
+                raise ValueError("can not use both photo and file")
 
-        for r in range(retries):
-            try:
-                await self.client.mute_chat(self.bot)
-            except FloodWait:
-                self.log.debug(f"[gray50]设置禁用提醒因访问超限而失败: {self.bot}[/]")
-            future = asyncio.Future()
-            handler = MessageHandler(
-                async_partial(self._handler, cmd=cmd, future=future, condition=condition),
-                filters.text & filters.bot & filters.user(self.bot),
-            )
-            await self.client.add_handler(handler, group=1)
-            try:
-                messages = []
-                if photo:
-                    messages.append(await self.client.send_photo(self.bot, photo, caption=cmd))
-                elif file:
-                    messages.append(await self.client.send_document(self.bot, file, caption=cmd))
-                else:
-                    messages.append(await self.client.send_message(self.bot, cmd))
-                self.log.debug(f"[gray50]-> {cmd}[/]")
-                results = await asyncio.wait_for(future, timeout=timeout)
-            except asyncio.CancelledError:
+            for r in range(retries):
                 try:
-                    await asyncio.wait_for(self.delete_messages(messages), 1.0)
+                    await self.client.mute_chat(self.bot)
+                except FloodWait:
+                    self.log.debug(f"[gray50]设置禁用提醒因访问超限而失败: {self.bot}[/]")
+                future = asyncio.Future()
+                handler = MessageHandler(
+                    async_partial(self._handler, cmd=cmd, future=future, condition=condition),
+                    filters.text & filters.bot & filters.user(self.bot),
+                )
+                await self.client.add_handler(handler, group=1)
+                try:
+                    messages = []
+                    if photo:
+                        messages.append(await self.client.send_photo(self.bot, photo, caption=cmd))
+                    elif file:
+                        messages.append(await self.client.send_document(self.bot, file, caption=cmd))
+                    else:
+                        messages.append(await self.client.send_message(self.bot, cmd))
+                    self.log.debug(f"[gray50]-> {cmd}[/]")
+                    results = await asyncio.wait_for(future, timeout=timeout)
+                except asyncio.CancelledError:
+                    try:
+                        await asyncio.wait_for(self.delete_messages(messages), 1.0)
+                    except asyncio.TimeoutError:
+                        pass
+                    finally:
+                        raise
                 except asyncio.TimeoutError:
-                    pass
-                finally:
-                    raise
-            except asyncio.TimeoutError:
-                await self.delete_messages(messages)
-                if r + 1 < retries:
-                    self.log.info(f"{name}超时 ({r + 1}/{retries}), 将在 3 秒后重试.")
-                    await asyncio.sleep(3)
-                    continue
-                else:
-                    msg = f"{name}超时 ({r + 1}/{retries})."
+                    await self.delete_messages(messages)
+                    if r + 1 < retries:
+                        self.log.info(f"{name}超时 ({r + 1}/{retries}), 将在 3 秒后重试.")
+                        await asyncio.sleep(3)
+                        continue
+                    else:
+                        msg = f"{name}超时 ({r + 1}/{retries})."
+                        if fail:
+                            raise LinkError(msg)
+                        else:
+                            self.log.warning(msg)
+                            return None
+                except YouBlockedUser:
+                    msg = "您在账户中禁用了用于 API 信息传递的 Bot: @embykeeper_auth_bot, 这将导致 embykeeper 无法运行, 请尝试取消禁用."
                     if fail:
                         raise LinkError(msg)
                     else:
-                        self.log.warning(msg)
+                        self.log.error(msg)
                         return None
-            except YouBlockedUser:
-                msg = "您在账户中禁用了用于 API 信息传递的 Bot: @embykeeper_auth_bot, 这将导致 embykeeper 无法运行, 请尝试取消禁用."
-                if fail:
-                    raise LinkError(msg)
                 else:
-                    self.log.error(msg)
-                    return None
-            else:
-                await self.delete_messages(messages)
-                status, errmsg = [results.get(p, None) for p in ("status", "errmsg")]
-                if status == "error":
-                    if fail:
-                        raise LinkError(f"{errmsg}.")
+                    await self.delete_messages(messages)
+                    status, errmsg = [results.get(p, None) for p in ("status", "errmsg")]
+                    if status == "error":
+                        if fail:
+                            raise LinkError(f"{errmsg}.")
+                        else:
+                            self.log.warning(f"{name}错误: {errmsg}.")
+                            return False
+                    elif status == "ok":
+                        self.log.info(f"服务请求完成: {name}")
+                        return results
                     else:
-                        self.log.warning(f"{name}错误: {errmsg}.")
-                        return False
-                elif status == "ok":
-                    self.log.info(f"服务请求完成: {name}")
-                    return results
-                else:
-                    if fail:
-                        raise LinkError("出现未知错误.")
-                    else:
-                        self.log.warning(f"{name}出现未知错误.")
-                        return False
-            finally:
-                await self.client.remove_handler(handler, group=1)
+                        if fail:
+                            raise LinkError("出现未知错误.")
+                        else:
+                            self.log.warning(f"{name}出现未知错误.")
+                            return False
+                finally:
+                    await self.client.remove_handler(handler, group=1)
+
+        finally:
+            Link.post_count -= 1
 
     async def _handler(
         self,

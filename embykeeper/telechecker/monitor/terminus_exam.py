@@ -16,6 +16,7 @@ class TerminusExamMonitor(Monitor):
     additional_auth = ["gpt"]
     debug_no_log = True
     trigger_interval = 0
+    trigger_sem = None
 
     async def init(self):
         self.log.info("您已开启终点站考试辅助, 正在测试答题服务状态.")

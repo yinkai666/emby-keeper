@@ -171,7 +171,9 @@ async def dumper(config: dict, specs=["message"]):
                     try:
                         handler = type_handler[t]
                     except KeyError:
-                        log.warning(f'更新类型 {t} 不可用, 请选择: {", ".join(list(type_handler.keys()))}')
+                        log.warning(
+                            f'更新类型 {t} 不可用, 请选择: {", ".join(list(type_handler.keys()))}'
+                        )
                         continue
                 handler.filters = filters.chat(c) if c else None
                 await tg.add_handler(handler)
@@ -199,6 +201,7 @@ async def saver(config: dict):
         async for tg in clients:
             tg.saver_queue = queue = asyncio.Queue()
             output = f"{tg.me.phone_number}.updates.json"
+            logger.info(f"已启动日志记录, 输出到: {output}.")
             await tg.add_handler(RawUpdateHandler(_saver_raw), group=10000)
             tasks.append(_saver_dumper(queue, output))
         await asyncio.gather(*tasks)
@@ -221,7 +224,9 @@ async def analyzer(config: dict, chats, keywords, timerange, limit=10000, output
         page.add_row(Panel(progress))
         if texts:
             msgs = sorted(texts.items(), key=operator.itemgetter(1), reverse=True)
-            columns = flatten([[Column(max_width=15, no_wrap=True), Column(min_width=2)] for _ in range(4)])
+            columns = flatten(
+                [[Column(max_width=15, no_wrap=True), Column(min_width=2)] for _ in range(4)]
+            )
             table = Table(*columns, show_header=False, box=box.SIMPLE)
             cols = []
             for col in batch(msgs, 12):
@@ -272,7 +277,10 @@ async def analyzer(config: dict, chats, keywords, timerange, limit=10000, output
                 yaml.dump(
                     {
                         "messages": [
-                            str(t) for t, _ in sorted(texts.items(), key=operator.itemgetter(1), reverse=True)
+                            str(t)
+                            for t, _ in sorted(
+                                texts.items(), key=operator.itemgetter(1), reverse=True
+                            )
                         ][:outputs]
                     },
                     f,

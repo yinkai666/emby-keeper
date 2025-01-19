@@ -122,15 +122,14 @@ async def play(obj: EmbyObject, loggeruser: Logger, time: float = 10):
     }
 
     task = asyncio.create_task(c.get_stream_noreturn(direct_stream_id or f"/Videos/{obj.id}/stream"))
-
+    Connector.playing_count += 1
     try:
         await asyncio.sleep(random.uniform(1, 3))
 
         resp = await c.post("Sessions/Playing", MediaSourceId=media_source_id, data=playing_info(0))
 
         if not is_ok(resp):
-            raise PlayError("无法开始播放")
-
+            raise PlayError("无法开始播放")        
         t = time
         last_report_t = t
         progress_errors = 0
@@ -159,6 +158,7 @@ async def play(obj: EmbyObject, loggeruser: Logger, time: float = 10):
 
         await asyncio.sleep(random.uniform(1, 3))
     finally:
+        Connector.playing_count -= 1
         task.cancel()
         try:
             await task
