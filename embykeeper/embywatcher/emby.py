@@ -354,3 +354,16 @@ class Emby(_Emby):
             **kw,
         )
         return await self.process(resp)
+
+    @async_func
+    async def get_item(self, id, path="/Users/{UserId}/Items", fields=None, **kw):
+        if not fields:
+            fields = ["Path", "ParentId", "Overview", "PremiereDate", "DateCreated"]
+        resp = await self.connector.getJson(
+            f"{path}/{id}",
+            format="json",
+            recursive="true",
+            fields=fields,
+            **kw,
+        )
+        return await self.process(resp)
