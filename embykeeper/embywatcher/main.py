@@ -776,23 +776,27 @@ async def watcher_continuous_schedule(
         if not t.done():
             t.cancel()
 
+
 async def play_url(config: dict, url: str):
     """播放指定URL的视频"""
     from urllib.parse import urlparse, parse_qs
+
     parsed = urlparse(url)
-    
-    fragment_parts = parsed.fragment.split('?', 1)
+
+    fragment_parts = parsed.fragment.split("?", 1)
     if len(fragment_parts) > 1:
         params = parse_qs(fragment_parts[1])
     else:
         params = {}
-    
-    if not params.get('id'):
-        logger.error("无效的 URL 格式, 无法解析视频 ID. 应为类似:\nhttps://example.com/web/#/details?id=xxx&serverId=xxx")
+
+    if not params.get("id"):
+        logger.error(
+            "无效的 URL 格式, 无法解析视频 ID. 应为类似:\nhttps://example.com/web/#/details?id=xxx&serverId=xxx"
+        )
         return False
-        
-    video_id = params['id'][0]
-    
+
+    video_id = params["id"][0]
+
     # 在config中查找匹配的emby配置
     matched_config = None
     for emby_config in config.get("emby", []):
@@ -800,20 +804,20 @@ async def play_url(config: dict, url: str):
         if urlparse(emby_url).netloc == parsed.netloc:
             matched_config = emby_config
             break
-            
+
     if not matched_config:
         logger.error(f"在配置中未找到匹配的 Emby 服务器: {parsed.netloc}")
         return False
-        
+
     filtered_config = config.copy()
     filtered_config["emby"] = [matched_config]
-    
+
     async for emby, loggeruser, _, _, _ in login(filtered_config):
         logger.info(f'已登陆到 Emby: {matched_config["url"]}')
         connector: Connector = emby.connector
-        logger.info('使用以下 Headers:')
+        logger.info("使用以下 Headers:")
         for k, v in connector.get_fake_headers().items():
-            logger.info(f'\t{k}: {v}')
+            logger.info(f"\t{k}: {v}")
         item = await emby.get_item(video_id)
         if not item:
             raise ValueError(f"无法找到 ID 为 {video_id} 的视频")

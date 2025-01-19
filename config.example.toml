@@ -82,4 +82,3 @@ url = "https://www.vargas.com/"
 username = "dylanbrown"
 password = "x$0EmmEeWu"
 time = [120, 240] # 模拟观看的时长范围 (秒)
-

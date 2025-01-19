@@ -143,9 +143,7 @@ async def main(
     top: bool = typer.Option(
         True, "--no-top", "-T", rich_help_panel="调试参数", help="执行过程中显示系统调试状态"
     ),
-    play: str = typer.Option(
-        None, "--play-url", "-p", rich_help_panel="调试工具", help="仅模拟观看一个视频"
-    ),
+    play: str = typer.Option(None, "--play-url", "-p", rich_help_panel="调试工具", help="仅模拟观看一个视频"),
     save: bool = typer.Option(
         False, "--save", rich_help_panel="调试参数", help="记录执行过程中的原始更新日志"
     ),
@@ -225,7 +223,7 @@ async def main(
         from .top import topper
 
         asyncio.create_task(topper())
-        
+
     if play:
         from .embywatcher.main import play_url
 
