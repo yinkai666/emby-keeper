@@ -88,7 +88,11 @@ class Resocks:
     def execute(self, *args) -> subprocess.Popen:
         """Execute resocks with given arguments and return Popen object"""
         self.ensure_binary()
-        return subprocess.Popen([str(self.executable_path), *args])
+        return subprocess.Popen(
+            [str(self.executable_path), *args],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        )
 
     async def start(self, host: str, key: str) -> bool:
         """Start resocks listen server
