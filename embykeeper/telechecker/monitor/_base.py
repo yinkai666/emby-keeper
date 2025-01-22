@@ -233,7 +233,9 @@ class Monitor:
         if self.notify_create_name:
             self.unique_name = self.get_unique_name()
         if chat.username:
-            spec = f"[green]{chat.title}[/] [gray50](@{chat.username})[/]" if chat.title else f"@{chat.username}"
+            spec = (
+                f"[green]{chat.title}[/] [gray50](@{chat.username})[/]" if chat.title else f"@{chat.username}"
+            )
         else:
             spec = f"[green]{chat.title}[/]" if chat.title else f"[green]{chat.id}[/]"
         self.log.info(f"开始监视: {spec}.")
