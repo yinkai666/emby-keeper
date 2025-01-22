@@ -154,5 +154,3 @@ class PornembyAlertMonitor(Monitor):
         if keyword:
             if await self.check_admin(message.chat, message.from_user):
                 await self.set_alert(86400, reason=f'管理员发送了消息, 且包含风险关键词: "{keyword}"')
-            else:
-                await self.set_alert(1800, reason=f'非管理员发送了消息, 且包含风险关键词: "{keyword}"')
