@@ -297,7 +297,7 @@ def format_timedelta_human(delta):
     h, s = divmod(delta.seconds, 3600)
     m, s = divmod(s, 60)
     labels = ["天", "小时", "分钟", "秒"]
-    dhms = ["%s %s%s" % (i, lbl, "s" if i != 1 else "") for i, lbl in zip([d, h, m, s], labels)]
+    dhms = ["%s %s" % (i, lbl) for i, lbl in zip([d, h, m, s], labels)]
     for start in range(len(dhms)):
         if not dhms[start].startswith("0"):
             break
