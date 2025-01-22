@@ -358,7 +358,7 @@ class BotCheckin(BaseBotCheckin):
                         now = datetime.now()
                         midnight = now.replace(hour=0, minute=0, second=0, microsecond=0) + timedelta(days=1)
                         max_sleep = midnight - now
-                        sleep = timedelta(hours=self._checked_retries)
+                        sleep = timedelta(hours=min(self._checked_retries * 3, 6))
                         if sleep > max_sleep:
                             return CheckinResult.CHECKED
                         else:
@@ -480,8 +480,13 @@ class BotCheckin(BaseBotCheckin):
             basedir=self.basedir,
             proxy=self.proxy,
         )
-        with ocr:
-            ocr_text = await ocr.run(data)
+        try:
+            with ocr:
+                ocr_text = await ocr.run(data)
+        except asyncio.TimeoutError:
+            self.log.info("签到失败: 验证码识别失败, 正在重试.")
+            await self.retry()
+            return
         captcha = ocr_text.translate(str.maketrans("", "", string.punctuation)).replace(" ", "")
         if captcha:
             self.log.debug(f"[gray50]接收验证码: {captcha}.[/]")
