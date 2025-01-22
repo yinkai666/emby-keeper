@@ -45,6 +45,8 @@ class PornembyAlertMonitor(Monitor):
     async def check_admin(self, chat: Chat, user: User):
         if not user:
             return True
+        if user.is_bot:
+            return False
         async with self.member_status_cache_lock:
             if not user.id in self.member_status_cache:
                 try:
@@ -53,10 +55,7 @@ class PornembyAlertMonitor(Monitor):
                 except BadRequest:
                     return False
         if self.member_status_cache[user.id] in (ChatMemberStatus.ADMINISTRATOR, ChatMemberStatus.OWNER):
-            if user.is_bot:
-                return False
-            else:
-                return True
+            return True
 
     def check_keyword(self, message: Message, keywords: List[str]):
         content = message.text or message.caption
