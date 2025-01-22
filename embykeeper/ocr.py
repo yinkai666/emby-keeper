@@ -124,7 +124,7 @@ class OCRService:
         self._queue_out = None
         self._stop_event = None
 
-    async def run(self, image_data: BytesIO, timeout: int = 30) -> str:
+    async def run(self, image_data: BytesIO, timeout: int = 60) -> str:
         """发送图片到OCR进程并等待结果"""
         if not self._process or not self._process.is_alive():
             await self.start()
