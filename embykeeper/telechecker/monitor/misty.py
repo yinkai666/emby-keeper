@@ -52,8 +52,12 @@ class MistyMonitor(Monitor):
                                 basedir=self.basedir,
                                 proxy=self.proxy,
                             )
-                            with ocr:
-                                ocr_text = await ocr.run(data)
+                            try:
+                                with ocr:
+                                    ocr_text = await ocr.run(data)
+                            except asyncio.TimeoutError:
+                                self.log.info(f"机器人状态初始化失败, 正在重试.")
+                                continue
                             self.captcha = ocr_text.translate(
                                 str.maketrans("", "", string.punctuation)
                             ).replace(" ", "")
