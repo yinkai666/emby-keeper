@@ -109,7 +109,7 @@ services:
     image: containrrr/watchtower
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-    command: --interval 86400 embykeeper
+    command: --interval 86400 --cleanup embykeeper
     restart: unless-stopped
 ```
 

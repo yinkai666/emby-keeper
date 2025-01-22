@@ -5,7 +5,7 @@
 Embykeeper 可以通过 `docker` 部署, 您需 [安装 docker](https://yeasy.gitbook.io/docker_practice/install), 然后执行:
 
 ```bash
-docker run -v $(pwd)/embykeeper:/app --rm -it --net=host embykeeper/embykeeper -i
+docker run -v $(pwd)/embykeeper:/app --rm -it --net=host embykeeper/embykeeper
 ```
 
 ::: tip 说明
@@ -22,13 +22,17 @@ docker run -v $(pwd)/embykeeper:/app --rm -it --net=host embykeeper/embykeeper -
 docker run -v $(pwd)/embykeeper:/app --rm -it --net=host embykeeper/embykeeper -i
 ```
 
-您将被询问设备验证码以登录, 登录成功后, Embykeeper 将首先执行一次签到和保活, 此后每日进行一次签到和保活.
-
 ::: info 注意
 
-由于近期 Telegram 风控等级上升, 请尽可能先使用服务器所在地区的代理在手机上先登陆一次, 再使用 Embykeeper.
+命令行中的 `-i` 指: 启动后立刻运行一次签到和保活, 如果您需要频繁多次运行, 请去掉该命令行参数运行:
+
+```bash
+docker run -v $(pwd)/embykeeper:/app --rm -it --net=host embykeeper/embykeeper
+```
 
 :::
+
+您将被询问设备验证码以登录, 登录成功后, Embykeeper 将首先执行一次签到和保活, 此后每日进行一次签到和保活.
 
 恭喜您！您已经成功部署了 Embykeeper.
 
