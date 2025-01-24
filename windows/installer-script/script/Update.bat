@@ -2,24 +2,24 @@
 
 where powershell >nul 2>nul
 if not %errorlevel% == 0 (
-    echo Powershell ²»¿ÉÓÃ, ÄúĞèÒª°²×° Powershell ÒÔÊ¹ÓÃ¸ÃÈí¼ş.
+    echo Powershell ä¸å¯ç”¨, æ‚¨éœ€è¦å®‰è£… Powershell ä»¥ä½¿ç”¨è¯¥è½¯ä»¶.
     (((echo.%cmdcmdline%)|find /I "%~0")>nul) && pause
     exit /b 1
 )
 echo **************************************************
-echo *            ÇëµÈ´ı, ÕıÔÚ¸üĞÂ Embykeeper         *
+echo *            è¯·ç­‰å¾…, æ­£åœ¨æ›´æ–° Embykeeper         *
 echo **************************************************
 powershell Unblock-File -Path '%~dp0downloaders\download_python.ps1'
 powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0downloaders\download_python.ps1" -Version 3.8.10 -TargetDirectory "." || goto :error
 powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0downloaders\download_pip.ps1" -TargetDirectory "python-3.8.10-embed-amd64" || goto :error
-powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0downloaders\download_deps.ps1" -Update -PythonPath "python-3.8.10-embed-amd64\Scripts\python.exe" || goto :error
+powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0downloaders\download_deps.ps1" -Update -PythonPath "python-3.8.10-embed-amd64\python.exe" || goto :error
 
 echo **************************************************
-"%~dp0/python-3.8.10-embed-amd64/python.exe" -c "import embykeeper; print(f'¸üĞÂÒÑ½áÊø, µ±Ç°°æ±¾Îª: {embykeeper.__version__}')"
-(((echo.%cmdcmdline%)|find /I "%~0")>nul) && echo | set /p="Çë°´ÈÎÒâ¼üÍË³ö..." & pause>nul
+"%~dp0/python-3.8.10-embed-amd64/python.exe" -c "import embykeeper; print(f'æ›´æ–°å·²ç»“æŸ, å½“å‰ç‰ˆæœ¬ä¸º: {embykeeper.__version__}')"
+(((echo.%cmdcmdline%)|find /I "%~0")>nul) && echo | set /p="è¯·æŒ‰ä»»æ„é”®é€€å‡º..." & pause>nul
 goto :EOF
 
 :error
 echo **************************************************
-echo ·¢Éú´íÎó, ¼´½«ÍË³ö, Çë·´À¡ÒÔÉÏĞÅÏ¢.
+echo å‘ç”Ÿé”™è¯¯, å³å°†é€€å‡º, è¯·åé¦ˆä»¥ä¸Šä¿¡æ¯.
 (((echo.%cmdcmdline%)|find /I "%~0")>nul) && pause
